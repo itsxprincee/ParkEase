@@ -1,95 +1,206 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route
-} from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
+// =====================================================
+// CUSTOMER PAGES
+// =====================================================
 
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import ParkingDetails from "./pages/ParkingDetails";
-import MyBookings from "./pages/MyBookings";
-import QRCode from "./pages/QRCode";
-import OwnerDashboard from "./pages/OwnerDashboard";
-import AddParking from "./pages/AddParking";
+import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import MyBookings from "./pages/customer/MyBookings";
+import MyVehicles from "./pages/customer/MyVehicles";
+import ParkingDetails from "./pages/customer/ParkingDetails";
+import QRCode from "./pages/customer/QRCode";
+
+// =====================================================
+// OWNER PAGES
+// =====================================================
+
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import AddParking from "./pages/owner/AddParking";
+import EditParking from "./pages/owner/EditParking";
+
+// =====================================================
+// ADMIN PAGES
+// =====================================================
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminVerification from "./pages/admin/AdminVerification";
+
+// =====================================================
+// APP
+// =====================================================
 
 function App() {
-
   return (
-
     <BrowserRouter>
-
-      <Navbar />
-
       <Routes>
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+        {/* =================================================
+            DEFAULT ROUTE
+        ================================================= */}
 
         <Route
           path="/"
           element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
+            <Navigate
+              to="/customer/dashboard"
+              replace
+            />
+          }
+        />
+
+        {/* =================================================
+            CUSTOMER ROUTES
+        ================================================= */}
+
+        <Route
+          path="/customer/dashboard"
+          element={<CustomerDashboard />}
+        />
+
+        <Route
+          path="/customer/my-vehicles"
+          element={<MyVehicles />}
+        />
+
+        <Route
+          path="/customer/my-bookings"
+          element={<MyBookings />}
+        />
+
+        <Route
+          path="/customer/parking/:id"
+          element={<ParkingDetails />}
+        />
+
+        <Route
+          path="/customer/qr/:bookingId"
+          element={<QRCode />}
+        />
+
+        {/* =================================================
+            CUSTOMER COMPATIBILITY ROUTES
+        ================================================= */}
+
+        <Route
+          path="/dashboard"
+          element={
+            <Navigate
+              to="/customer/dashboard"
+              replace
+            />
           }
         />
 
         <Route
-          path="/parking/:id"
+          path="/my-vehicles"
           element={
-            <ProtectedRoute>
-              <ParkingDetails />
-            </ProtectedRoute>
+            <Navigate
+              to="/customer/my-vehicles"
+              replace
+            />
           }
         />
 
         <Route
           path="/my-bookings"
           element={
-            <ProtectedRoute>
-              <MyBookings />
-            </ProtectedRoute>
+            <Navigate
+              to="/customer/my-bookings"
+              replace
+            />
           }
         />
 
         <Route
-          path="/qr"
-          element={
-            <ProtectedRoute>
-              <QRCode />
-            </ProtectedRoute>
-          }
+          path="/parking/:id"
+          element={<ParkingDetails />}
         />
+
+        <Route
+          path="/qr/:bookingId"
+          element={<QRCode />}
+        />
+
+        {/* =================================================
+            OWNER ROUTES
+        ================================================= */}
+
+        <Route
+          path="/owner/dashboard"
+          element={<OwnerDashboard />}
+        />
+
+        <Route
+          path="/owner/add-parking"
+          element={<AddParking />}
+        />
+
+        <Route
+          path="/owner/edit-parking/:id"
+          element={<EditParking />}
+        />
+
+        {/* =================================================
+            OWNER COMPATIBILITY ROUTES
+        ================================================= */}
 
         <Route
           path="/owner"
           element={
-            <ProtectedRoute ownerOnly={true}>
-              <OwnerDashboard />
-            </ProtectedRoute>
+            <Navigate
+              to="/owner/dashboard"
+              replace
+            />
           }
         />
 
         <Route
           path="/add-parking"
           element={
-            <ProtectedRoute ownerOnly={true}>
-              <AddParking />
-            </ProtectedRoute>
+            <Navigate
+              to="/owner/add-parking"
+              replace
+            />
+          }
+        />
+
+        <Route
+          path="/edit-parking/:id"
+          element={<EditParking />}
+        />
+
+        {/* =================================================
+            ADMIN ROUTES
+        ================================================= */}
+
+        <Route
+          path="/admin/dashboard"
+          element={<AdminDashboard />}
+        />
+
+        <Route
+          path="/admin/verification"
+          element={<AdminVerification />}
+        />
+
+        {/* =================================================
+            404 / UNKNOWN ROUTE
+        ================================================= */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/customer/dashboard"
+              replace
+            />
           }
         />
 
       </Routes>
-
     </BrowserRouter>
-
   );
-
 }
 
 export default App;

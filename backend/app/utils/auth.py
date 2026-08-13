@@ -5,8 +5,13 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from app.models.user import User
+
 import os
 
+
+# =========================================================
+# SECURITY
+# =========================================================
 
 security = HTTPBearer()
 
@@ -18,6 +23,10 @@ SECRET_KEY = os.getenv(
 
 ALGORITHM = "HS256"
 
+
+# =========================================================
+# GET CURRENT USER
+# =========================================================
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -36,11 +45,17 @@ def get_current_user(
 
         user_id = payload.get("sub")
 
+        if not user_id:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token"
+            )
 
-        user = db.query(User).filter(
-            User.id == int(user_id)
-        ).first()
-
+        user = (
+            db.query(User)
+            .filter(User.id == int(user_id))
+            .first()
+        )
 
         if not user:
             raise HTTPException(
@@ -48,11 +63,14 @@ def get_current_user(
                 detail="User not found"
             )
 
-
         return user
 
+    except HTTPException:
+        raise
 
-    except Exception:
+    except Exception as error:
+
+        print("Authentication error:", error)
 
         raise HTTPException(
             status_code=401,
@@ -60,6 +78,9 @@ def get_current_user(
         )
 
 
+# =========================================================
+# ADMIN REQUIRED
+# =========================================================
 
 def admin_required(
     user: User = Depends(get_current_user)
@@ -72,8 +93,12 @@ def admin_required(
             detail="Admin access required"
         )
 
-
     return user
+
+
+# =========================================================
+# OWNER REQUIRED
+# =========================================================
 
 def owner_required(
     user: User = Depends(get_current_user)

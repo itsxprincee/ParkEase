@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database import get_db
-from app.models.parking import ParkingLocation, ParkingSlot
-from app.utils.auth import get_current_user
 from pydantic import BaseModel
+
+from database import get_db
+from app.models.parking import ParkingLocation
+from app.models.user import User
+from app.utils.auth import get_current_user, owner_required
 
 
 router = APIRouter(
@@ -11,6 +13,10 @@ router = APIRouter(
     tags=["Parking"]
 )
 
+
+# =========================================================
+# CREATE PARKING
+# =========================================================
 
 class ParkingCreate(BaseModel):
     name: str
@@ -22,55 +28,182 @@ class ParkingCreate(BaseModel):
 
 @router.post("/create")
 def create_parking(
-    parking: ParkingCreate,
+    data: ParkingCreate,
     db: Session = Depends(get_db),
-    user = Depends(get_current_user)
+    owner: User = Depends(owner_required)
 ):
 
-    new_location = ParkingLocation(
-        owner_id=user.id,
-        name=parking.name,
-        address=parking.address,
-        latitude=parking.latitude,
-        longitude=parking.longitude,
-        total_slots=parking.total_slots
-    )
-
-    db.add(new_location)
-    db.commit()
-    db.refresh(new_location)
-
-
-    for i in range(1, parking.total_slots + 1):
-
-        slot = ParkingSlot(
-            location_id=new_location.id,
-            slot_number=f"A-{i}",
-            status="available"
+    if data.total_slots <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Total slots must be greater than 0"
         )
 
-        db.add(slot)
+    parking = ParkingLocation(
+        owner_id=owner.id,
+        name=data.name,
+        address=data.address,
+        latitude=data.latitude,
+        longitude=data.longitude,
+        total_slots=data.total_slots,
+        verification_status="PENDING"
+    )
 
-
+    db.add(parking)
     db.commit()
-
+    db.refresh(parking)
 
     return {
-        "message": "Parking location created successfully",
-        "parking_id": new_location.id,
-        "owner_id": user.id,
-        "slots_created": parking.total_slots
+        "message": "Parking submitted successfully for ParkEase verification.",
+        "parking_id": parking.id,
+        "owner_id": owner.id,
+        "verification_status": parking.verification_status,
+        "verification_message":
+            "Your parking is pending verification. "
+            "ParkEase verification may take up to 24 hours."
     }
 
 
-@router.get("/")
-def get_parking_locations(
-    db: Session = Depends(get_db)
+# =========================================================
+# CUSTOMER - GET APPROVED PARKING ONLY
+# =========================================================
+
+@router.get("/approved")
+def get_approved_parking(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
 ):
 
-    locations = db.query(
-        ParkingLocation
-    ).all()
+    locations = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.verification_status == "APPROVED"
+        )
+        .order_by(ParkingLocation.id.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": location.id,
+            "name": location.name,
+            "address": location.address,
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "total_slots": location.total_slots,
+            "verification_status": location.verification_status
+        }
+        for location in locations
+    ]
 
 
-    return locations
+# =========================================================
+# CUSTOMER - GET ONE APPROVED PARKING
+# =========================================================
+
+@router.get("/{parking_id}")
+def get_parking(
+    parking_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+
+    parking = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.id == parking_id,
+            ParkingLocation.verification_status == "APPROVED"
+        )
+        .first()
+    )
+
+    if not parking:
+        raise HTTPException(
+            status_code=404,
+            detail="Parking not found or not approved"
+        )
+
+    return {
+        "id": parking.id,
+        "name": parking.name,
+        "address": parking.address,
+        "latitude": parking.latitude,
+        "longitude": parking.longitude,
+        "total_slots": parking.total_slots,
+        "verification_status": parking.verification_status
+    }
+
+
+# =========================================================
+# OWNER - GET MY PARKING
+# =========================================================
+
+@router.get("/owner/my-parking")
+def get_my_parking(
+    db: Session = Depends(get_db),
+    owner: User = Depends(owner_required)
+):
+
+    locations = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.owner_id == owner.id
+        )
+        .order_by(ParkingLocation.id.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": location.id,
+            "name": location.name,
+            "address": location.address,
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "total_slots": location.total_slots,
+            "verification_status":
+                location.verification_status,
+            "verification_submitted_at":
+                location.verification_submitted_at,
+            "verified_at":
+                location.verified_at,
+            "rejection_reason":
+                location.rejection_reason
+        }
+        for location in locations
+    ]
+
+
+# =========================================================
+# OWNER - DELETE PARKING
+# =========================================================
+
+@router.delete("/owner/{parking_id}")
+def delete_parking(
+    parking_id: int,
+    db: Session = Depends(get_db),
+    owner: User = Depends(owner_required)
+):
+
+    parking = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.id == parking_id,
+            ParkingLocation.owner_id == owner.id
+        )
+        .first()
+    )
+
+    if not parking:
+        raise HTTPException(
+            status_code=404,
+            detail="Parking not found"
+        )
+
+    db.delete(parking)
+    db.commit()
+
+    return {
+        "message": "Parking deleted successfully",
+        "parking_id": parking_id
+    }

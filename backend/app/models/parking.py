@@ -1,53 +1,148 @@
-from sqlalchemy import Column, Integer, String, Float
+from datetime import datetime
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    DateTime,
+    ForeignKey
+)
+from sqlalchemy.orm import relationship
+
 from database import Base
 
+
+# =========================================================
+# PARKING LOCATION
+# =========================================================
 
 class ParkingLocation(Base):
     __tablename__ = "parking_locations"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     owner_id = Column(
         Integer,
-        nullable=False
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True
     )
 
     name = Column(
-        String(100),
-        nullable=False
-    )
-
-    address = Column(
         String(255),
         nullable=False
     )
 
-    latitude = Column(Float)
+    address = Column(
+        String(500),
+        nullable=False
+    )
 
-    longitude = Column(Float)
+    latitude = Column(
+        Float,
+        nullable=False
+    )
+
+    longitude = Column(
+        Float,
+        nullable=False
+    )
 
     total_slots = Column(
         Integer,
+        nullable=False,
         default=0
     )
 
+    # -----------------------------------------------------
+    # VERIFICATION
+    # -----------------------------------------------------
+
+    verification_status = Column(
+        String(20),
+        nullable=False,
+        default="PENDING"
+    )
+
+    verification_submitted_at = Column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
+
+    verified_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    rejection_reason = Column(
+        String(500),
+        nullable=True
+    )
+
+    # -----------------------------------------------------
+    # RELATIONSHIPS
+    # -----------------------------------------------------
+
+    owner = relationship(
+        "User",
+        back_populates="parking_locations"
+    )
+
+    slots = relationship(
+        "ParkingSlot",
+        back_populates="parking_location",
+        cascade="all, delete-orphan"
+    )
+
+    bookings = relationship(
+        "Booking",
+        back_populates="parking_location",
+        cascade="all, delete-orphan"
+    )
+
+
+# =========================================================
+# PARKING SLOT
+# =========================================================
 
 class ParkingSlot(Base):
     __tablename__ = "parking_slots"
 
-    id = Column(Integer, primary_key=True, index=True)
-
-    location_id = Column(
+    id = Column(
         Integer,
-        nullable=False
+        primary_key=True,
+        index=True
+    )
+
+    parking_id = Column(
+        Integer,
+        ForeignKey("parking_locations.id"),
+        nullable=False,
+        index=True
     )
 
     slot_number = Column(
-        String(20),
+        String(50),
         nullable=False
     )
 
     status = Column(
         String(20),
-        default="available"
+        nullable=False,
+        default="AVAILABLE"
+    )
+
+    # -----------------------------------------------------
+    # RELATIONSHIP
+    # -----------------------------------------------------
+
+    parking_location = relationship(
+        "ParkingLocation",
+        back_populates="slots"
     )

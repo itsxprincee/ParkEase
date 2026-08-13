@@ -41,8 +41,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+
+        # Live ParkEase frontend
+        "https://itsxprincee.github.io"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -63,21 +67,10 @@ Base.metadata.create_all(
 # ROUTES
 # =========================================================
 
-app.include_router(
-    auth_router
-)
-
-app.include_router(
-    parking_router
-)
-
-app.include_router(
-    admin_router
-)
-
-app.include_router(
-    vehicle_router
-)
+app.include_router(auth_router)
+app.include_router(parking_router)
+app.include_router(admin_router)
+app.include_router(vehicle_router)
 
 
 # =========================================================

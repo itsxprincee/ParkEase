@@ -15,7 +15,6 @@ import {
   FiMenu,
   FiX,
   FiTruck,
-  FiRefreshCw,
 } from "react-icons/fi";
 
 import API from "../../api/axios";
@@ -35,52 +34,57 @@ const CustomerDashboard = () => {
     loadDashboard();
   }, []);
 
-  // =====================================================
-  // LOAD DASHBOARD DATA
-  // =====================================================
-
   const loadDashboard = async () => {
     try {
-      setLoading(true);
-
       const storedUser = localStorage.getItem("user");
 
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
 
-      const [parkingResponse, bookingResponse] = await Promise.all([
-        API.get("/parking/approved"),
-        API.get("/booking/my-bookings"),
-      ]);
+      const [parkingResponse, bookingResponse] =
+        await Promise.allSettled([
+          API.get("/parking/approved"),
+          API.get("/booking/my-bookings"),
+        ]);
 
-      if (Array.isArray(parkingResponse.data)) {
-        setParkingLocations(parkingResponse.data);
+      if (parkingResponse.status === "fulfilled") {
+        const data = parkingResponse.value.data;
+
+        if (Array.isArray(data)) {
+          setParkingLocations(data);
+        } else if (Array.isArray(data?.locations)) {
+          setParkingLocations(data.locations);
+        } else if (Array.isArray(data?.parking_locations)) {
+          setParkingLocations(data.parking_locations);
+        }
       } else {
-        setParkingLocations([]);
+        console.error(
+          "Failed to load parking:",
+          parkingResponse.reason
+        );
       }
 
-      if (Array.isArray(bookingResponse.data)) {
-        setBookings(bookingResponse.data);
+      if (bookingResponse.status === "fulfilled") {
+        const data = bookingResponse.value.data;
+
+        if (Array.isArray(data)) {
+          setBookings(data);
+        } else if (Array.isArray(data?.bookings)) {
+          setBookings(data.bookings);
+        }
       } else {
-        setBookings([]);
+        console.error(
+          "Failed to load bookings:",
+          bookingResponse.reason
+        );
       }
     } catch (error) {
       console.error("Dashboard loading error:", error);
-
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/login");
-      }
     } finally {
       setLoading(false);
     }
   };
-
-  // =====================================================
-  // LOGOUT
-  // =====================================================
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -88,10 +92,6 @@ const CustomerDashboard = () => {
 
     navigate("/login");
   };
-
-  // =====================================================
-  // USER NAME
-  // =====================================================
 
   const getUserName = () => {
     if (!user) return "Customer";
@@ -105,43 +105,33 @@ const CustomerDashboard = () => {
     );
   };
 
-  // =====================================================
-  // SEARCH PARKING
-  // =====================================================
-
   const filteredParking = parkingLocations.filter((parking) => {
     const searchText = search.toLowerCase();
 
     return (
       parking.name?.toLowerCase().includes(searchText) ||
+      parking.location?.toLowerCase().includes(searchText) ||
       parking.address?.toLowerCase().includes(searchText)
     );
   });
-
-  // =====================================================
-  // BOOKING STATS
-  // =====================================================
 
   const activeBookings = bookings.filter((booking) => {
     const status = booking.status?.toLowerCase();
 
     return (
-      status === "booked" ||
       status === "active" ||
+      status === "booked" ||
       status === "confirmed" ||
       status === "upcoming"
     );
   });
 
   const completedBookings = bookings.filter(
-    (booking) => booking.status?.toLowerCase() === "completed"
+    (booking) =>
+      booking.status?.toLowerCase() === "completed"
   );
 
   const upcomingBooking = activeBookings[0];
-
-  // =====================================================
-  // HELPERS
-  // =====================================================
 
   const getAvailableSlots = (parking) => {
     if (parking.available_slots !== undefined) {
@@ -152,61 +142,37 @@ const CustomerDashboard = () => {
       return parking.available;
     }
 
-    return parking.total_slots || 0;
+    if (parking.total_slots !== undefined) {
+      return parking.total_slots;
+    }
+
+    return "--";
   };
 
   const getTotalSlots = (parking) => {
-    return parking.total_slots || 0;
+    return (
+      parking.total_slots ||
+      parking.totalSlots ||
+      parking.slots ||
+      "--"
+    );
   };
 
   const getParkingName = (parking) => {
-    return parking.name || "Parking Location";
+    return (
+      parking.name ||
+      parking.parking_name ||
+      parking.title ||
+      "Parking Location"
+    );
   };
 
   const getParkingAddress = (parking) => {
-    return parking.address || "Location available";
-  };
-
-  // =====================================================
-  // FIND PARKING
-  // =====================================================
-
-  const handleFindParking = () => {
-    navigate("/customer/parking");
-  };
-
-  // =====================================================
-  // OPEN PARKING DETAILS
-  // =====================================================
-
-  const openParking = (parking) => {
-    navigate(`/customer/parking/${parking.id}`);
-  };
-
-  // =====================================================
-  // NEARBY PARKING
-  // =====================================================
-
-  const handleNearbyParking = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
-      navigate("/customer/parking");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log("Current location:", {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-
-        navigate("/customer/parking");
-      },
-      () => {
-        alert("Unable to access your location.");
-        navigate("/customer/parking");
-      }
+    return (
+      parking.address ||
+      parking.location ||
+      parking.area ||
+      "Location available"
     );
   };
 
@@ -236,7 +202,6 @@ const CustomerDashboard = () => {
             mobileMenu ? "show" : ""
           }`}
         >
-
           <button
             className="nav-link active"
             onClick={() => {
@@ -260,7 +225,12 @@ const CustomerDashboard = () => {
           <button
             className="nav-link"
             onClick={() => {
-              handleFindParking();
+              document
+                .getElementById("parking-section")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                });
+
               setMobileMenu(false);
             }}
           >
@@ -277,17 +247,18 @@ const CustomerDashboard = () => {
             <FiTruck />
             My Vehicles
           </button>
-
         </nav>
 
         <div className="navbar-right">
 
           <button
             className="profile-button"
-            onClick={() => navigate("/customer/profile")}
+            onClick={() => navigate("/profile")}
           >
             <div className="profile-avatar">
-              {getUserName().charAt(0).toUpperCase()}
+              {getUserName()
+                .charAt(0)
+                .toUpperCase()}
             </div>
 
             <div className="profile-info">
@@ -306,7 +277,9 @@ const CustomerDashboard = () => {
 
           <button
             className="mobile-menu-button"
-            onClick={() => setMobileMenu(!mobileMenu)}
+            onClick={() =>
+              setMobileMenu(!mobileMenu)
+            }
           >
             {mobileMenu ? <FiX /> : <FiMenu />}
           </button>
@@ -343,7 +316,13 @@ const CustomerDashboard = () => {
 
           <button
             className="find-parking-button"
-            onClick={handleFindParking}
+            onClick={() =>
+              document
+                .getElementById("parking-section")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
           >
             <FiMapPin />
             Find Parking
@@ -364,7 +343,9 @@ const CustomerDashboard = () => {
               type="text"
               placeholder="Search parking by name or location..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
             />
 
             {search && (
@@ -380,7 +361,13 @@ const CustomerDashboard = () => {
 
           <button
             className="location-button"
-            onClick={handleNearbyParking}
+            onClick={() =>
+              document
+                .getElementById("parking-section")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
           >
             <FiNavigation />
             Nearby
@@ -394,7 +381,9 @@ const CustomerDashboard = () => {
 
           <div
             className="stat-card"
-            onClick={() => navigate("/customer/my-bookings")}
+            onClick={() =>
+              navigate("/customer/my-bookings")
+            }
             style={{ cursor: "pointer" }}
           >
 
@@ -411,7 +400,9 @@ const CustomerDashboard = () => {
 
           <div
             className="stat-card"
-            onClick={() => navigate("/customer/my-bookings")}
+            onClick={() =>
+              navigate("/customer/my-bookings")
+            }
             style={{ cursor: "pointer" }}
           >
 
@@ -421,14 +412,18 @@ const CustomerDashboard = () => {
 
             <div>
               <span>Active Bookings</span>
-              <strong>{activeBookings.length}</strong>
+              <strong>
+                {activeBookings.length}
+              </strong>
             </div>
 
           </div>
 
           <div
             className="stat-card"
-            onClick={() => navigate("/customer/my-bookings")}
+            onClick={() =>
+              navigate("/customer/my-bookings")
+            }
             style={{ cursor: "pointer" }}
           >
 
@@ -438,14 +433,22 @@ const CustomerDashboard = () => {
 
             <div>
               <span>Completed</span>
-              <strong>{completedBookings.length}</strong>
+              <strong>
+                {completedBookings.length}
+              </strong>
             </div>
 
           </div>
 
           <div
             className="stat-card"
-            onClick={handleFindParking}
+            onClick={() =>
+              document
+                .getElementById("parking-section")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
             style={{ cursor: "pointer" }}
           >
 
@@ -455,7 +458,9 @@ const CustomerDashboard = () => {
 
             <div>
               <span>Parking Locations</span>
-              <strong>{parkingLocations.length}</strong>
+              <strong>
+                {parkingLocations.length}
+              </strong>
             </div>
 
           </div>
@@ -465,7 +470,6 @@ const CustomerDashboard = () => {
         {/* ================= ACTIVE BOOKING ================= */}
 
         {upcomingBooking && (
-
           <section className="active-booking-section">
 
             <div className="section-heading">
@@ -477,7 +481,7 @@ const CustomerDashboard = () => {
                 </span>
 
                 <h2>
-                  Current Parking
+                  Upcoming Parking
                 </h2>
 
               </div>
@@ -505,12 +509,15 @@ const CustomerDashboard = () => {
 
                   <h3>
                     {upcomingBooking.parking_name ||
+                      upcomingBooking.location_name ||
                       `Parking #${upcomingBooking.parking_id}`}
                   </h3>
 
                   <p>
                     <FiMapPin />
-                    Booking ID #{upcomingBooking.id}
+                    {upcomingBooking.address ||
+                      upcomingBooking.location ||
+                      "Parking location"}
                   </p>
 
                 </div>
@@ -523,7 +530,9 @@ const CustomerDashboard = () => {
                   <span>Date</span>
 
                   <strong>
-                    {upcomingBooking.booking_date || "--"}
+                    {upcomingBooking.date ||
+                      upcomingBooking.booking_date ||
+                      "--"}
                   </strong>
                 </div>
 
@@ -531,7 +540,9 @@ const CustomerDashboard = () => {
                   <span>Time</span>
 
                   <strong>
-                    {upcomingBooking.start_time || "--"}
+                    {upcomingBooking.time ||
+                      upcomingBooking.start_time ||
+                      "--"}
                   </strong>
                 </div>
 
@@ -539,7 +550,7 @@ const CustomerDashboard = () => {
                   <span>Status</span>
 
                   <strong className="status-active">
-                    {upcomingBooking.status || "Booked"}
+                    {upcomingBooking.status}
                   </strong>
                 </div>
 
@@ -557,12 +568,14 @@ const CustomerDashboard = () => {
             </div>
 
           </section>
-
         )}
 
         {/* ================= PARKING LOCATIONS ================= */}
 
-        <section className="parking-section">
+        <section
+          className="parking-section"
+          id="parking-section"
+        >
 
           <div className="section-heading">
 
@@ -579,14 +592,6 @@ const CustomerDashboard = () => {
               </h2>
 
             </div>
-
-            <button
-              onClick={handleFindParking}
-              className="view-all-button"
-            >
-              View all
-              <FiArrowRight />
-            </button>
 
           </div>
 
@@ -615,16 +620,9 @@ const CustomerDashboard = () => {
               </h3>
 
               <p>
-                Try another search or explore all
-                available parking spaces.
+                Try another search to find available
+                parking spaces.
               </p>
-
-              <button
-                onClick={handleFindParking}
-              >
-                Explore Parking
-                <FiArrowRight />
-              </button>
 
             </div>
 
@@ -634,12 +632,21 @@ const CustomerDashboard = () => {
 
               {filteredParking
                 .slice(0, 6)
-                .map((parking) => (
+                .map((parking, index) => (
 
                   <div
                     className="parking-card"
-                    key={parking.id}
-                    onClick={() => openParking(parking)}
+                    key={
+                      parking.id || index
+                    }
+                    onClick={() =>
+                      navigate(
+                        `/customer/parking/${
+                          parking.id ||
+                          parking.location_id
+                        }`
+                      )
+                    }
                   >
 
                     <div className="parking-card-top">
@@ -683,7 +690,13 @@ const CustomerDashboard = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            openParking(parking);
+
+                            navigate(
+                              `/customer/parking/${
+                                parking.id ||
+                                parking.location_id
+                              }`
+                            );
                           }}
                         >
                           Book
@@ -704,174 +717,6 @@ const CustomerDashboard = () => {
 
         </section>
 
-        {/* ================= QUICK ACTIONS ================= */}
-
-        <section className="quick-actions-section">
-
-          <div className="section-heading">
-
-            <div>
-
-              <span className="section-label">
-                QUICK ACTIONS
-              </span>
-
-              <h2>
-                What would you like to do?
-              </h2>
-
-            </div>
-
-            <button
-              onClick={loadDashboard}
-              className="view-all-button"
-              title="Refresh Dashboard"
-            >
-              <FiRefreshCw />
-              Refresh
-            </button>
-
-          </div>
-
-          <div className="quick-actions-grid">
-
-            {/* FIND PARKING */}
-
-            <button
-              className="quick-action"
-              onClick={handleFindParking}
-            >
-
-              <div className="quick-action-icon">
-                <FiMapPin />
-              </div>
-
-              <div>
-                <strong>
-                  Find Parking
-                </strong>
-
-                <span>
-                  Explore nearby parking
-                </span>
-              </div>
-
-              <FiChevronRight />
-
-            </button>
-
-            {/* MY BOOKINGS */}
-
-            <button
-              className="quick-action"
-              onClick={() =>
-                navigate("/customer/my-bookings")
-              }
-            >
-
-              <div className="quick-action-icon">
-                <FiCalendar />
-              </div>
-
-              <div>
-                <strong>
-                  My Bookings
-                </strong>
-
-                <span>
-                  Manage your reservations
-                </span>
-              </div>
-
-              <FiChevronRight />
-
-            </button>
-
-            {/* MY VEHICLES */}
-
-            <button
-              className="quick-action"
-              onClick={() =>
-                navigate("/customer/my-vehicles")
-              }
-            >
-
-              <div className="quick-action-icon">
-                <FiTruck />
-              </div>
-
-              <div>
-                <strong>
-                  My Vehicles
-                </strong>
-
-                <span>
-                  Add and manage your vehicles
-                </span>
-              </div>
-
-              <FiChevronRight />
-
-            </button>
-
-            {/* PARKING QR */}
-
-            <button
-              className="quick-action"
-              onClick={() =>
-                navigate("/customer/qr")
-              }
-            >
-
-              <div className="quick-action-icon">
-                <FiCheckCircle />
-              </div>
-
-              <div>
-                <strong>
-                  Parking QR
-                </strong>
-
-                <span>
-                  Access your booking QR
-                </span>
-              </div>
-
-              <FiChevronRight />
-
-            </button>
-
-            {/* MY PROFILE */}
-
-            <button
-              className="quick-action"
-              onClick={() =>
-                navigate("/customer/profile")
-              }
-            >
-
-              <div className="quick-action-icon">
-                <FiUser />
-              </div>
-
-              <div>
-                <strong>
-                  My Profile
-                </strong>
-
-                <span>
-                  Manage your account
-                </span>
-              </div>
-
-              <FiChevronRight />
-
-            </button>
-
-          </div>
-
-        </section>
-
       </main>
 
       {/* ================= FOOTER ================= */}
@@ -885,7 +730,6 @@ const CustomerDashboard = () => {
           </div>
 
           <div>
-
             <strong>
               ParkEase
             </strong>
@@ -893,7 +737,6 @@ const CustomerDashboard = () => {
             <span>
               Smart Parking Management
             </span>
-
           </div>
 
         </div>
@@ -902,14 +745,6 @@ const CustomerDashboard = () => {
           © {new Date().getFullYear()} ParkEase.
           All rights reserved.
         </p>
-
-        <button
-          onClick={handleLogout}
-          className="footer-logout"
-        >
-          <FiLogOut />
-          Logout
-        </button>
 
       </footer>
 

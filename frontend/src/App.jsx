@@ -1,5 +1,23 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+// =====================================================
+// AUTH PAGES
+// =====================================================
+
+import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
+
+// =====================================================
+// COMPONENTS
+// =====================================================
+
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // =====================================================
 // CUSTOMER PAGES
@@ -10,6 +28,7 @@ import MyBookings from "./pages/customer/MyBookings";
 import MyVehicles from "./pages/customer/MyVehicles";
 import ParkingDetails from "./pages/customer/ParkingDetails";
 import QRCode from "./pages/customer/QRCode";
+import Profile from "./pages/customer/Profile";
 
 // =====================================================
 // OWNER PAGES
@@ -18,6 +37,7 @@ import QRCode from "./pages/customer/QRCode";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import AddParking from "./pages/owner/AddParking";
 import EditParking from "./pages/owner/EditParking";
+import ScanQR from "./pages/owner/ScanQR";
 
 // =====================================================
 // ADMIN PAGES
@@ -35,68 +55,162 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* =================================================
+        {/* =====================================================
             DEFAULT ROUTE
-        ================================================= */}
+        ===================================================== */}
 
         <Route
           path="/"
-          element={
-            <Navigate
-              to="/customer/dashboard"
-              replace
-            />
-          }
+          element={<Navigate to="/login" replace />}
         />
 
-        {/* =================================================
+        {/* =====================================================
+            AUTH ROUTES
+        ===================================================== */}
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+
+        {/* =====================================================
             CUSTOMER ROUTES
-        ================================================= */}
+        ===================================================== */}
 
         <Route
           path="/customer/dashboard"
-          element={<CustomerDashboard />}
-        />
-
-        <Route
-          path="/customer/my-vehicles"
-          element={<MyVehicles />}
+          element={
+            <ProtectedRoute>
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/customer/my-bookings"
-          element={<MyBookings />}
+          element={
+            <ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer/my-vehicles"
+          element={
+            <ProtectedRoute>
+              <MyVehicles />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/customer/parking/:id"
-          element={<ParkingDetails />}
+          element={
+            <ProtectedRoute>
+              <ParkingDetails />
+            </ProtectedRoute>
+          }
         />
 
         <Route
-          path="/customer/qr/:bookingId"
-          element={<QRCode />}
+          path="/customer/qr"
+          element={
+            <ProtectedRoute>
+              <QRCode />
+            </ProtectedRoute>
+          }
         />
 
-        {/* =================================================
-            CUSTOMER COMPATIBILITY ROUTES
-        ================================================= */}
+        {/* =====================================================
+            CUSTOMER PROFILE
+        ===================================================== */}
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================================
+            OWNER ROUTES
+        ===================================================== */}
+
+        <Route
+          path="/owner"
+          element={
+            <ProtectedRoute ownerOnly>
+              <OwnerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/owner/add-parking"
+          element={
+            <ProtectedRoute ownerOnly>
+              <AddParking />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/owner/edit-parking/:id"
+          element={
+            <ProtectedRoute ownerOnly>
+              <EditParking />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/owner/scan-qr"
+          element={
+            <ProtectedRoute ownerOnly>
+              <ScanQR />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================================
+            ADMIN ROUTES
+        ===================================================== */}
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/verification"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminVerification />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================================
+            OLD ROUTES
+        ===================================================== */}
 
         <Route
           path="/dashboard"
           element={
             <Navigate
               to="/customer/dashboard"
-              replace
-            />
-          }
-        />
-
-        <Route
-          path="/my-vehicles"
-          element={
-            <Navigate
-              to="/customer/my-vehicles"
               replace
             />
           }
@@ -113,86 +227,44 @@ function App() {
         />
 
         <Route
+          path="/my-vehicles"
+          element={
+            <Navigate
+              to="/customer/my-vehicles"
+              replace
+            />
+          }
+        />
+
+        <Route
           path="/parking/:id"
-          element={<ParkingDetails />}
-        />
-
-        <Route
-          path="/qr/:bookingId"
-          element={<QRCode />}
-        />
-
-        {/* =================================================
-            OWNER ROUTES
-        ================================================= */}
-
-        <Route
-          path="/owner/dashboard"
-          element={<OwnerDashboard />}
-        />
-
-        <Route
-          path="/owner/add-parking"
-          element={<AddParking />}
-        />
-
-        <Route
-          path="/owner/edit-parking/:id"
-          element={<EditParking />}
-        />
-
-        {/* =================================================
-            OWNER COMPATIBILITY ROUTES
-        ================================================= */}
-
-        <Route
-          path="/owner"
           element={
             <Navigate
-              to="/owner/dashboard"
+              to="/customer/dashboard"
               replace
             />
           }
         />
 
         <Route
-          path="/add-parking"
+          path="/qr"
           element={
             <Navigate
-              to="/owner/add-parking"
+              to="/customer/qr"
               replace
             />
           }
         />
 
-        <Route
-          path="/edit-parking/:id"
-          element={<EditParking />}
-        />
-
-        {/* =================================================
-            ADMIN ROUTES
-        ================================================= */}
-
-        <Route
-          path="/admin/dashboard"
-          element={<AdminDashboard />}
-        />
-
-        <Route
-          path="/admin/verification"
-          element={<AdminVerification />}
-        />
-
-        {/* =================================================
-            404 / UNKNOWN ROUTE
-        ================================================= */}
+        {/* =====================================================
+            PAGE NOT FOUND
+        ===================================================== */}
 
         <Route
           path="*"
           element={
             <Navigate
-              to="/customer/dashboard"
+              to="/login"
               replace
             />
           }

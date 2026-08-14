@@ -3,8 +3,13 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+from urllib.parse import quote_plus
 
-# Load .env file for local development
+
+# =========================================================
+# LOAD ENVIRONMENT VARIABLES
+# =========================================================
+
 load_dotenv()
 
 
@@ -12,38 +17,19 @@ load_dotenv()
 # DATABASE CONFIGURATION
 # =========================================================
 
-# Railway MySQL variables
-# Falls back to local .env variables for local development
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME", "parkease")
 
-DB_USER = (
-    os.getenv("MYSQLUSER")
-    or os.getenv("DB_USER")
-    or "root"
-)
 
-DB_PASSWORD = (
-    os.getenv("MYSQLPASSWORD")
-    or os.getenv("DB_PASSWORD")
-    or "123456"
-)
+# =========================================================
+# ENCODE PASSWORD
+# Handles special characters like @, #, :, /
+# =========================================================
 
-DB_HOST = (
-    os.getenv("MYSQLHOST")
-    or os.getenv("DB_HOST")
-    or "127.0.0.1"
-)
-
-DB_PORT = (
-    os.getenv("MYSQLPORT")
-    or os.getenv("DB_PORT")
-    or "3306"
-)
-
-DB_NAME = (
-    os.getenv("MYSQLDATABASE")
-    or os.getenv("DB_NAME")
-    or "parkease"
-)
+ENCODED_PASSWORD = quote_plus(DB_PASSWORD)
 
 
 # =========================================================
@@ -51,8 +37,7 @@ DB_NAME = (
 # =========================================================
 
 DATABASE_URL = (
-    f"mysql+pymysql://"
-    f"{DB_USER}:{DB_PASSWORD}"
+    f"mysql+pymysql://{DB_USER}:{ENCODED_PASSWORD}"
     f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
@@ -75,7 +60,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine,
+    bind=engine
 )
 
 

@@ -10,6 +10,10 @@ function ProtectedRoute({
   const token = localStorage.getItem("token");
   const userData = localStorage.getItem("user");
 
+  // =====================================================
+  // USER NOT LOGGED IN
+  // =====================================================
+
   if (!token || !userData) {
     return (
       <Navigate
@@ -28,13 +32,6 @@ function ProtectedRoute({
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    return <Navigate to="/login" replace />;
-  }
-
-  const role = user?.role;
-
-  // ADMIN
-  if (adminOnly && role !== "admin") {
     return (
       <Navigate
         to="/login"
@@ -43,7 +40,34 @@ function ProtectedRoute({
     );
   }
 
-  // OWNER
+  const role = user?.role;
+
+  // =====================================================
+  // ADMIN ONLY ROUTE
+  // =====================================================
+
+  if (adminOnly && role !== "admin") {
+    if (role === "owner") {
+      return (
+        <Navigate
+          to="/owner"
+          replace
+        />
+      );
+    }
+
+    return (
+      <Navigate
+        to="/customer/dashboard"
+        replace
+      />
+    );
+  }
+
+  // =====================================================
+  // OWNER ONLY ROUTE
+  // =====================================================
+
   if (ownerOnly && !["owner", "admin"].includes(role)) {
     return (
       <Navigate
@@ -53,25 +77,33 @@ function ProtectedRoute({
     );
   }
 
-  // CUSTOMER
-  if (!ownerOnly && !adminOnly && role === "owner") {
-    return (
-      <Navigate
-        to="/owner/dashboard"
-        replace
-      />
-    );
+  // =====================================================
+  // NORMAL CUSTOMER ROUTES
+  // =====================================================
+
+  if (!ownerOnly && !adminOnly) {
+    if (role === "owner") {
+      return (
+        <Navigate
+          to="/owner"
+          replace
+        />
+      );
+    }
+
+    if (role === "admin") {
+      return (
+        <Navigate
+          to="/admin"
+          replace
+        />
+      );
+    }
   }
 
-  // CUSTOMER trying admin
-  if (!adminOnly && role === "admin") {
-    return (
-      <Navigate
-        to="/admin/verification"
-        replace
-      />
-    );
-  }
+  // =====================================================
+  // ALLOW ACCESS
+  // =====================================================
 
   return children;
 }

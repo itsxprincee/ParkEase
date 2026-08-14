@@ -179,7 +179,7 @@ function Login() {
           name: data.name,
           email:
             data.email ||
-            signinEmail,
+            signinEmail.trim(),
           role:
             data.role ||
             "customer",
@@ -191,9 +191,13 @@ function Login() {
         JSON.stringify(user)
       );
 
+      // =====================================================
+      // ROLE BASED REDIRECT
+      // =====================================================
+
       if (user.role === "admin") {
         navigate(
-          "/admin/verification",
+          "/admin",
           {
             replace: true,
           }
@@ -202,7 +206,7 @@ function Login() {
         user.role === "owner"
       ) {
         navigate(
-          "/owner/dashboard",
+          "/owner",
           {
             replace: true,
           }
@@ -507,6 +511,8 @@ function Login() {
       );
 
       setTimeout(() => {
+        const registeredEmail = email.trim();
+
         resetSignup();
 
         setMode(
@@ -514,7 +520,7 @@ function Login() {
         );
 
         setSigninEmail(
-          email.trim()
+          registeredEmail
         );
 
         setSuccess(
@@ -786,32 +792,17 @@ function Login() {
       return "Create a secure password for your ParkEase account.";
     };
 
-  // =========================================================
-  // RETURN
-  // =========================================================
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center px-4 py-8">
 
-      {/* BACKGROUND */}
-
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-
         <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-
       </div>
-
-      {/* MAIN CARD */}
 
       <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         <div className="grid md:grid-cols-2">
-
-          {/* =================================================
-              LEFT BRAND
-          ================================================= */}
 
           <div className="hidden md:flex relative bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 p-12 text-white flex-col justify-between">
 
@@ -820,15 +811,12 @@ function Login() {
               <div className="flex items-center gap-3 mb-12">
 
                 <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20">
-
                   <span className="text-2xl font-black">
                     P
                   </span>
-
                 </div>
 
                 <div>
-
                   <h1 className="text-2xl font-bold">
                     ParkEase
                   </h1>
@@ -836,28 +824,22 @@ function Login() {
                   <p className="text-blue-200 text-xs">
                     Smart Parking Management
                   </p>
-
                 </div>
 
               </div>
 
               <h2 className="text-4xl font-bold leading-tight">
-
                 Parking made
                 <br />
-
                 <span className="text-blue-200">
                   simple.
                 </span>
-
               </h2>
 
               <p className="mt-6 text-blue-100 leading-relaxed max-w-md">
-
                 Find parking, reserve your slot,
                 manage your parking location and
                 enjoy a smarter parking experience.
-
               </p>
 
               <div className="mt-10 space-y-5">
@@ -890,13 +872,7 @@ function Login() {
 
           </div>
 
-          {/* =================================================
-              RIGHT SECTION
-          ================================================= */}
-
           <div className="p-7 sm:p-10 md:p-12">
-
-            {/* MOBILE LOGO */}
 
             <div className="md:hidden flex items-center gap-3 mb-8">
 
@@ -905,7 +881,6 @@ function Login() {
               </div>
 
               <div>
-
                 <h1 className="text-xl font-bold text-gray-900">
                   ParkEase
                 </h1>
@@ -913,46 +888,31 @@ function Login() {
                 <p className="text-xs text-gray-500">
                   Smart Parking
                 </p>
-
               </div>
 
             </div>
 
-            {/* HEADING */}
-
             <div className="mb-7">
 
               <h2 className="text-3xl font-bold text-gray-900">
-
                 {isSignUp
                   ? getStepTitle()
                   : "Welcome back"}
-
               </h2>
 
               <p className="text-gray-500 mt-2 leading-relaxed">
-
                 {isSignUp
                   ? getStepDescription()
                   : "Sign in to continue to your ParkEase account."}
-
               </p>
 
             </div>
-
-            {/* =================================================
-                MODE SWITCH
-            ================================================= */}
 
             <div className="flex bg-gray-100 rounded-xl p-1 mb-7">
 
               <button
                 type="button"
-                onClick={() =>
-                  switchMode(
-                    "signin"
-                  )
-                }
+                onClick={() => switchMode("signin")}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   !isSignUp
                     ? "bg-white text-blue-600 shadow-sm"
@@ -964,11 +924,7 @@ function Login() {
 
               <button
                 type="button"
-                onClick={() =>
-                  switchMode(
-                    "signup"
-                  )
-                }
+                onClick={() => switchMode("signup")}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
                   isSignUp
                     ? "bg-white text-blue-600 shadow-sm"
@@ -980,10 +936,6 @@ function Login() {
 
             </div>
 
-            {/* =================================================
-                SIGNUP PROGRESS
-            ================================================= */}
-
             {isSignUp && (
 
               <div className="mb-8">
@@ -994,12 +946,10 @@ function Login() {
                     (step, index) => {
 
                       const completed =
-                        signupStep >
-                        step;
+                        signupStep > step;
 
                       const active =
-                        signupStep ===
-                        step;
+                        signupStep === step;
 
                       return (
                         <div
@@ -1016,25 +966,17 @@ function Login() {
                                 : "bg-gray-100 text-gray-400"
                             }`}
                           >
-
-                            {completed
-                              ? "✓"
-                              : step}
-
+                            {completed ? "✓" : step}
                           </div>
 
-                          {index <
-                            4 && (
-
+                          {index < 4 && (
                             <div
                               className={`h-1 flex-1 mx-1 rounded-full transition-all ${
-                                signupStep >
-                                step
+                                signupStep > step
                                   ? "bg-blue-600"
                                   : "bg-gray-100"
                               }`}
                             />
-
                           )}
 
                         </div>
@@ -1045,43 +987,20 @@ function Login() {
                 </div>
 
                 <div className="flex justify-between mt-2">
-
-                  <span className="text-[10px] text-gray-400">
-                    Details
-                  </span>
-
-                  <span className="text-[10px] text-gray-400">
-                    Role
-                  </span>
-
-                  <span className="text-[10px] text-gray-400">
-                    Email
-                  </span>
-
-                  <span className="text-[10px] text-gray-400">
-                    Verify
-                  </span>
-
-                  <span className="text-[10px] text-gray-400">
-                    Password
-                  </span>
-
+                  <span className="text-[10px] text-gray-400">Details</span>
+                  <span className="text-[10px] text-gray-400">Role</span>
+                  <span className="text-[10px] text-gray-400">Email</span>
+                  <span className="text-[10px] text-gray-400">Verify</span>
+                  <span className="text-[10px] text-gray-400">Password</span>
                 </div>
 
               </div>
-
             )}
-
-            {/* =================================================
-                SIGN IN FORM
-            ================================================= */}
 
             {!isSignUp && (
 
               <form
-                onSubmit={
-                  handleLogin
-                }
+                onSubmit={handleLogin}
                 className="space-y-5"
               >
 
@@ -1093,13 +1012,9 @@ function Login() {
 
                   <input
                     type="email"
-                    value={
-                      signinEmail
-                    }
+                    value={signinEmail}
                     onChange={(e) =>
-                      setSigninEmail(
-                        e.target.value
-                      )
+                      setSigninEmail(e.target.value)
                     }
                     placeholder="you@example.com"
                     autoComplete="email"
@@ -1121,23 +1036,10 @@ function Login() {
                       type="button"
                       className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                       onClick={() => {
-
-                        setForgotEmail(
-                          signinEmail
-                        );
-
-                        setForgotError(
-                          ""
-                        );
-
-                        setForgotSuccess(
-                          ""
-                        );
-
-                        setShowForgotPassword(
-                          true
-                        );
-
+                        setForgotEmail(signinEmail);
+                        setForgotError("");
+                        setForgotSuccess("");
+                        setShowForgotPassword(true);
                       }}
                     >
                       Forgot password?
@@ -1153,13 +1055,9 @@ function Login() {
                           ? "text"
                           : "password"
                       }
-                      value={
-                        signinPassword
-                      }
+                      value={signinPassword}
                       onChange={(e) =>
-                        setSigninPassword(
-                          e.target.value
-                        )
+                        setSigninPassword(e.target.value)
                       }
                       placeholder="Enter your password"
                       autoComplete="current-password"
@@ -1204,30 +1102,21 @@ function Login() {
                   disabled={loading}
                   className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-
                   {loading ? (
                     <LoadingText text="Signing in..." />
                   ) : (
                     "Sign In"
                   )}
-
                 </button>
 
               </form>
             )}
 
-            {/* =================================================
-                SIGNUP FORM
-            ================================================= */}
-
             {isSignUp && (
 
               <div className="space-y-5">
 
-                {/* STEP 1 */}
-
                 {signupStep === 1 && (
-
                   <div>
 
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -1238,9 +1127,7 @@ function Login() {
                       type="text"
                       value={name}
                       onChange={(e) =>
-                        setName(
-                          e.target.value
-                        )
+                        setName(e.target.value)
                       }
                       placeholder="Enter your full name"
                       autoComplete="name"
@@ -1249,53 +1136,36 @@ function Login() {
                     />
 
                   </div>
-
                 )}
-
-                {/* STEP 2 */}
 
                 {signupStep === 2 && (
 
                   <div className="space-y-3">
 
                     <RoleCard
-                      selected={
-                        role ===
-                        "customer"
-                      }
+                      selected={role === "customer"}
                       icon="🚗"
                       title="Customer"
                       description="Find and book parking spaces"
                       onClick={() =>
-                        setRole(
-                          "customer"
-                        )
+                        setRole("customer")
                       }
                     />
 
                     <RoleCard
-                      selected={
-                        role ===
-                        "owner"
-                      }
+                      selected={role === "owner"}
                       icon="🅿️"
                       title="Parking Owner"
                       description="List and manage your parking"
                       onClick={() =>
-                        setRole(
-                          "owner"
-                        )
+                        setRole("owner")
                       }
                     />
 
                   </div>
-
                 )}
 
-                {/* STEP 3 */}
-
                 {signupStep === 3 && (
-
                   <div>
 
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -1306,9 +1176,7 @@ function Login() {
                       type="email"
                       value={email}
                       onChange={(e) =>
-                        setEmail(
-                          e.target.value
-                        )
+                        setEmail(e.target.value)
                       }
                       placeholder="you@example.com"
                       autoComplete="email"
@@ -1317,7 +1185,6 @@ function Login() {
                     />
 
                     <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
-
                       <span className="text-blue-600">
                         🔒
                       </span>
@@ -1325,14 +1192,10 @@ function Login() {
                       <span>
                         We'll use this email to verify your account.
                       </span>
-
                     </div>
 
                   </div>
-
                 )}
-
-                {/* STEP 4 */}
 
                 {signupStep === 4 && (
 
@@ -1397,53 +1260,40 @@ function Login() {
                     <div className="text-center">
 
                       <p className="text-sm text-gray-500">
-
                         Didn't receive the code?
-
                       </p>
 
                       <button
                         type="button"
                         disabled={
-                          resendTimer >
-                            0 ||
+                          resendTimer > 0 ||
                           resendLoading
                         }
-                        onClick={
-                          resendSignupOTP
-                        }
+                        onClick={resendSignupOTP}
                         className={`mt-1 text-sm font-semibold ${
-                          resendTimer >
-                            0 ||
+                          resendTimer > 0 ||
                           resendLoading
                             ? "text-gray-400 cursor-not-allowed"
                             : "text-blue-600 hover:text-blue-700"
                         }`}
                       >
-
                         {resendLoading
                           ? "Sending..."
-                          : resendTimer >
-                            0
+                          : resendTimer > 0
                           ? `Resend OTP in ${resendTimer}s`
                           : "Resend OTP"}
-
                       </button>
 
                     </div>
 
                   </div>
-
                 )}
-
-                {/* STEP 5 */}
 
                 {signupStep === 5 && (
 
                   <div className="space-y-5">
 
                     {emailVerified && (
-
                       <div className="flex items-center gap-3 p-3.5 bg-green-50 border border-green-200 rounded-xl">
 
                         <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">
@@ -1463,7 +1313,6 @@ function Login() {
                         </div>
 
                       </div>
-
                     )}
 
                     <div>
@@ -1480,13 +1329,9 @@ function Login() {
                               ? "text"
                               : "password"
                           }
-                          value={
-                            password
-                          }
+                          value={password}
                           onChange={(e) =>
-                            setPassword(
-                              e.target.value
-                            )
+                            setPassword(e.target.value)
                           }
                           placeholder="Create a password"
                           autoComplete="new-password"
@@ -1530,9 +1375,7 @@ function Login() {
                               ? "text"
                               : "password"
                           }
-                          value={
-                            confirmPassword
-                          }
+                          value={confirmPassword}
                           onChange={(e) =>
                             setConfirmPassword(
                               e.target.value
@@ -1562,10 +1405,7 @@ function Login() {
                     </div>
 
                   </div>
-
                 )}
-
-                {/* GENERAL ERROR */}
 
                 {error && (
                   <Message
@@ -1581,17 +1421,12 @@ function Login() {
                   />
                 )}
 
-                {/* BUTTONS */}
-
                 <div className="flex gap-3 pt-2">
 
                   {signupStep > 1 && (
-
                     <button
                       type="button"
-                      onClick={
-                        handleSignupBack
-                      }
+                      onClick={handleSignupBack}
                       disabled={
                         loading ||
                         otpLoading ||
@@ -1601,14 +1436,11 @@ function Login() {
                     >
                       Back
                     </button>
-
                   )}
 
                   <button
                     type="button"
-                    onClick={
-                      handleSignupNext
-                    }
+                    onClick={handleSignupNext}
                     disabled={
                       loading ||
                       otpLoading ||
@@ -1616,40 +1448,29 @@ function Login() {
                     }
                     className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-
                     {signupStep === 3 &&
                     otpLoading ? (
                       <LoadingText text="Sending OTP..." />
-                    ) : signupStep ===
-                        4 &&
+                    ) : signupStep === 4 &&
                       verifyLoading ? (
                       <LoadingText text="Verifying..." />
                     ) : loading ? (
                       <LoadingText text="Creating account..." />
-                    ) : signupStep ===
-                      3 ? (
+                    ) : signupStep === 3 ? (
                       "Send Verification Code"
-                    ) : signupStep ===
-                      4 ? (
+                    ) : signupStep === 4 ? (
                       "Verify Email"
-                    ) : signupStep ===
-                      5 ? (
+                    ) : signupStep === 5 ? (
                       "Create Account"
                     ) : (
                       "Continue"
                     )}
-
                   </button>
 
                 </div>
 
               </div>
-
             )}
-
-            {/* =================================================
-                BOTTOM
-            ================================================= */}
 
             <p className="text-center text-sm text-gray-500 mt-7">
 
@@ -1681,10 +1502,6 @@ function Login() {
 
       </div>
 
-      {/* =====================================================
-          FORGOT PASSWORD MODAL
-      ===================================================== */}
-
       {showForgotPassword && (
 
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
@@ -1712,9 +1529,7 @@ function Login() {
 
               <button
                 type="button"
-                onClick={
-                  closeForgotPassword
-                }
+                onClick={closeForgotPassword}
                 className="text-gray-400 hover:text-gray-700 text-xl"
               >
                 ✕
@@ -1723,9 +1538,7 @@ function Login() {
             </div>
 
             <form
-              onSubmit={
-                handleForgotPassword
-              }
+              onSubmit={handleForgotPassword}
               className="space-y-5"
             >
 
@@ -1737,13 +1550,9 @@ function Login() {
 
                 <input
                   type="email"
-                  value={
-                    forgotEmail
-                  }
+                  value={forgotEmail}
                   onChange={(e) =>
-                    setForgotEmail(
-                      e.target.value
-                    )
+                    setForgotEmail(e.target.value)
                   }
                   placeholder="you@example.com"
                   autoComplete="email"
@@ -1754,15 +1563,12 @@ function Login() {
               </div>
 
               {forgotError && (
-
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
                   {forgotError}
                 </div>
-
               )}
 
               {forgotSuccess && (
-
                 <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
 
                   <p className="text-sm font-semibold text-green-700">
@@ -1778,34 +1584,25 @@ function Login() {
                   </p>
 
                 </div>
-
               )}
 
               {!forgotSuccess && (
-
                 <button
                   type="submit"
-                  disabled={
-                    forgotLoading
-                  }
+                  disabled={forgotLoading}
                   className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-
                   {forgotLoading ? (
                     <LoadingText text="Sending reset link..." />
                   ) : (
                     "Send Reset Link"
                   )}
-
                 </button>
-
               )}
 
               <button
                 type="button"
-                onClick={
-                  closeForgotPassword
-                }
+                onClick={closeForgotPassword}
                 className="w-full py-3 text-sm font-semibold text-gray-500 hover:text-gray-700"
               >
                 Back to Sign In
@@ -1816,13 +1613,11 @@ function Login() {
           </div>
 
         </div>
-
       )}
 
     </div>
   );
 }
-
 
 // =========================================================
 // FEATURE
@@ -1855,7 +1650,6 @@ function Feature({
     </div>
   );
 }
-
 
 // =========================================================
 // ROLE CARD
@@ -1910,11 +1704,9 @@ function RoleCard({
               : "border-gray-300"
           }`}
         >
-
           {selected && (
             <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
           )}
-
         </div>
 
       </div>
@@ -1922,7 +1714,6 @@ function RoleCard({
     </button>
   );
 }
-
 
 // =========================================================
 // MESSAGE
@@ -1968,7 +1759,6 @@ function Message({
   );
 }
 
-
 // =========================================================
 // LOADING TEXT
 // =========================================================
@@ -1986,6 +1776,5 @@ function LoadingText({
     </span>
   );
 }
-
 
 export default Login;

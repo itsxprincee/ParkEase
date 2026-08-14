@@ -40,11 +40,10 @@ import EditParking from "./pages/owner/EditParking";
 import ScanQR from "./pages/owner/ScanQR";
 
 // =====================================================
-// ADMIN PAGES
+// ADMIN PAGE
 // =====================================================
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminVerification from "./pages/admin/AdminVerification";
 
 // =====================================================
 // APP
@@ -181,7 +180,7 @@ function App() {
         />
 
         {/* =====================================================
-            ADMIN ROUTES
+            ADMIN ROUTE
         ===================================================== */}
 
         <Route
@@ -189,15 +188,6 @@ function App() {
           element={
             <ProtectedRoute adminOnly>
               <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/verification"
-          element={
-            <ProtectedRoute adminOnly>
-              <AdminVerification />
             </ProtectedRoute>
           }
         />

@@ -4,7 +4,6 @@ import axios from "../../api/axios";
 import { toast } from "react-hot-toast";
 
 function AddParking() {
-
   const navigate = useNavigate();
 
   const fileInputRef = useRef(null);
@@ -21,169 +20,141 @@ function AddParking() {
     total_slots: "",
   });
 
-  // =====================================================
-  // IMAGE STATE
-  // =====================================================
-
   const [image, setImage] = useState(null);
 
   const [preview, setPreview] = useState("");
 
-  // =====================================================
-  // LOADING
-  // =====================================================
-
   const [loading, setLoading] = useState(false);
-
 
   // =====================================================
   // INPUT CHANGE
   // =====================================================
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    const {
-      name,
-      value
-    } = e.target;
-
-
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
     }));
-
   };
-
 
   // =====================================================
   // IMAGE CHANGE
   // =====================================================
 
   const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
 
-    const file =
-      e.target.files?.[0];
-
-
-    if (!file) {
-      return;
-    }
-
-
-    // ---------------------------------------------------
-    // ALLOWED IMAGE TYPES
-    // ---------------------------------------------------
+    if (!file) return;
 
     const allowedTypes = [
       "image/jpeg",
       "image/jpg",
       "image/png",
-      "image/webp"
+      "image/webp",
     ];
 
-
     if (!allowedTypes.includes(file.type)) {
-
       toast.error(
         "Only JPG, JPEG, PNG and WEBP images are allowed"
       );
 
-
       e.target.value = "";
 
       return;
     }
 
-
-    // ---------------------------------------------------
-    // IMAGE SIZE
-    // ---------------------------------------------------
-
     if (file.size > 5 * 1024 * 1024) {
-
       toast.error(
         "Image size must be less than 5 MB"
       );
 
-
       e.target.value = "";
 
       return;
     }
 
-
-    // ---------------------------------------------------
-    // SAVE IMAGE
-    // ---------------------------------------------------
+    // Remove previous preview URL
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
 
     setImage(file);
 
-
-    // ---------------------------------------------------
-    // PREVIEW
-    // ---------------------------------------------------
-
-    const imageUrl =
-      URL.createObjectURL(file);
-
-
-    setPreview(imageUrl);
-
+    setPreview(
+      URL.createObjectURL(file)
+    );
   };
 
+  // =====================================================
+  // REMOVE IMAGE
+  // =====================================================
+
+  const removeImage = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+
+    setImage(null);
+    setPreview("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   // =====================================================
-  // SUBMIT
+  // SUBMIT PARKING
   // =====================================================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
-
-    // ===================================================
+    // ---------------------------------------------------
     // VALIDATION
-    // ===================================================
+    // ---------------------------------------------------
 
     if (!formData.name.trim()) {
-
-      toast.error(
-        "Parking name is required"
-      );
-
+      toast.error("Parking name is required");
       return;
     }
-
 
     if (!formData.address.trim()) {
-
-      toast.error(
-        "Parking address is required"
-      );
-
+      toast.error("Parking address is required");
       return;
     }
-
 
     if (
-      !formData.latitude ||
-      !formData.longitude
+      formData.latitude === "" ||
+      formData.longitude === ""
     ) {
-
       toast.error(
-        "Please enter the parking location"
+        "Please enter latitude and longitude"
       );
 
       return;
     }
 
+    if (
+      Number.isNaN(
+        Number(formData.latitude)
+      ) ||
+      Number.isNaN(
+        Number(formData.longitude)
+      )
+    ) {
+      toast.error(
+        "Latitude and longitude must be valid numbers"
+      );
+
+      return;
+    }
 
     if (
       !formData.total_slots ||
       Number(formData.total_slots) <= 0
     ) {
-
       toast.error(
         "Enter a valid number of parking slots"
       );
@@ -191,9 +162,15 @@ function AddParking() {
       return;
     }
 
+    if (!Number.isInteger(Number(formData.total_slots))) {
+      toast.error(
+        "Total parking slots must be a whole number"
+      );
+
+      return;
+    }
 
     if (!image) {
-
       toast.error(
         "Please upload a parking image"
       );
@@ -201,68 +178,73 @@ function AddParking() {
       return;
     }
 
-
-    // ===================================================
-    // SUBMIT TO BACKEND
-    // ===================================================
-
     try {
-
       setLoading(true);
 
-
       // -------------------------------------------------
-      // CREATE MULTIPART FORM DATA
+      // CREATE FORMDATA
       // -------------------------------------------------
 
       const data = new FormData();
-
 
       data.append(
         "name",
         formData.name.trim()
       );
 
-
       data.append(
         "address",
         formData.address.trim()
       );
 
-
       data.append(
         "latitude",
-        formData.latitude
+        String(
+          Number(formData.latitude)
+        )
       );
-
 
       data.append(
         "longitude",
-        formData.longitude
+        String(
+          Number(formData.longitude)
+        )
       );
-
 
       data.append(
         "total_slots",
-        formData.total_slots
+        String(
+          Number(formData.total_slots)
+        )
       );
-
 
       data.append(
         "image",
         image
       );
 
+      // -------------------------------------------------
+      // DEBUG
+      // -------------------------------------------------
 
       console.log(
-        "Submitting parking..."
+        "Submitting parking data:"
       );
 
+      for (const [key, value] of data.entries()) {
+        console.log(
+          key,
+          value
+        );
+      }
 
       // -------------------------------------------------
-      // IMPORTANT
-      // DO NOT SET CONTENT-TYPE MANUALLY
-      // AXIOS WILL SET multipart/form-data + BOUNDARY
+      // API REQUEST
+      //
+      // IMPORTANT:
+      // Do NOT manually set Content-Type here.
+      // The browser automatically adds the multipart
+      // boundary required by FastAPI.
       // -------------------------------------------------
 
       const response = await axios.post(
@@ -270,186 +252,160 @@ function AddParking() {
         data
       );
 
-
       console.log(
-        "Parking submission response:",
+        "Parking created successfully:",
         response.data
       );
 
-
-      // =================================================
+      // -------------------------------------------------
       // SUCCESS
-      // =================================================
+      // -------------------------------------------------
 
       toast.success(
         response.data?.message ||
-        "Parking submitted successfully for verification"
+          "Parking submitted successfully for verification"
       );
 
-
-      // -------------------------------------------------
-      // RESET FORM
-      // -------------------------------------------------
+      // Reset form
 
       setFormData({
         name: "",
         address: "",
         latitude: "",
         longitude: "",
-        total_slots: ""
+        total_slots: "",
       });
-
 
       setImage(null);
 
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+
       setPreview("");
 
-
       if (fileInputRef.current) {
-
         fileInputRef.current.value = "";
-
       }
 
-
-      // -------------------------------------------------
-      // GO TO OWNER DASHBOARD
-      // -------------------------------------------------
+      // Redirect to owner dashboard
 
       setTimeout(() => {
-
         navigate("/owner");
-
-      }, 1000);
-
+      }, 1200);
 
     } catch (error) {
-
       console.error(
-        "========================================"
+        "Add parking error:",
+        error
       );
 
       console.error(
-        "ADD PARKING ERROR"
+        "Server response:",
+        error.response?.data
       );
 
-      console.error(
-        "========================================"
-      );
+      // -------------------------------------------------
+      // FASTAPI VALIDATION ERROR
+      // -------------------------------------------------
 
-      console.error(
-        "Status:",
-        error?.response?.status
-      );
+      if (error.response?.status === 422) {
+        const details =
+          error.response?.data?.detail;
 
-      console.error(
-        "Response:",
-        error?.response?.data
-      );
+        console.log(
+          "FastAPI validation errors:",
+          details
+        );
 
-      console.error(
-        "Message:",
-        error?.message
-      );
+        if (Array.isArray(details)) {
+          const errorMessages =
+            details
+              .map((item) => {
+                const field =
+                  item.loc?.[
+                    item.loc.length - 1
+                  ];
 
-
-      // =================================================
-      // ERROR MESSAGE
-      // =================================================
-
-      let message =
-        "Failed to submit parking";
-
-
-      if (
-        error?.response?.data?.detail
-      ) {
-
-        if (
-          Array.isArray(
-            error.response.data.detail
-          )
-        ) {
-
-          message =
-            error.response.data.detail
-              .map(
-                (item) =>
-                  item.msg ||
-                  "Invalid input"
-              )
+                return field
+                  ? `${field}: ${item.msg}`
+                  : item.msg;
+              })
               .join(", ");
 
+          toast.error(
+            errorMessages ||
+              "Invalid form data"
+          );
         } else {
-
-          message =
-            error.response.data.detail;
-
+          toast.error(
+            "Invalid parking data. Please check all fields."
+          );
         }
 
+        return;
       }
 
+      // -------------------------------------------------
+      // OTHER ERRORS
+      // -------------------------------------------------
+
+      const message =
+        error.response?.data?.detail ||
+        error.message ||
+        "Failed to submit parking";
 
       toast.error(message);
 
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
-  // =====================================================
-  // UI
-  // =====================================================
-
   return (
-
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
 
       <div className="max-w-4xl mx-auto">
 
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        {/* ==========================================
+            HEADER
+        ========================================== */}
 
+        <div className="mb-6">
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
+          <button
+            type="button"
+            onClick={() => navigate("/owner")}
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 mb-4"
+          >
+            ← Back to Dashboard
+          </button>
 
-          <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Add Parking
+          </h1>
 
-            <h1 className="text-3xl font-bold text-gray-900">
+          <p className="text-gray-500 mt-2">
+            Submit your parking location for
+            ParkEase verification.
+          </p>
 
-              Add Parking
+        </div>
 
-            </h1>
+        {/* ==========================================
+            FORM CARD
+        ========================================== */}
 
-
-            <p className="text-gray-500 mt-2">
-
-              Submit your parking location for ParkEase
-              verification.
-
-            </p>
-
-          </div>
-
-
-          {/* =================================================
-              FORM
-          ================================================= */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-8">
 
           <form
             onSubmit={handleSubmit}
             className="space-y-6"
           >
 
-
-            {/* =================================================
+            {/* ======================================
                 PARKING NAME
-            ================================================= */}
+            ====================================== */}
 
             <div>
 
@@ -459,108 +415,117 @@ function AddParking() {
 
               </label>
 
-
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="ParkEase Bangalore Center"
+                placeholder="Example: ParkEase Bangalore Center"
                 disabled={loading}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none transition focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
 
             </div>
 
-
-            {/* =================================================
+            {/* ======================================
                 ADDRESS
-            ================================================= */}
+            ====================================== */}
 
             <div>
 
               <label className="block text-sm font-semibold text-gray-700 mb-2">
 
-                Address
+                Complete Parking Address
 
               </label>
-
 
               <textarea
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                rows="3"
+                rows="4"
                 placeholder="Enter complete parking address"
                 disabled={loading}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none resize-none transition focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
 
             </div>
 
+            {/* ======================================
+                LOCATION COORDINATES
+            ====================================== */}
 
-            {/* =================================================
-                LATITUDE / LONGITUDE
-            ================================================= */}
+            <div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="flex items-center justify-between mb-2">
 
+                <label className="block text-sm font-semibold text-gray-700">
 
-              {/* LATITUDE */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-
-                  Latitude
+                  Parking Location
 
                 </label>
 
-
-                <input
-                  type="number"
-                  step="any"
-                  name="latitude"
-                  value={formData.latitude}
-                  onChange={handleChange}
-                  placeholder="13.1132"
-                  disabled={loading}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                />
+                <span className="text-xs text-gray-400">
+                  Latitude & Longitude
+                </span>
 
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* LONGITUDE */}
+                {/* LATITUDE */}
 
-              <div>
+                <div>
 
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm text-gray-600 mb-2">
 
-                  Longitude
+                    Latitude
 
-                </label>
+                  </label>
 
+                  <input
+                    type="number"
+                    step="any"
+                    name="latitude"
+                    value={formData.latitude}
+                    onChange={handleChange}
+                    placeholder="13.1132"
+                    disabled={loading}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none transition focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
 
-                <input
-                  type="number"
-                  step="any"
-                  name="longitude"
-                  value={formData.longitude}
-                  onChange={handleChange}
-                  placeholder="77.5304"
-                  disabled={loading}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                />
+                </div>
+
+                {/* LONGITUDE */}
+
+                <div>
+
+                  <label className="block text-sm text-gray-600 mb-2">
+
+                    Longitude
+
+                  </label>
+
+                  <input
+                    type="number"
+                    step="any"
+                    name="longitude"
+                    value={formData.longitude}
+                    onChange={handleChange}
+                    placeholder="77.5304"
+                    disabled={loading}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none transition focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
+
+                </div>
 
               </div>
 
             </div>
 
-
-            {/* =================================================
+            {/* ======================================
                 TOTAL SLOTS
-            ================================================= */}
+            ====================================== */}
 
             <div>
 
@@ -570,24 +535,28 @@ function AddParking() {
 
               </label>
 
-
               <input
                 type="number"
                 min="1"
+                step="1"
                 name="total_slots"
                 value={formData.total_slots}
                 onChange={handleChange}
-                placeholder="20"
+                placeholder="Example: 20"
                 disabled={loading}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none transition focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
+
+              <p className="text-xs text-gray-400 mt-2">
+                Enter the total number of vehicles your
+                parking location can accommodate.
+              </p>
 
             </div>
 
-
-            {/* =================================================
+            {/* ======================================
                 PARKING IMAGE
-            ================================================= */}
+            ====================================== */}
 
             <div>
 
@@ -597,103 +566,139 @@ function AddParking() {
 
               </label>
 
-
               <p className="text-sm text-gray-500 mb-3">
 
-                Upload a clear photo of the parking area.
-                Admin will review this image during verification.
+                Upload a clear image of the parking area.
+                This image can be used during verification.
 
               </p>
 
+              {!preview ? (
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleImageChange}
-                disabled={loading}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white disabled:bg-gray-100"
-              />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  disabled={loading}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
+                />
 
+              ) : (
 
-              {/* IMAGE PREVIEW */}
-
-              {preview && (
-
-                <div className="mt-5">
-
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-
-                    Image Preview
-
-                  </p>
-
+                <div className="border border-gray-200 rounded-xl p-4">
 
                   <img
                     src={preview}
                     alt="Parking preview"
-                    className="w-full max-h-80 object-cover rounded-xl border"
+                    className="w-full max-h-80 object-cover rounded-xl border border-gray-200"
                   />
+
+                  <div className="flex items-center justify-between gap-3 mt-4">
+
+                    <div className="min-w-0">
+
+                      <p className="text-sm font-semibold text-gray-700 truncate">
+
+                        {image?.name}
+
+                      </p>
+
+                      <p className="text-xs text-gray-400 mt-1">
+
+                        {image
+                          ? `${(
+                              image.size /
+                              1024 /
+                              1024
+                            ).toFixed(2)} MB`
+                          : ""}
+
+                      </p>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      disabled={loading}
+                      className="px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+
+                  </div>
 
                 </div>
 
               )}
 
+              <p className="text-xs text-gray-400 mt-3">
+
+                Supported formats: JPG, JPEG, PNG, WEBP.
+                Maximum size: 5 MB.
+
+              </p>
+
             </div>
 
-
-            {/* =================================================
+            {/* ======================================
                 VERIFICATION NOTICE
-            ================================================= */}
+            ====================================== */}
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
 
-              <p className="font-semibold text-blue-800">
+              <h3 className="font-semibold text-blue-800">
 
                 ParkEase Verification
 
-              </p>
+              </h3>
 
+              <p className="text-sm text-blue-700 mt-2 leading-6">
 
-              <p className="text-sm text-blue-700 mt-1">
-
-                After submission, your parking will remain
-                pending until a ParkEase administrator verifies
-                the location and uploaded image.
+                After submission, your parking location will
+                have a Pending status until a ParkEase
+                administrator reviews and verifies the
+                information.
 
               </p>
 
             </div>
 
+            {/* ======================================
+                ACTION BUTTONS
+            ====================================== */}
 
-            {/* =================================================
-                SUBMIT BUTTON
-            ================================================= */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition"
-            >
+              <button
+                type="button"
+                onClick={() => navigate("/owner")}
+                disabled={loading}
+                className="sm:w-1/3 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed font-semibold py-3.5 rounded-xl transition"
+              >
+                Cancel
+              </button>
 
-              {loading ? (
+              <button
+                type="submit"
+                disabled={loading}
+                className="sm:w-2/3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition flex items-center justify-center gap-3"
+              >
 
-                <div className="flex items-center justify-center gap-2">
+                {loading && (
 
                   <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
 
-                  Submitting...
+                )}
 
-                </div>
+                {loading
+                  ? "Submitting Parking..."
+                  : "Submit Parking for Verification"}
 
-              ) : (
+              </button>
 
-                "Submit Parking for Verification"
-
-              )}
-
-            </button>
-
+            </div>
 
           </form>
 
@@ -702,9 +707,7 @@ function AddParking() {
       </div>
 
     </div>
-
   );
-
 }
 
 export default AddParking;

@@ -1,5 +1,9 @@
 from fastapi import FastAPI
+
 from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi.staticfiles import StaticFiles
+
 
 from database import Base, engine
 
@@ -9,8 +13,14 @@ from database import Base, engine
 # =========================================================
 
 from app.models.user import User
-from app.models.parking import ParkingLocation, ParkingSlot
+
+from app.models.parking import (
+    ParkingLocation,
+    ParkingSlot
+)
+
 from app.models.booking import Booking
+
 from app.models.vehicle import Vehicle
 
 
@@ -18,10 +28,21 @@ from app.models.vehicle import Vehicle
 # IMPORT ROUTES
 # =========================================================
 
-from app.routes.auth import router as auth_router
-from app.routes.parking import router as parking_router
-from app.routes.admin import router as admin_router
-from app.routes.vehicle import router as vehicle_router
+from app.routes.auth import (
+    router as auth_router
+)
+
+from app.routes.parking import (
+    router as parking_router
+)
+
+from app.routes.admin import (
+    router as admin_router
+)
+
+from app.routes.vehicle import (
+    router as vehicle_router
+)
 
 
 # =========================================================
@@ -29,8 +50,28 @@ from app.routes.vehicle import router as vehicle_router
 # =========================================================
 
 app = FastAPI(
+
     title="ParkEase API",
+
     version="1.0.0"
+
+)
+
+
+# =========================================================
+# SERVE UPLOADED FILES
+# =========================================================
+
+app.mount(
+
+    "/uploads",
+
+    StaticFiles(
+        directory="uploads"
+    ),
+
+    name="uploads"
+
 )
 
 
@@ -39,18 +80,25 @@ app = FastAPI(
 # =========================================================
 
 app.add_middleware(
+
     CORSMiddleware,
+
     allow_origins=[
-        # Local development
+
         "http://localhost:5173",
+
         "http://127.0.0.1:5173",
 
-        # Live ParkEase frontend
         "https://itsxprincee.github.io"
+
     ],
+
     allow_credentials=True,
+
     allow_methods=["*"],
+
     allow_headers=["*"]
+
 )
 
 
@@ -59,7 +107,9 @@ app.add_middleware(
 # =========================================================
 
 Base.metadata.create_all(
+
     bind=engine
+
 )
 
 
@@ -67,10 +117,29 @@ Base.metadata.create_all(
 # ROUTES
 # =========================================================
 
-app.include_router(auth_router)
-app.include_router(parking_router)
-app.include_router(admin_router)
-app.include_router(vehicle_router)
+app.include_router(
+
+    auth_router
+
+)
+
+app.include_router(
+
+    parking_router
+
+)
+
+app.include_router(
+
+    admin_router
+
+)
+
+app.include_router(
+
+    vehicle_router
+
+)
 
 
 # =========================================================
@@ -79,8 +148,12 @@ app.include_router(vehicle_router)
 
 @app.get("/")
 def root():
+
     return {
-        "message": "ParkEase API is running"
+
+        "message":
+            "ParkEase API is running"
+
     }
 
 
@@ -90,6 +163,10 @@ def root():
 
 @app.get("/health")
 def health():
+
     return {
-        "status": "healthy"
+
+        "status":
+            "healthy"
+
     }

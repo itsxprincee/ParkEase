@@ -9,6 +9,10 @@ function AddParking() {
 
   const fileInputRef = useRef(null);
 
+  // =====================================================
+  // FORM STATE
+  // =====================================================
+
   const [formData, setFormData] = useState({
     name: "",
     address: "",
@@ -17,9 +21,17 @@ function AddParking() {
     total_slots: "",
   });
 
+  // =====================================================
+  // IMAGE STATE
+  // =====================================================
+
   const [image, setImage] = useState(null);
 
   const [preview, setPreview] = useState("");
+
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   const [loading, setLoading] = useState(false);
 
@@ -35,12 +47,12 @@ function AddParking() {
       value
     } = e.target;
 
-    setFormData(
-      prev => ({
-        ...prev,
-        [name]: value
-      })
-    );
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value
+    }));
+
   };
 
 
@@ -53,7 +65,15 @@ function AddParking() {
     const file =
       e.target.files?.[0];
 
-    if (!file) return;
+
+    if (!file) {
+      return;
+    }
+
+
+    // ---------------------------------------------------
+    // ALLOWED IMAGE TYPES
+    // ---------------------------------------------------
 
     const allowedTypes = [
       "image/jpeg",
@@ -62,16 +82,23 @@ function AddParking() {
       "image/webp"
     ];
 
+
     if (!allowedTypes.includes(file.type)) {
 
       toast.error(
         "Only JPG, JPEG, PNG and WEBP images are allowed"
       );
 
+
       e.target.value = "";
 
       return;
     }
+
+
+    // ---------------------------------------------------
+    // IMAGE SIZE
+    // ---------------------------------------------------
 
     if (file.size > 5 * 1024 * 1024) {
 
@@ -79,16 +106,30 @@ function AddParking() {
         "Image size must be less than 5 MB"
       );
 
+
       e.target.value = "";
 
       return;
     }
 
+
+    // ---------------------------------------------------
+    // SAVE IMAGE
+    // ---------------------------------------------------
+
     setImage(file);
 
-    setPreview(
-      URL.createObjectURL(file)
-    );
+
+    // ---------------------------------------------------
+    // PREVIEW
+    // ---------------------------------------------------
+
+    const imageUrl =
+      URL.createObjectURL(file);
+
+
+    setPreview(imageUrl);
+
   };
 
 
@@ -100,6 +141,11 @@ function AddParking() {
 
     e.preventDefault();
 
+
+    // ===================================================
+    // VALIDATION
+    // ===================================================
+
     if (!formData.name.trim()) {
 
       toast.error(
@@ -108,6 +154,7 @@ function AddParking() {
 
       return;
     }
+
 
     if (!formData.address.trim()) {
 
@@ -118,15 +165,19 @@ function AddParking() {
       return;
     }
 
-    if (!formData.latitude ||
-        !formData.longitude) {
+
+    if (
+      !formData.latitude ||
+      !formData.longitude
+    ) {
 
       toast.error(
-        "Please select a parking location"
+        "Please enter the parking location"
       );
 
       return;
     }
+
 
     if (
       !formData.total_slots ||
@@ -134,11 +185,12 @@ function AddParking() {
     ) {
 
       toast.error(
-        "Enter a valid number of slots"
+        "Enter a valid number of parking slots"
       );
 
       return;
     }
+
 
     if (!image) {
 
@@ -150,36 +202,51 @@ function AddParking() {
     }
 
 
+    // ===================================================
+    // SUBMIT TO BACKEND
+    // ===================================================
+
     try {
 
       setLoading(true);
 
+
+      // -------------------------------------------------
+      // CREATE MULTIPART FORM DATA
+      // -------------------------------------------------
+
       const data = new FormData();
+
 
       data.append(
         "name",
-        formData.name
+        formData.name.trim()
       );
+
 
       data.append(
         "address",
-        formData.address
+        formData.address.trim()
       );
+
 
       data.append(
         "latitude",
         formData.latitude
       );
 
+
       data.append(
         "longitude",
         formData.longitude
       );
 
+
       data.append(
         "total_slots",
         formData.total_slots
       );
+
 
       data.append(
         "image",
@@ -187,23 +254,42 @@ function AddParking() {
       );
 
 
-      const response = await axios.post(
-        "/parking/create",
-        data,
-        {
-          headers: {
-            "Content-Type":
-              "multipart/form-data"
-          }
-        }
+      console.log(
+        "Submitting parking..."
       );
 
+
+      // -------------------------------------------------
+      // IMPORTANT
+      // DO NOT SET CONTENT-TYPE MANUALLY
+      // AXIOS WILL SET multipart/form-data + BOUNDARY
+      // -------------------------------------------------
+
+      const response = await axios.post(
+        "/parking/create",
+        data
+      );
+
+
+      console.log(
+        "Parking submission response:",
+        response.data
+      );
+
+
+      // =================================================
+      // SUCCESS
+      // =================================================
 
       toast.success(
         response.data?.message ||
-        "Parking submitted successfully"
+        "Parking submitted successfully for verification"
       );
 
+
+      // -------------------------------------------------
+      // RESET FORM
+      // -------------------------------------------------
 
       setFormData({
         name: "",
@@ -213,21 +299,26 @@ function AddParking() {
         total_slots: ""
       });
 
+
       setImage(null);
 
       setPreview("");
 
+
       if (fileInputRef.current) {
 
         fileInputRef.current.value = "";
+
       }
 
 
+      // -------------------------------------------------
+      // GO TO OWNER DASHBOARD
+      // -------------------------------------------------
+
       setTimeout(() => {
 
-        navigate(
-          "/owner/dashboard"
-        );
+        navigate("/owner");
 
       }, 1000);
 
@@ -235,22 +326,84 @@ function AddParking() {
     } catch (error) {
 
       console.error(
-        "Add parking error:",
-        error
+        "========================================"
       );
 
-      const message =
-        error.response?.data?.detail ||
+      console.error(
+        "ADD PARKING ERROR"
+      );
+
+      console.error(
+        "========================================"
+      );
+
+      console.error(
+        "Status:",
+        error?.response?.status
+      );
+
+      console.error(
+        "Response:",
+        error?.response?.data
+      );
+
+      console.error(
+        "Message:",
+        error?.message
+      );
+
+
+      // =================================================
+      // ERROR MESSAGE
+      // =================================================
+
+      let message =
         "Failed to submit parking";
+
+
+      if (
+        error?.response?.data?.detail
+      ) {
+
+        if (
+          Array.isArray(
+            error.response.data.detail
+          )
+        ) {
+
+          message =
+            error.response.data.detail
+              .map(
+                (item) =>
+                  item.msg ||
+                  "Invalid input"
+              )
+              .join(", ");
+
+        } else {
+
+          message =
+            error.response.data.detail;
+
+        }
+
+      }
+
 
       toast.error(message);
 
     } finally {
 
       setLoading(false);
+
     }
+
   };
 
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
 
@@ -260,6 +413,11 @@ function AddParking() {
 
         <div className="bg-white rounded-2xl shadow-sm border p-8">
 
+
+          {/* =================================================
+              HEADER
+          ================================================= */}
+
           <div className="mb-8">
 
             <h1 className="text-3xl font-bold text-gray-900">
@@ -268,14 +426,20 @@ function AddParking() {
 
             </h1>
 
+
             <p className="text-gray-500 mt-2">
 
-              Submit your parking location for ParkEase verification.
+              Submit your parking location for ParkEase
+              verification.
 
             </p>
 
           </div>
 
+
+          {/* =================================================
+              FORM
+          ================================================= */}
 
           <form
             onSubmit={handleSubmit}
@@ -283,9 +447,9 @@ function AddParking() {
           >
 
 
-            {/* ==========================================
+            {/* =================================================
                 PARKING NAME
-            ========================================== */}
+            ================================================= */}
 
             <div>
 
@@ -295,21 +459,23 @@ function AddParking() {
 
               </label>
 
+
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="ParkEase Bangalore Center"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
 
             </div>
 
 
-            {/* ==========================================
+            {/* =================================================
                 ADDRESS
-            ========================================== */}
+            ================================================= */}
 
             <div>
 
@@ -319,23 +485,28 @@ function AddParking() {
 
               </label>
 
+
               <textarea
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
                 rows="3"
                 placeholder="Enter complete parking address"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
 
             </div>
 
 
-            {/* ==========================================
+            {/* =================================================
                 LATITUDE / LONGITUDE
-            ========================================== */}
+            ================================================= */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+              {/* LATITUDE */}
 
               <div>
 
@@ -345,6 +516,7 @@ function AddParking() {
 
                 </label>
 
+
                 <input
                   type="number"
                   step="any"
@@ -352,11 +524,14 @@ function AddParking() {
                   value={formData.latitude}
                   onChange={handleChange}
                   placeholder="13.1132"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 />
 
               </div>
 
+
+              {/* LONGITUDE */}
 
               <div>
 
@@ -366,6 +541,7 @@ function AddParking() {
 
                 </label>
 
+
                 <input
                   type="number"
                   step="any"
@@ -373,7 +549,8 @@ function AddParking() {
                   value={formData.longitude}
                   onChange={handleChange}
                   placeholder="77.5304"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                 />
 
               </div>
@@ -381,9 +558,9 @@ function AddParking() {
             </div>
 
 
-            {/* ==========================================
+            {/* =================================================
                 TOTAL SLOTS
-            ========================================== */}
+            ================================================= */}
 
             <div>
 
@@ -393,6 +570,7 @@ function AddParking() {
 
               </label>
 
+
               <input
                 type="number"
                 min="1"
@@ -400,15 +578,16 @@ function AddParking() {
                 value={formData.total_slots}
                 onChange={handleChange}
                 placeholder="20"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
 
             </div>
 
 
-            {/* ==========================================
+            {/* =================================================
                 PARKING IMAGE
-            ========================================== */}
+            ================================================= */}
 
             <div>
 
@@ -417,6 +596,7 @@ function AddParking() {
                 Parking Location Image
 
               </label>
+
 
               <p className="text-sm text-gray-500 mb-3">
 
@@ -431,9 +611,12 @@ function AddParking() {
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
                 onChange={handleImageChange}
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white"
+                disabled={loading}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white disabled:bg-gray-100"
               />
 
+
+              {/* IMAGE PREVIEW */}
 
               {preview && (
 
@@ -444,6 +627,7 @@ function AddParking() {
                     Image Preview
 
                   </p>
+
 
                   <img
                     src={preview}
@@ -458,9 +642,9 @@ function AddParking() {
             </div>
 
 
-            {/* ==========================================
+            {/* =================================================
                 VERIFICATION NOTICE
-            ========================================== */}
+            ================================================= */}
 
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
 
@@ -469,6 +653,7 @@ function AddParking() {
                 ParkEase Verification
 
               </p>
+
 
               <p className="text-sm text-blue-700 mt-1">
 
@@ -481,22 +666,34 @@ function AddParking() {
             </div>
 
 
-            {/* ==========================================
-                SUBMIT
-            ========================================== */}
+            {/* =================================================
+                SUBMIT BUTTON
+            ================================================= */}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3.5 rounded-xl transition"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition"
             >
 
-              {loading
-                ? "Submitting..."
-                : "Submit Parking for Verification"
-              }
+              {loading ? (
+
+                <div className="flex items-center justify-center gap-2">
+
+                  <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+
+                  Submitting...
+
+                </div>
+
+              ) : (
+
+                "Submit Parking for Verification"
+
+              )}
 
             </button>
+
 
           </form>
 
@@ -505,7 +702,9 @@ function AddParking() {
       </div>
 
     </div>
+
   );
+
 }
 
 export default AddParking;

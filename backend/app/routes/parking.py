@@ -1,6 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    UploadFile,
+    File,
+    Form
+)
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from sqlalchemy import or_
+from pathlib import Path
+from datetime import datetime
+import shutil
+import uuid
 
 from database import get_db
 from app.models.parking import ParkingLocation
@@ -15,52 +26,204 @@ router = APIRouter(
 
 
 # =========================================================
+# IMAGE UPLOAD DIRECTORY
+# =========================================================
+
+UPLOAD_DIR = Path("uploads/parking")
+
+UPLOAD_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+
+# =========================================================
 # CREATE PARKING
 # =========================================================
 
-class ParkingCreate(BaseModel):
-    name: str
-    address: str
-    latitude: float
-    longitude: float
-    total_slots: int
-
-
 @router.post("/create")
 def create_parking(
-    data: ParkingCreate,
+    name: str = Form(...),
+    address: str = Form(...),
+    latitude: float = Form(...),
+    longitude: float = Form(...),
+    total_slots: int = Form(...),
+    image: UploadFile = File(...),
+
     db: Session = Depends(get_db),
+
     owner: User = Depends(owner_required)
 ):
 
-    if data.total_slots <= 0:
+    # -----------------------------------------------------
+    # VALIDATE SLOTS
+    # -----------------------------------------------------
+
+    if total_slots <= 0:
         raise HTTPException(
             status_code=400,
             detail="Total slots must be greater than 0"
         )
 
-    parking = ParkingLocation(
-        owner_id=owner.id,
-        name=data.name,
-        address=data.address,
-        latitude=data.latitude,
-        longitude=data.longitude,
-        total_slots=data.total_slots,
-        verification_status="PENDING"
+    # -----------------------------------------------------
+    # VALIDATE NAME
+    # -----------------------------------------------------
+
+    if not name.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Parking name is required"
+        )
+
+    # -----------------------------------------------------
+    # VALIDATE ADDRESS
+    # -----------------------------------------------------
+
+    if not address.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Parking address is required"
+        )
+
+    # -----------------------------------------------------
+    # VALIDATE IMAGE
+    # -----------------------------------------------------
+
+    if not image:
+        raise HTTPException(
+            status_code=400,
+            detail="Parking image is required"
+        )
+
+    allowed_extensions = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    }
+
+    original_name = image.filename or ""
+
+    extension = Path(
+        original_name
+    ).suffix.lower()
+
+    if extension not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPG, JPEG, PNG and WEBP images are allowed"
+        )
+
+    # -----------------------------------------------------
+    # GENERATE UNIQUE IMAGE NAME
+    # -----------------------------------------------------
+
+    unique_filename = (
+        f"{uuid.uuid4().hex}{extension}"
     )
 
-    db.add(parking)
-    db.commit()
-    db.refresh(parking)
+    image_path = (
+        UPLOAD_DIR /
+        unique_filename
+    )
+
+    # -----------------------------------------------------
+    # SAVE IMAGE
+    # -----------------------------------------------------
+
+    try:
+
+        with image_path.open("wb") as buffer:
+
+            shutil.copyfileobj(
+                image.file,
+                buffer
+            )
+
+    except Exception as error:
+
+        print(
+            "Image upload error:",
+            error
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to save parking image"
+        )
+
+    # -----------------------------------------------------
+    # CREATE PARKING
+    # -----------------------------------------------------
+
+    parking = ParkingLocation(
+        owner_id=owner.id,
+        name=name.strip(),
+        address=address.strip(),
+        latitude=latitude,
+        longitude=longitude,
+        total_slots=total_slots,
+
+        verification_status="PENDING",
+
+        verification_submitted_at=datetime.utcnow(),
+
+        image=unique_filename
+    )
+
+    try:
+
+        db.add(parking)
+
+        db.commit()
+
+        db.refresh(parking)
+
+    except Exception as error:
+
+        db.rollback()
+
+        # Delete uploaded image if database failed
+
+        try:
+            if image_path.exists():
+                image_path.unlink()
+        except Exception:
+            pass
+
+        print(
+            "Create parking database error:",
+            error
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to create parking location"
+        )
+
+    # -----------------------------------------------------
+    # RESPONSE
+    # -----------------------------------------------------
 
     return {
-        "message": "Parking submitted successfully for ParkEase verification.",
-        "parking_id": parking.id,
-        "owner_id": owner.id,
-        "verification_status": parking.verification_status,
+        "message":
+            "Parking submitted successfully for ParkEase verification.",
+
+        "parking_id":
+            parking.id,
+
+        "owner_id":
+            owner.id,
+
+        "verification_status":
+            parking.verification_status,
+
         "verification_message":
             "Your parking is pending verification. "
-            "ParkEase verification may take up to 24 hours."
+            "ParkEase verification may take up to 24 hours.",
+
+        "image":
+            parking.image
     }
 
 
@@ -79,7 +242,9 @@ def get_approved_parking(
         .filter(
             ParkingLocation.verification_status == "APPROVED"
         )
-        .order_by(ParkingLocation.id.desc())
+        .order_by(
+            ParkingLocation.id.desc()
+        )
         .all()
     )
 
@@ -91,7 +256,10 @@ def get_approved_parking(
             "latitude": location.latitude,
             "longitude": location.longitude,
             "total_slots": location.total_slots,
-            "verification_status": location.verification_status
+            "verification_status":
+                location.verification_status,
+            "image":
+                location.image
         }
         for location in locations
     ]
@@ -118,6 +286,7 @@ def get_parking(
     )
 
     if not parking:
+
         raise HTTPException(
             status_code=404,
             detail="Parking not found or not approved"
@@ -130,7 +299,10 @@ def get_parking(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
-        "verification_status": parking.verification_status
+        "verification_status":
+            parking.verification_status,
+        "image":
+            parking.image
     }
 
 
@@ -149,7 +321,9 @@ def get_my_parking(
         .filter(
             ParkingLocation.owner_id == owner.id
         )
-        .order_by(ParkingLocation.id.desc())
+        .order_by(
+            ParkingLocation.id.desc()
+        )
         .all()
     )
 
@@ -161,14 +335,21 @@ def get_my_parking(
             "latitude": location.latitude,
             "longitude": location.longitude,
             "total_slots": location.total_slots,
+
             "verification_status":
                 location.verification_status,
+
             "verification_submitted_at":
                 location.verification_submitted_at,
+
             "verified_at":
                 location.verified_at,
+
             "rejection_reason":
-                location.rejection_reason
+                location.rejection_reason,
+
+            "image":
+                location.image
         }
         for location in locations
     ]
@@ -195,15 +376,47 @@ def delete_parking(
     )
 
     if not parking:
+
         raise HTTPException(
             status_code=404,
             detail="Parking not found"
         )
 
+    # -----------------------------------------------------
+    # DELETE IMAGE
+    # -----------------------------------------------------
+
+    if parking.image:
+
+        image_path = (
+            UPLOAD_DIR /
+            parking.image
+        )
+
+        try:
+
+            if image_path.exists():
+                image_path.unlink()
+
+        except Exception as error:
+
+            print(
+                "Unable to delete parking image:",
+                error
+            )
+
+    # -----------------------------------------------------
+    # DELETE DATABASE RECORD
+    # -----------------------------------------------------
+
     db.delete(parking)
+
     db.commit()
 
     return {
-        "message": "Parking deleted successfully",
-        "parking_id": parking_id
+        "message":
+            "Parking deleted successfully",
+
+        "parking_id":
+            parking_id
     }

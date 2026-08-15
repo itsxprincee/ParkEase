@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey
 )
+
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -18,6 +19,7 @@ from database import Base
 # =========================================================
 
 class ParkingLocation(Base):
+
     __tablename__ = "parking_locations"
 
     id = Column(
@@ -59,9 +61,18 @@ class ParkingLocation(Base):
         default=0
     )
 
-    # -----------------------------------------------------
+    # =====================================================
+    # PARKING IMAGE
+    # =====================================================
+
+    image = Column(
+        String(500),
+        nullable=True
+    )
+
+    # =====================================================
     # VERIFICATION
-    # -----------------------------------------------------
+    # =====================================================
 
     verification_status = Column(
         String(20),
@@ -85,9 +96,9 @@ class ParkingLocation(Base):
         nullable=True
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # RELATIONSHIPS
-    # -----------------------------------------------------
+    # =====================================================
 
     owner = relationship(
         "User",
@@ -112,6 +123,7 @@ class ParkingLocation(Base):
 # =========================================================
 
 class ParkingSlot(Base):
+
     __tablename__ = "parking_slots"
 
     id = Column(
@@ -138,9 +150,9 @@ class ParkingSlot(Base):
         default="AVAILABLE"
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # RELATIONSHIP
-    # -----------------------------------------------------
+    # =====================================================
 
     parking_location = relationship(
         "ParkingLocation",

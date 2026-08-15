@@ -37,6 +37,7 @@ import Profile from "./pages/customer/Profile";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import AddParking from "./pages/owner/AddParking";
 import EditParking from "./pages/owner/EditParking";
+import OwnerParkingDetails from "./pages/owner/OwnerParkingDetails";
 import ScanQR from "./pages/owner/ScanQR";
 
 // =====================================================
@@ -52,6 +53,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
         {/* =====================================================
@@ -60,7 +62,12 @@ function App() {
 
         <Route
           path="/"
-          element={<Navigate to="/login" replace />}
+          element={
+            <Navigate
+              to="/login"
+              replace
+            />
+          }
         />
 
         {/* =====================================================
@@ -162,6 +169,15 @@ function App() {
         />
 
         <Route
+          path="/owner/parking/:id"
+          element={
+            <ProtectedRoute ownerOnly>
+              <OwnerParkingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/owner/edit-parking/:id"
           element={
             <ProtectedRoute ownerOnly>
@@ -193,7 +209,7 @@ function App() {
         />
 
         {/* =====================================================
-            OLD ROUTES
+            OLD CUSTOMER ROUTES
         ===================================================== */}
 
         <Route
@@ -261,6 +277,7 @@ function App() {
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 }

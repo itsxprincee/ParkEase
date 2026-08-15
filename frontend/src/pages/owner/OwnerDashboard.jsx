@@ -64,8 +64,7 @@ function OwnerDashboard() {
       id: 1,
       type: "success",
       title: "Welcome to ParkEase",
-      message:
-        "Your owner dashboard is ready.",
+      message: "Your owner dashboard is ready.",
       time: "Just now",
       read: false,
     },
@@ -88,8 +87,7 @@ function OwnerDashboard() {
   // ==========================================
 
   useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
+    const storedUser = localStorage.getItem("user");
 
     if (storedUser) {
       try {
@@ -107,9 +105,7 @@ function OwnerDashboard() {
   // LOAD OWNER PARKING
   // ==========================================
 
-  const loadParking = async (
-    isRefresh = false
-  ) => {
+  const loadParking = async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -412,8 +408,7 @@ function OwnerDashboard() {
 
   const totalSlots = parking.reduce(
     (total, item) =>
-      total +
-      Number(item.total_slots || 0),
+      total + Number(item.total_slots || 0),
     0
   );
 
@@ -473,9 +468,7 @@ function OwnerDashboard() {
   // ==========================================
 
   const viewParking = (id) => {
-    navigate(
-      `/customer/parking/${id}`
-    );
+    navigate(`/owner/parking/${id}`);
   };
 
   // ==========================================
@@ -483,17 +476,11 @@ function OwnerDashboard() {
   // ==========================================
 
   const editParking = (id) => {
-    navigate(
-      `/owner/edit-parking/${id}`
-    );
+    navigate(`/owner/edit-parking/${id}`);
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* ========================================
-          TOAST NOTIFICATIONS
-      ======================================== */}
 
       <Toaster
         position="top-right"
@@ -529,14 +516,12 @@ function OwnerDashboard() {
 
                 <div
                   className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${
-                    confirmModal.type ===
-                    "delete"
+                    confirmModal.type === "delete"
                       ? "bg-red-50 text-red-600"
                       : "bg-slate-100 text-slate-700"
                   }`}
                 >
-                  {confirmModal.type ===
-                  "delete" ? (
+                  {confirmModal.type === "delete" ? (
                     <FaTrash />
                   ) : (
                     <FaSignOutAlt />
@@ -546,29 +531,21 @@ function OwnerDashboard() {
                 <div className="flex-1">
 
                   <h3 className="text-xl font-bold text-slate-900">
-
-                    {confirmModal.type ===
-                    "delete"
+                    {confirmModal.type === "delete"
                       ? "Delete Parking Location?"
                       : "Logout from ParkEase?"}
-
                   </h3>
 
                   <p className="text-sm text-slate-500 mt-2 leading-6">
-
-                    {confirmModal.type ===
-                    "delete"
+                    {confirmModal.type === "delete"
                       ? "This action will permanently remove this parking location. This cannot be undone."
                       : "Are you sure you want to logout from your ParkEase owner account?"}
-
                   </p>
 
                 </div>
 
                 <button
-                  onClick={
-                    closeConfirmModal
-                  }
+                  onClick={closeConfirmModal}
                   disabled={deleting}
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition disabled:opacity-50"
                 >
@@ -582,9 +559,7 @@ function OwnerDashboard() {
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
 
               <button
-                onClick={
-                  closeConfirmModal
-                }
+                onClick={closeConfirmModal}
                 disabled={deleting}
                 className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium hover:bg-slate-100 transition disabled:opacity-50"
               >
@@ -595,8 +570,7 @@ function OwnerDashboard() {
                 onClick={confirmAction}
                 disabled={deleting}
                 className={`px-5 py-2.5 rounded-xl text-white font-semibold transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${
-                  confirmModal.type ===
-                  "delete"
+                  confirmModal.type === "delete"
                     ? "bg-red-600 hover:bg-red-700"
                     : "bg-slate-800 hover:bg-slate-900"
                 }`}
@@ -605,11 +579,9 @@ function OwnerDashboard() {
                 {deleting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-
                     Deleting...
                   </>
-                ) : confirmModal.type ===
-                  "delete" ? (
+                ) : confirmModal.type === "delete" ? (
                   <>
                     <FaTrash />
                     Delete
@@ -640,23 +612,16 @@ function OwnerDashboard() {
 
           <div className="h-20 flex items-center justify-between gap-4">
 
-            {/* LOGO */}
-
             <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() =>
-                navigate("/owner")
-              }
+              onClick={() => navigate("/owner")}
             >
 
               <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-200">
-
                 <FaParking />
-
               </div>
 
               <div>
-
                 <h1 className="text-xl font-bold text-slate-900 leading-tight">
                   ParkEase
                 </h1>
@@ -664,25 +629,17 @@ function OwnerDashboard() {
                 <p className="text-xs sm:text-sm text-slate-500">
                   Owner Management Portal
                 </p>
-
               </div>
 
             </div>
 
-            {/* DESKTOP ACTIONS */}
-
             <div className="hidden md:flex items-center gap-3">
 
-              {/* REFRESH */}
-
               <button
-                onClick={
-                  handleRefresh
-                }
+                onClick={handleRefresh}
                 disabled={refreshing}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-60"
               >
-
                 <FaSyncAlt
                   className={
                     refreshing
@@ -694,27 +651,17 @@ function OwnerDashboard() {
                 <span className="font-medium">
                   Refresh
                 </span>
-
               </button>
-
-              {/* ADD PARKING */}
 
               <button
                 onClick={() =>
-                  navigate(
-                    "/owner/add-parking"
-                  )
+                  navigate("/owner/add-parking")
                 }
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 transition-all"
               >
-
                 <FaPlus />
-
                 Add Parking
-
               </button>
-
-              {/* NOTIFICATIONS */}
 
               <div className="relative">
 
@@ -726,43 +673,33 @@ function OwnerDashboard() {
                   }
                   className="relative w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition"
                 >
-
                   <FaBell />
 
-                  {unreadNotifications >
-                    0 && (
+                  {unreadNotifications > 0 && (
                     <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-                      {unreadNotifications >
-                      9
+                      {unreadNotifications > 9
                         ? "9+"
                         : unreadNotifications}
                     </span>
                   )}
-
                 </button>
 
                 {notificationOpen && (
-
                   <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50">
 
                     <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
 
                       <div>
-
                         <h3 className="font-bold text-slate-900">
                           Notifications
                         </h3>
 
                         <p className="text-xs text-slate-500 mt-1">
-
                           {unreadNotifications} unread
-
                         </p>
-
                       </div>
 
-                      {notifications.length >
-                        0 && (
+                      {notifications.length > 0 && (
                         <button
                           onClick={
                             markAllNotificationsRead
@@ -777,116 +714,65 @@ function OwnerDashboard() {
 
                     <div className="max-h-96 overflow-y-auto">
 
-                      {notifications.length ===
-                      0 ? (
+                      {notifications.map(
+                        (notification) => (
 
-                        <div className="p-8 text-center">
-
-                          <FaBell className="mx-auto text-2xl text-slate-300" />
-
-                          <p className="font-medium text-slate-700 mt-3">
-                            No notifications
-                          </p>
-
-                          <p className="text-xs text-slate-400 mt-1">
-                            You're all caught up.
-                          </p>
-
-                        </div>
-
-                      ) : (
-
-                        notifications.map(
-                          (notification) => (
-
-                            <div
-                              key={
+                          <div
+                            key={notification.id}
+                            onClick={() =>
+                              markNotificationRead(
                                 notification.id
-                              }
-                              onClick={() =>
-                                markNotificationRead(
-                                  notification.id
-                                )
-                              }
-                              className={`px-5 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition ${
-                                !notification.read
-                                  ? "bg-blue-50/40"
-                                  : ""
-                              }`}
-                            >
+                              )
+                            }
+                            className={`px-5 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition ${
+                              !notification.read
+                                ? "bg-blue-50/40"
+                                : ""
+                            }`}
+                          >
 
-                              <div className="flex gap-3">
+                            <div className="flex gap-3">
 
-                                <div
-                                  className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                                    notification.type ===
-                                    "success"
-                                      ? "bg-green-100 text-green-600"
-                                      : notification.type ===
-                                        "warning"
-                                      ? "bg-yellow-100 text-yellow-600"
-                                      : "bg-blue-100 text-blue-600"
-                                  }`}
-                                >
-
-                                  {notification.type ===
+                              <div
+                                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                                  notification.type ===
                                   "success"
-                                    ? "✓"
-                                    : notification.type ===
-                                      "warning"
-                                    ? "!"
-                                    : "i"}
+                                    ? "bg-green-100 text-green-600"
+                                    : "bg-blue-100 text-blue-600"
+                                }`}
+                              >
+                                ✓
+                              </div>
 
-                                </div>
+                              <div>
 
-                                <div className="min-w-0">
+                                <p className="text-sm font-semibold text-slate-800">
+                                  {notification.title}
+                                </p>
 
-                                  <div className="flex items-center gap-2">
+                                <p className="text-xs text-slate-500 mt-1">
+                                  {notification.message}
+                                </p>
 
-                                    <p className="text-sm font-semibold text-slate-800">
-                                      {
-                                        notification.title
-                                      }
-                                    </p>
-
-                                    {!notification.read && (
-                                      <span className="w-2 h-2 bg-blue-600 rounded-full shrink-0" />
-                                    )}
-
-                                  </div>
-
-                                  <p className="text-xs text-slate-500 mt-1">
-                                    {
-                                      notification.message
-                                    }
-                                  </p>
-
-                                  <p className="text-[11px] text-slate-400 mt-2">
-                                    {
-                                      notification.time
-                                    }
-                                  </p>
-
-                                </div>
+                                <p className="text-[11px] text-slate-400 mt-2">
+                                  {notification.time}
+                                </p>
 
                               </div>
 
                             </div>
 
-                          )
-                        )
+                          </div>
 
+                        )
                       )}
 
                     </div>
 
                   </div>
-
                 )}
 
               </div>
-
-              {/* PROFILE */}
 
               <div className="relative">
 
@@ -899,36 +785,25 @@ function OwnerDashboard() {
                   className="flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-50 transition"
                 >
 
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm">
-
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold">
                     {getOwnerInitial()}
-
                   </div>
 
                   <div className="hidden lg:block text-left">
-
-                    <p className="text-sm font-semibold text-slate-800 max-w-[120px] truncate">
+                    <p className="text-sm font-semibold text-slate-800">
                       {getOwnerName()}
                     </p>
 
                     <p className="text-xs text-slate-500">
                       Parking Owner
                     </p>
-
                   </div>
 
-                  <FaChevronDown
-                    className={`text-slate-400 text-xs transition-transform ${
-                      profileOpen
-                        ? "rotate-180"
-                        : ""
-                    }`}
-                  />
+                  <FaChevronDown className="text-slate-400 text-xs" />
 
                 </button>
 
                 {profileOpen && (
-
                   <div className="absolute right-0 top-full mt-3 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50">
 
                     <div className="p-5 border-b border-slate-100">
@@ -936,9 +811,7 @@ function OwnerDashboard() {
                       <div className="flex items-center gap-3">
 
                         <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold">
-
                           {getOwnerInitial()}
-
                         </div>
 
                         <div className="min-w-0">
@@ -961,79 +834,59 @@ function OwnerDashboard() {
 
                       <button
                         onClick={() => {
-                          setProfileOpen(
-                            false
-                          );
+                          setProfileOpen(false);
+                          navigate("/profile");
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition text-left"
                       >
-
                         <FaUserCircle />
-
                         My Profile
-
                       </button>
 
                       <button
                         onClick={logout}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition text-left"
                       >
-
                         <FaSignOutAlt />
-
                         Logout
-
                       </button>
 
                     </div>
 
                   </div>
-
                 )}
 
               </div>
 
             </div>
 
-            {/* MOBILE MENU BUTTON */}
-
             <button
               onClick={() =>
-                setMobileMenu(
-                  !mobileMenu
-                )
+                setMobileMenu(!mobileMenu)
               }
               className="md:hidden w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600"
             >
-
               {mobileMenu ? (
                 <FaTimes />
               ) : (
                 <FaBars />
               )}
-
             </button>
 
           </div>
 
         </div>
 
-        {/* MOBILE MENU */}
-
         {mobileMenu && (
-
           <div className="md:hidden border-t border-slate-100 bg-white px-4 py-4">
 
             <div className="flex items-center gap-3 pb-4 mb-4 border-b border-slate-100">
 
               <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-
                 {getOwnerInitial()}
-
               </div>
 
               <div>
-
                 <p className="font-semibold text-slate-900">
                   {getOwnerName()}
                 </p>
@@ -1041,7 +894,6 @@ function OwnerDashboard() {
                 <p className="text-sm text-slate-500">
                   {getOwnerEmail()}
                 </p>
-
               </div>
 
             </div>
@@ -1051,83 +903,36 @@ function OwnerDashboard() {
               <button
                 onClick={() => {
                   handleRefresh();
-                  setMobileMenu(
-                    false
-                  );
+                  setMobileMenu(false);
                 }}
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-600"
               >
-
-                <FaSyncAlt
-                  className={
-                    refreshing
-                      ? "animate-spin"
-                      : ""
-                  }
-                />
-
+                <FaSyncAlt />
                 Refresh
-
               </button>
 
               <button
                 onClick={() => {
-                  navigate(
-                    "/owner/add-parking"
-                  );
-                  setMobileMenu(
-                    false
-                  );
+                  navigate("/owner/add-parking");
+                  setMobileMenu(false);
                 }}
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-medium"
               >
-
                 <FaPlus />
-
                 Add Parking
-
               </button>
 
             </div>
 
             <button
-              onClick={() => {
-                setMobileMenu(
-                  false
-                );
-                setNotificationOpen(
-                  !notificationOpen
-                );
-              }}
-              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-600"
-            >
-
-              <FaBell />
-
-              Notifications
-
-              {unreadNotifications >
-                0 && (
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                  {unreadNotifications}
-                </span>
-              )}
-
-            </button>
-
-            <button
               onClick={logout}
               className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-red-200 text-red-600"
             >
-
               <FaSignOutAlt />
-
               Logout
-
             </button>
 
           </div>
-
         )}
 
       </header>
@@ -1138,8 +943,6 @@ function OwnerDashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* PAGE INTRO */}
-
         <section className="mb-8">
 
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -1147,29 +950,21 @@ function OwnerDashboard() {
             <div>
 
               <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm mb-2">
-
                 <FaChartLine />
-
                 PARKING OVERVIEW
-
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-
                 Welcome back,{" "}
-
                 <span className="text-blue-600">
                   {getOwnerName()}.
                 </span>
-
               </h2>
 
               <p className="text-slate-500 mt-3 max-w-2xl">
-
                 Monitor your parking locations,
                 verification status and parking
                 capacity from one place.
-
               </p>
 
             </div>
@@ -1179,8 +974,7 @@ function OwnerDashboard() {
               {refreshing
                 ? "Updating dashboard..."
                 : `${totalLocations} parking location${
-                    totalLocations !==
-                    1
+                    totalLocations !== 1
                       ? "s"
                       : ""
                   } found`}
@@ -1191,20 +985,15 @@ function OwnerDashboard() {
 
         </section>
 
-        {/* ========================================
-            STATISTICS
-        ======================================== */}
+        {/* STATISTICS */}
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
 
-          {/* LOCATIONS */}
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm font-medium text-slate-500">
                   Parking Locations
                 </p>
@@ -1216,27 +1005,21 @@ function OwnerDashboard() {
                 <p className="text-xs text-slate-400 mt-2">
                   Total locations
                 </p>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
-
                 <FaParking />
-
               </div>
 
             </div>
 
           </div>
 
-          {/* TOTAL SLOTS */}
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm font-medium text-slate-500">
                   Total Slots
                 </p>
@@ -1248,27 +1031,21 @@ function OwnerDashboard() {
                 <p className="text-xs text-slate-400 mt-2">
                   Parking capacity
                 </p>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
-
                 <FaCar />
-
               </div>
 
             </div>
 
           </div>
 
-          {/* APPROVED */}
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm font-medium text-slate-500">
                   Approved
                 </p>
@@ -1280,27 +1057,21 @@ function OwnerDashboard() {
                 <p className="text-xs text-green-600 mt-2">
                   Live for customers
                 </p>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl">
-
                 <FaCheckCircle />
-
               </div>
 
             </div>
 
           </div>
 
-          {/* PENDING */}
-
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-sm font-medium text-slate-500">
                   Pending
                 </p>
@@ -1312,13 +1083,10 @@ function OwnerDashboard() {
                 <p className="text-xs text-yellow-600 mt-2">
                   Awaiting review
                 </p>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-xl">
-
                 <FaClock />
-
               </div>
 
             </div>
@@ -1327,17 +1095,12 @@ function OwnerDashboard() {
 
         </section>
 
-        {/* ========================================
-            SEARCH + FILTER
-        ======================================== */}
+        {/* SEARCH + FILTER */}
 
         {parking.length > 0 && (
-
           <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
 
             <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-
-              {/* SEARCH */}
 
               <div className="relative w-full lg:max-w-md">
 
@@ -1348,27 +1111,21 @@ function OwnerDashboard() {
                   placeholder="Search parking by name or address..."
                   value={searchTerm}
                   onChange={(e) =>
-                    setSearchTerm(
-                      e.target.value
-                    )
+                    setSearchTerm(e.target.value)
                   }
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
                 />
 
               </div>
 
-              {/* FILTER */}
-
               <div className="flex flex-wrap items-center gap-2">
 
                 <div className="flex items-center gap-2 text-slate-500 mr-2">
-
                   <FaFilter />
 
                   <span className="text-sm font-medium">
                     Filter:
                   </span>
-
                 </div>
 
                 {[
@@ -1381,28 +1138,21 @@ function OwnerDashboard() {
                   <button
                     key={status}
                     onClick={() =>
-                      setStatusFilter(
-                        status
-                      )
+                      setStatusFilter(status)
                     }
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      statusFilter ===
-                      status
+                      statusFilter === status
                         ? "bg-blue-600 text-white shadow-sm"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
-
                     {status === "ALL"
                       ? `All (${totalLocations})`
-                      : status ===
-                        "APPROVED"
+                      : status === "APPROVED"
                       ? `Approved (${approvedParking})`
-                      : status ===
-                        "PENDING"
+                      : status === "PENDING"
                       ? `Pending (${pendingParking})`
                       : `Rejected (${rejectedParking})`}
-
                   </button>
 
                 ))}
@@ -1412,12 +1162,9 @@ function OwnerDashboard() {
             </div>
 
           </section>
-
         )}
 
-        {/* ========================================
-            PARKING SECTION HEADER
-        ======================================== */}
+        {/* PARKING HEADER */}
 
         <section className="flex items-center justify-between mb-6">
 
@@ -1428,39 +1175,27 @@ function OwnerDashboard() {
             </h3>
 
             <p className="text-sm text-slate-500 mt-1">
-
-              Showing{" "}
-              {filteredParking.length}{" "}
-              of {totalLocations}{" "}
-              locations
-
+              Showing {filteredParking.length} of{" "}
+              {totalLocations} locations
             </p>
 
           </div>
 
           <button
             onClick={() =>
-              navigate(
-                "/owner/add-parking"
-              )
+              navigate("/owner/add-parking")
             }
             className="hidden sm:flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700"
           >
-
             <FaPlus />
-
             Add New
-
           </button>
 
         </section>
 
-        {/* ========================================
-            LOADING
-        ======================================== */}
+        {/* LOADING */}
 
         {loading ? (
-
           <div className="bg-white rounded-2xl border border-slate-200 py-20 text-center">
 
             <div className="w-10 h-10 mx-auto border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
@@ -1470,19 +1205,12 @@ function OwnerDashboard() {
             </p>
 
           </div>
-
         ) : parking.length === 0 ? (
-
-          /* ======================================
-             EMPTY STATE
-          ====================================== */
 
           <div className="bg-white rounded-2xl border border-slate-200 p-10 sm:p-16 text-center shadow-sm">
 
             <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-3xl">
-
               <FaParking />
-
             </div>
 
             <h3 className="text-2xl font-bold text-slate-900 mt-6">
@@ -1490,43 +1218,29 @@ function OwnerDashboard() {
             </h3>
 
             <p className="text-slate-500 mt-3 max-w-md mx-auto">
-
               Start growing your parking
               business by adding your first
               parking location.
-
             </p>
 
             <button
               onClick={() =>
-                navigate(
-                  "/owner/add-parking"
-                )
+                navigate("/owner/add-parking")
               }
               className="mt-7 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition shadow-sm"
             >
-
               <FaPlus />
-
               Add Your First Parking
-
             </button>
 
           </div>
 
-        ) : filteredParking.length ===
-          0 ? (
-
-          /* ======================================
-             NO SEARCH RESULTS
-          ====================================== */
+        ) : filteredParking.length === 0 ? (
 
           <div className="bg-white rounded-2xl border border-slate-200 py-16 text-center">
 
             <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center text-2xl">
-
               <FaSearch />
-
             </div>
 
             <h3 className="text-xl font-bold text-slate-900 mt-5">
@@ -1534,8 +1248,7 @@ function OwnerDashboard() {
             </h3>
 
             <p className="text-slate-500 mt-2">
-              Try changing your search or
-              filter.
+              Try changing your search or filter.
             </p>
 
             <button
@@ -1545,376 +1258,66 @@ function OwnerDashboard() {
               }}
               className="mt-5 px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
             >
-
               Clear Filters
-
             </button>
 
           </div>
 
         ) : (
 
-          /* ======================================
-             PARKING CARDS
-          ====================================== */
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            {filteredParking.map(
-              (item) => {
+            {filteredParking.map((item) => {
 
-                const status =
-                  getStatusConfig(
-                    item.verification_status
-                  );
+              const status = getStatusConfig(
+                item.verification_status
+              );
 
-                return (
+              return (
 
-                  <div
-                    key={item.id}
-                    className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
-                  >
+                <div
+                  key={item.id}
+                  className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                >
 
-                    {/* ==================================
-                        CARD HEADER
-                    ================================== */}
+                  <div className="p-5 sm:p-6 border-b border-slate-100">
 
-                    <div className="p-5 sm:p-6 border-b border-slate-100">
+                    <div className="flex items-start gap-4">
 
-                      <div className="flex items-start gap-4">
-
-                        {/* PARKING ICON */}
-
-                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-
-                          <FaParking />
-
-                        </div>
-
-                        {/* TITLE + ADDRESS */}
-
-                        <div className="flex-1 min-w-0">
-
-                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-
-                            <div className="min-w-0">
-
-                              <h3 className="text-xl font-bold text-slate-900 truncate">
-
-                                {item.name ||
-                                  "Unnamed Parking"}
-
-                              </h3>
-
-                              <div className="flex items-start gap-2 text-sm text-slate-500 mt-2">
-
-                                <FaMapMarkerAlt className="mt-1 shrink-0 text-blue-500" />
-
-                                <span className="line-clamp-2 leading-5">
-
-                                  {item.address ||
-                                    "Address not available"}
-
-                                </span>
-
-                              </div>
-
-                            </div>
-
-                            {/* STATUS */}
-
-                            <span
-                              className={`self-start shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${status.badge}`}
-                            >
-
-                              {status.icon}
-
-                              {status.title}
-
-                            </span>
-
-                          </div>
-
-                        </div>
-
+                      <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <FaParking />
                       </div>
 
-                    </div>
+                      <div className="flex-1 min-w-0">
 
-                    {/* ==================================
-                        CARD BODY
-                    ================================== */}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
 
-                    <div className="p-5 sm:p-6">
+                          <div className="min-w-0">
 
-                      {/* CAPACITY / LOCATION INFO */}
+                            <h3 className="text-xl font-bold text-slate-900 truncate">
+                              {item.name ||
+                                "Unnamed Parking"}
+                            </h3>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="flex items-start gap-2 text-sm text-slate-500 mt-2">
 
-                        {/* TOTAL SLOTS */}
+                              <FaMapMarkerAlt className="mt-1 shrink-0 text-blue-500" />
 
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-
-                          <div className="flex items-center justify-between gap-2">
-
-                            <p className="text-xs font-medium text-slate-500">
-                              Total Slots
-                            </p>
-
-                            <FaCar className="text-slate-400" />
-
-                          </div>
-
-                          <p className="text-2xl font-bold text-slate-900 mt-2">
-
-                            {item.total_slots ||
-                              0}
-
-                          </p>
-
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Parking capacity
-                          </p>
-
-                        </div>
-
-                        {/* LATITUDE */}
-
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-
-                          <p className="text-xs font-medium text-slate-500">
-                            Latitude
-                          </p>
-
-                          <p className="text-sm font-bold text-slate-900 mt-2 truncate">
-
-                            {item.latitude ||
-                              "-"}
-
-                          </p>
-
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Map coordinate
-                          </p>
-
-                        </div>
-
-                        {/* LONGITUDE */}
-
-                        <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-
-                          <p className="text-xs font-medium text-slate-500">
-                            Longitude
-                          </p>
-
-                          <p className="text-sm font-bold text-slate-900 mt-2 truncate">
-
-                            {item.longitude ||
-                              "-"}
-
-                          </p>
-
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Map coordinate
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                      {/* ==================================
-                          STATUS INFORMATION
-                      ================================== */}
-
-                      {item.verification_status ===
-                        "REJECTED" && (
-
-                        <div className="mt-5 rounded-xl border border-red-100 bg-red-50 p-4">
-
-                          <div className="flex items-start gap-3">
-
-                            <div className="w-9 h-9 shrink-0 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
-
-                              <FaExclamationTriangle />
-
-                            </div>
-
-                            <div className="min-w-0">
-
-                              <p className="font-semibold text-red-700">
-                                Verification Rejected
-                              </p>
-
-                              <p className="text-sm text-red-600 mt-1 leading-5">
-
-                                {item.rejection_reason ||
-                                  "No rejection reason was provided."}
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                      {item.verification_status ===
-                        "PENDING" && (
-
-                        <div className="mt-5 rounded-xl border border-yellow-100 bg-yellow-50 p-4">
-
-                          <div className="flex items-start gap-3">
-
-                            <div className="w-9 h-9 shrink-0 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">
-
-                              <FaClock />
-
-                            </div>
-
-                            <div className="min-w-0">
-
-                              <p className="font-semibold text-yellow-700">
-                                Verification Pending
-                              </p>
-
-                              <p className="text-sm text-yellow-700 mt-1 leading-5">
-
-                                Your parking location is
-                                currently under review by
-                                ParkEase.
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                      {item.verification_status ===
-                        "APPROVED" && (
-
-                        <div className="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
-
-                          <div className="flex items-start gap-3">
-
-                            <div className="w-9 h-9 shrink-0 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
-
-                              <FaCheckCircle />
-
-                            </div>
-
-                            <div className="min-w-0">
-
-                              <p className="font-semibold text-green-700">
-                                Parking Approved
-                              </p>
-
-                              <p className="text-sm text-green-700 mt-1 leading-5">
-
-                                Your parking is live and
-                                available for customers to
-                                discover and book.
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                      {/* ==================================
-                          ACTION AREA
-                      ================================== */}
-
-                      <div className="mt-6 pt-5 border-t border-slate-100">
-
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-
-                          {/* PARKING ID */}
-
-                          <div className="flex items-center gap-2">
-
-                            <span className="text-xs font-medium text-slate-400">
-                              Parking ID
-                            </span>
-
-                            <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
-                              #{item.id}
-                            </span>
-
-                          </div>
-
-                          {/* ACTIONS */}
-
-                          <div className="grid grid-cols-3 sm:flex gap-2">
-
-                            {/* VIEW */}
-
-                            <button
-                              onClick={() =>
-                                viewParking(
-                                  item.id
-                                )
-                              }
-                              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-sm font-medium"
-                            >
-
-                              <FaEye />
-
-                              <span>
-                                View
+                              <span className="line-clamp-2 leading-5">
+                                {item.address ||
+                                  "Address not available"}
                               </span>
 
-                            </button>
-
-                            {/* EDIT */}
-
-                            <button
-                              onClick={() =>
-                                editParking(
-                                  item.id
-                                )
-                              }
-                              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition text-sm font-medium"
-                            >
-
-                              <FaEdit />
-
-                              <span>
-                                Edit
-                              </span>
-
-                            </button>
-
-                            {/* DELETE */}
-
-                            <button
-                              onClick={() =>
-                                deleteParking(
-                                  item.id
-                                )
-                              }
-                              disabled={deleting}
-                              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-
-                              <FaTrash />
-
-                              <span>
-                                Delete
-                              </span>
-
-                            </button>
+                            </div>
 
                           </div>
+
+                          <span
+                            className={`self-start shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${status.badge}`}
+                          >
+                            {status.icon}
+                            {status.title}
+                          </span>
 
                         </div>
 
@@ -1924,12 +1327,219 @@ function OwnerDashboard() {
 
                   </div>
 
-                );
-              }
-            )}
+                  <div className="p-5 sm:p-6">
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                      <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+
+                        <div className="flex items-center justify-between gap-2">
+
+                          <p className="text-xs font-medium text-slate-500">
+                            Total Slots
+                          </p>
+
+                          <FaCar className="text-slate-400" />
+
+                        </div>
+
+                        <p className="text-2xl font-bold text-slate-900 mt-2">
+                          {item.total_slots || 0}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Parking capacity
+                        </p>
+
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+
+                        <p className="text-xs font-medium text-slate-500">
+                          Latitude
+                        </p>
+
+                        <p className="text-sm font-bold text-slate-900 mt-2 truncate">
+                          {item.latitude || "-"}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Map coordinate
+                        </p>
+
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+
+                        <p className="text-xs font-medium text-slate-500">
+                          Longitude
+                        </p>
+
+                        <p className="text-sm font-bold text-slate-900 mt-2 truncate">
+                          {item.longitude || "-"}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Map coordinate
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {item.verification_status ===
+                      "REJECTED" && (
+
+                      <div className="mt-5 rounded-xl border border-red-100 bg-red-50 p-4">
+
+                        <div className="flex items-start gap-3">
+
+                          <div className="w-9 h-9 shrink-0 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                            <FaExclamationTriangle />
+                          </div>
+
+                          <div>
+
+                            <p className="font-semibold text-red-700">
+                              Verification Rejected
+                            </p>
+
+                            <p className="text-sm text-red-600 mt-1">
+                              {item.rejection_reason ||
+                                "No rejection reason was provided."}
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                    {item.verification_status ===
+                      "PENDING" && (
+
+                      <div className="mt-5 rounded-xl border border-yellow-100 bg-yellow-50 p-4">
+
+                        <div className="flex items-start gap-3">
+
+                          <div className="w-9 h-9 shrink-0 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">
+                            <FaClock />
+                          </div>
+
+                          <div>
+
+                            <p className="font-semibold text-yellow-700">
+                              Verification Pending
+                            </p>
+
+                            <p className="text-sm text-yellow-700 mt-1">
+                              Your parking location is
+                              currently under review by
+                              ParkEase.
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                    {item.verification_status ===
+                      "APPROVED" && (
+
+                      <div className="mt-5 rounded-xl border border-green-100 bg-green-50 p-4">
+
+                        <div className="flex items-start gap-3">
+
+                          <div className="w-9 h-9 shrink-0 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">
+                            <FaCheckCircle />
+                          </div>
+
+                          <div>
+
+                            <p className="font-semibold text-green-700">
+                              Parking Approved
+                            </p>
+
+                            <p className="text-sm text-green-700 mt-1">
+                              Your parking is live and
+                              available for customers to
+                              discover and book.
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                    {/* ACTIONS */}
+
+                    <div className="mt-6 pt-5 border-t border-slate-100">
+
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                        <div className="flex items-center gap-2">
+
+                          <span className="text-xs font-medium text-slate-400">
+                            Parking ID
+                          </span>
+
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-600">
+                            #{item.id}
+                          </span>
+
+                        </div>
+
+                        <div className="grid grid-cols-3 sm:flex gap-2">
+
+                          <button
+                            onClick={() =>
+                              viewParking(item.id)
+                            }
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition text-sm font-medium"
+                          >
+                            <FaEye />
+                            <span>View</span>
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              editParking(item.id)
+                            }
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition text-sm font-medium"
+                          >
+                            <FaEdit />
+                            <span>Edit</span>
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              deleteParking(item.id)
+                            }
+                            disabled={deleting}
+                            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition text-sm font-medium disabled:opacity-50"
+                          >
+                            <FaTrash />
+                            <span>Delete</span>
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              );
+            })}
 
           </div>
-
         )}
 
       </main>

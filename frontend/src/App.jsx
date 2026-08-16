@@ -38,6 +38,7 @@ import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import AddParking from "./pages/owner/AddParking";
 import EditParking from "./pages/owner/EditParking";
 import OwnerParkingDetails from "./pages/owner/OwnerParkingDetails";
+import ManageSlots from "./pages/owner/ManageSlots";
 import ScanQR from "./pages/owner/ScanQR";
 
 // =====================================================
@@ -53,7 +54,6 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 function App() {
   return (
     <BrowserRouter>
-
       <Routes>
 
         {/* =====================================================
@@ -150,6 +150,8 @@ function App() {
             OWNER ROUTES
         ===================================================== */}
 
+        {/* OWNER DASHBOARD */}
+
         <Route
           path="/owner"
           element={
@@ -158,6 +160,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ADD PARKING */}
 
         <Route
           path="/owner/add-parking"
@@ -168,14 +172,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/owner/parking/:id"
-          element={
-            <ProtectedRoute ownerOnly>
-              <OwnerParkingDetails />
-            </ProtectedRoute>
-          }
-        />
+        {/* EDIT PARKING */}
 
         <Route
           path="/owner/edit-parking/:id"
@@ -185,6 +182,32 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* OWNER PARKING DETAILS */}
+
+        <Route
+          path="/owner/parking/:id"
+          element={
+            <ProtectedRoute ownerOnly>
+              <OwnerParkingDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================================
+            MANAGE PARKING SLOTS
+        ===================================================== */}
+
+        <Route
+          path="/owner/parking/:id/slots"
+          element={
+            <ProtectedRoute ownerOnly>
+              <ManageSlots />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* SCAN QR */}
 
         <Route
           path="/owner/scan-qr"
@@ -209,7 +232,7 @@ function App() {
         />
 
         {/* =====================================================
-            OLD CUSTOMER ROUTES
+            OLD CUSTOMER ROUTES - REDIRECTS
         ===================================================== */}
 
         <Route
@@ -277,7 +300,6 @@ function App() {
         />
 
       </Routes>
-
     </BrowserRouter>
   );
 }

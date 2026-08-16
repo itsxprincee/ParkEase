@@ -13,27 +13,31 @@ class Vehicle(Base):
         index=True
     )
 
-    owner_id = Column(
+    user_id = Column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.id"),
         nullable=False,
         index=True
     )
 
-    vehicle_type = Column(
-        String(20),
+    vehicle_number = Column(
+        String(50),
         nullable=False
+    )
+
+    vehicle_type = Column(
+        String(50),
+        nullable=True
     )
 
     vehicle_name = Column(
         String(100),
-        nullable=False
+        nullable=True
     )
 
-    vehicle_number = Column(
-        String(30),
-        nullable=False
-    )
+    # =====================================================
+    # RELATIONSHIP
+    # =====================================================
 
     user = relationship(
         "User",

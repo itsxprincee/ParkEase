@@ -22,9 +22,9 @@ class Booking(Base):
         index=True
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # USER
-    # -----------------------------------------------------
+    # =====================================================
 
     user_id = Column(
         Integer,
@@ -33,9 +33,9 @@ class Booking(Base):
         index=True
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # PARKING LOCATION
-    # -----------------------------------------------------
+    # =====================================================
 
     parking_location_id = Column(
         Integer,
@@ -44,22 +44,25 @@ class Booking(Base):
         index=True
     )
 
-    # -----------------------------------------------------
-    # SLOT
-    # -----------------------------------------------------
+    # =====================================================
+    # PARKING SLOT
+    # =====================================================
 
     slot_id = Column(
         Integer,
-        nullable=True
+        ForeignKey("parking_slots.id"),
+        nullable=True,
+        index=True
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # BOOKING DETAILS
-    # -----------------------------------------------------
+    # =====================================================
 
     booking_date = Column(
         DateTime,
-        default=datetime.utcnow
+        default=datetime.utcnow,
+        nullable=False
     )
 
     start_time = Column(
@@ -79,7 +82,8 @@ class Booking(Base):
 
     status = Column(
         String(30),
-        default="active"
+        default="active",
+        nullable=False
     )
 
     qr_code = Column(
@@ -87,9 +91,9 @@ class Booking(Base):
         nullable=True
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # RELATIONSHIPS
-    # -----------------------------------------------------
+    # =====================================================
 
     user = relationship(
         "User",
@@ -98,5 +102,10 @@ class Booking(Base):
 
     parking_location = relationship(
         "ParkingLocation",
+        back_populates="bookings"
+    )
+
+    slot = relationship(
+        "ParkingSlot",
         back_populates="bookings"
     )

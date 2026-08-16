@@ -57,7 +57,7 @@ class User(Base):
     )
 
     # =====================================================
-    # RELATIONSHIPS
+    # PARKING LOCATIONS
     # =====================================================
 
     parking_locations = relationship(
@@ -66,11 +66,22 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    # =====================================================
+    # BOOKINGS
+    # =====================================================
+
     bookings = relationship(
         "Booking",
         back_populates="user",
         cascade="all, delete-orphan"
     )
+
+    # =====================================================
+    # VEHICLES
+    # IMPORTANT:
+    # Vehicle.user must use:
+    # back_populates="vehicles"
+    # =====================================================
 
     vehicles = relationship(
         "Vehicle",

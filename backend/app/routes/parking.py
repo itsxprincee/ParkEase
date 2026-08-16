@@ -53,7 +53,11 @@ class SlotUpdate(BaseModel):
 
 
 class SlotStatusUpdate(BaseModel):
-    status: str
+    status: str = Field(
+        ...,
+        min_length=1,
+        max_length=20
+    )
 
 
 # =========================================================
@@ -118,15 +122,108 @@ def create_parking(
     db.refresh(parking)
 
     return {
-        "message": "Parking submitted successfully for ParkEase verification.",
+        "message": (
+            "Parking submitted successfully "
+            "for ParkEase verification."
+        ),
         "parking_id": parking.id,
         "owner_id": owner.id,
-        "verification_status": parking.verification_status,
+        "verification_status": (
+            parking.verification_status
+        ),
         "verification_message": (
             "Your parking is pending verification. "
             "ParkEase verification may take up to 24 hours."
         )
     }
+
+
+# =========================================================
+# CUSTOMER - GET ALL APPROVED PARKING
+#
+# THIS FIXES:
+# GET /parking -> 404 Not Found
+# =========================================================
+
+@router.get("")
+@router.get("/")
+def get_all_parking(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+
+    locations = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.verification_status == "APPROVED"
+        )
+        .order_by(
+            ParkingLocation.id.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for location in locations:
+
+        total_created_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id
+            )
+            .count()
+        )
+
+        available_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
+            )
+            .count()
+        )
+
+        occupied_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "OCCUPIED"
+            )
+            .count()
+        )
+
+        maintenance_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "MAINTENANCE"
+            )
+            .count()
+        )
+
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+
+                "total_slots": location.total_slots,
+
+                "created_slots": total_created_slots,
+                "available_slots": available_slots,
+                "occupied_slots": occupied_slots,
+                "maintenance_slots": maintenance_slots,
+
+                "verification_status": (
+                    location.verification_status
+                )
+            }
+        )
+
+    return result
 
 
 # =========================================================
@@ -150,23 +247,39 @@ def get_approved_parking(
         .all()
     )
 
-    return [
-        {
-            "id": location.id,
-            "name": location.name,
-            "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
-            "total_slots": location.total_slots,
-            "verification_status": location.verification_status
-        }
-        for location in locations
-    ]
+    result = []
+
+    for location in locations:
+
+        available_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
+            )
+            .count()
+        )
+
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "total_slots": location.total_slots,
+                "available_slots": available_slots,
+                "verification_status": (
+                    location.verification_status
+                )
+            }
+        )
+
+    return result
 
 
 # =========================================================
 # OWNER - GET MY PARKING
-# IMPORTANT: THIS MUST COME BEFORE /{parking_id}
 # =========================================================
 
 @router.get("/owner/my-parking")
@@ -186,25 +299,77 @@ def get_my_parking(
         .all()
     )
 
-    return [
-        {
-            "id": location.id,
-            "name": location.name,
-            "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
-            "total_slots": location.total_slots,
-            "verification_status": location.verification_status,
-            "verification_submitted_at": location.verification_submitted_at,
-            "verified_at": location.verified_at,
-            "rejection_reason": location.rejection_reason
-        }
-        for location in locations
-    ]
+    result = []
+
+    for location in locations:
+
+        created_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id
+            )
+            .count()
+        )
+
+        available_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
+            )
+            .count()
+        )
+
+        occupied_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "OCCUPIED"
+            )
+            .count()
+        )
+
+        maintenance_slots = (
+            db.query(ParkingSlot)
+            .filter(
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "MAINTENANCE"
+            )
+            .count()
+        )
+
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "total_slots": location.total_slots,
+
+                "created_slots": created_slots,
+                "available_slots": available_slots,
+                "occupied_slots": occupied_slots,
+                "maintenance_slots": maintenance_slots,
+
+                "verification_status": (
+                    location.verification_status
+                ),
+                "verification_submitted_at": (
+                    location.verification_submitted_at
+                ),
+                "verified_at": location.verified_at,
+                "rejection_reason": (
+                    location.rejection_reason
+                )
+            }
+        )
+
+    return result
 
 
 # =========================================================
-# OWNER - GET ONE OF MY PARKING LOCATIONS
+# OWNER - GET ONE PARKING LOCATION
 # =========================================================
 
 @router.get("/owner/{parking_id}")
@@ -262,17 +427,34 @@ def get_owner_parking_details(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
-        "verification_status": parking.verification_status,
-        "verification_submitted_at": parking.verification_submitted_at,
+
+        "verification_status": (
+            parking.verification_status
+        ),
+        "verification_submitted_at": (
+            parking.verification_submitted_at
+        ),
         "verified_at": parking.verified_at,
-        "rejection_reason": parking.rejection_reason,
+        "rejection_reason": (
+            parking.rejection_reason
+        ),
 
         "slot_statistics": {
-            "configured_capacity": parking.total_slots,
-            "created_slots": total_slots_created,
-            "available_slots": available_slots,
-            "occupied_slots": occupied_slots,
-            "maintenance_slots": maintenance_slots
+            "configured_capacity": (
+                parking.total_slots
+            ),
+            "created_slots": (
+                total_slots_created
+            ),
+            "available_slots": (
+                available_slots
+            ),
+            "occupied_slots": (
+                occupied_slots
+            ),
+            "maintenance_slots": (
+                maintenance_slots
+            )
         }
     }
 
@@ -298,7 +480,9 @@ def update_parking(
     if data.total_slots <= 0:
         raise HTTPException(
             status_code=400,
-            detail="Total slots must be greater than 0"
+            detail=(
+                "Total slots must be greater than 0"
+            )
         )
 
     created_slots = (
@@ -324,11 +508,11 @@ def update_parking(
     parking.longitude = data.longitude
     parking.total_slots = data.total_slots
 
-    # Editing an already rejected parking sends it
-    # back for verification.
     if parking.verification_status == "REJECTED":
         parking.verification_status = "PENDING"
-        parking.verification_submitted_at = datetime.utcnow()
+        parking.verification_submitted_at = (
+            datetime.utcnow()
+        )
         parking.verified_at = None
         parking.rejection_reason = None
 
@@ -338,12 +522,14 @@ def update_parking(
     return {
         "message": "Parking updated successfully",
         "parking_id": parking.id,
-        "verification_status": parking.verification_status
+        "verification_status": (
+            parking.verification_status
+        )
     }
 
 
 # =========================================================
-# OWNER - GET ALL SLOTS FOR A PARKING LOCATION
+# OWNER - GET ALL SLOTS
 # =========================================================
 
 @router.get("/owner/{parking_id}/slots")
@@ -373,17 +559,20 @@ def get_parking_slots(
     total = len(slots)
 
     available = len([
-        slot for slot in slots
+        slot
+        for slot in slots
         if slot.status == "AVAILABLE"
     ])
 
     occupied = len([
-        slot for slot in slots
+        slot
+        for slot in slots
         if slot.status == "OCCUPIED"
     ])
 
     maintenance = len([
-        slot for slot in slots
+        slot
+        for slot in slots
         if slot.status == "MAINTENANCE"
     ])
 
@@ -395,6 +584,7 @@ def get_parking_slots(
         "available_slots": available,
         "occupied_slots": occupied,
         "maintenance_slots": maintenance,
+
         "slots": [
             {
                 "id": slot.id,
@@ -430,7 +620,9 @@ def create_parking_slot(
     if not slot_number:
         raise HTTPException(
             status_code=400,
-            detail="Slot number cannot be empty"
+            detail=(
+                "Slot number cannot be empty"
+            )
         )
 
     created_slots = (
@@ -462,7 +654,9 @@ def create_parking_slot(
     if existing_slot:
         raise HTTPException(
             status_code=400,
-            detail="A slot with this number already exists"
+            detail=(
+                "A slot with this number already exists"
+            )
         )
 
     slot = ParkingSlot(
@@ -476,7 +670,9 @@ def create_parking_slot(
     db.refresh(slot)
 
     return {
-        "message": "Parking slot created successfully",
+        "message": (
+            "Parking slot created successfully"
+        ),
         "slot": {
             "id": slot.id,
             "parking_id": slot.parking_id,
@@ -490,7 +686,9 @@ def create_parking_slot(
 # OWNER - UPDATE SLOT NUMBER
 # =========================================================
 
-@router.put("/owner/{parking_id}/slots/{slot_id}")
+@router.put(
+    "/owner/{parking_id}/slots/{slot_id}"
+)
 def update_parking_slot(
     parking_id: int,
     slot_id: int,
@@ -525,7 +723,9 @@ def update_parking_slot(
     if not slot_number:
         raise HTTPException(
             status_code=400,
-            detail="Slot number cannot be empty"
+            detail=(
+                "Slot number cannot be empty"
+            )
         )
 
     duplicate_slot = (
@@ -541,7 +741,9 @@ def update_parking_slot(
     if duplicate_slot:
         raise HTTPException(
             status_code=400,
-            detail="A slot with this number already exists"
+            detail=(
+                "A slot with this number already exists"
+            )
         )
 
     slot.slot_number = slot_number
@@ -550,7 +752,9 @@ def update_parking_slot(
     db.refresh(slot)
 
     return {
-        "message": "Parking slot updated successfully",
+        "message": (
+            "Parking slot updated successfully"
+        ),
         "slot": {
             "id": slot.id,
             "parking_id": slot.parking_id,
@@ -602,7 +806,9 @@ def update_slot_status(
         "MAINTENANCE"
     ]
 
-    new_status = data.status.upper().strip()
+    new_status = (
+        data.status.upper().strip()
+    )
 
     if new_status not in allowed_statuses:
         raise HTTPException(
@@ -619,7 +825,9 @@ def update_slot_status(
     db.refresh(slot)
 
     return {
-        "message": "Slot status updated successfully",
+        "message": (
+            "Slot status updated successfully"
+        ),
         "slot": {
             "id": slot.id,
             "parking_id": slot.parking_id,
@@ -633,7 +841,9 @@ def update_slot_status(
 # OWNER - DELETE PARKING SLOT
 # =========================================================
 
-@router.delete("/owner/{parking_id}/slots/{slot_id}")
+@router.delete(
+    "/owner/{parking_id}/slots/{slot_id}"
+)
 def delete_parking_slot(
     parking_id: int,
     slot_id: int,
@@ -662,11 +872,22 @@ def delete_parking_slot(
             detail="Parking slot not found"
         )
 
+    if slot.status == "OCCUPIED":
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "An occupied parking slot cannot be deleted. "
+                "Change its status first."
+            )
+        )
+
     db.delete(slot)
     db.commit()
 
     return {
-        "message": "Parking slot deleted successfully",
+        "message": (
+            "Parking slot deleted successfully"
+        ),
         "slot_id": slot_id
     }
 
@@ -699,7 +920,8 @@ def delete_parking(
 
 # =========================================================
 # CUSTOMER - GET ONE APPROVED PARKING
-# KEEP THIS DYNAMIC ROUTE LAST
+#
+# KEEP THIS ROUTE LAST
 # =========================================================
 
 @router.get("/{parking_id}")
@@ -713,7 +935,8 @@ def get_parking(
         db.query(ParkingLocation)
         .filter(
             ParkingLocation.id == parking_id,
-            ParkingLocation.verification_status == "APPROVED"
+            ParkingLocation.verification_status
+            == "APPROVED"
         )
         .first()
     )
@@ -721,8 +944,45 @@ def get_parking(
     if not parking:
         raise HTTPException(
             status_code=404,
-            detail="Parking not found or not approved"
+            detail=(
+                "Parking not found or not approved"
+            )
         )
+
+    total_slots_created = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id
+        )
+        .count()
+    )
+
+    available_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "AVAILABLE"
+        )
+        .count()
+    )
+
+    occupied_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "OCCUPIED"
+        )
+        .count()
+    )
+
+    maintenance_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "MAINTENANCE"
+        )
+        .count()
+    )
 
     return {
         "id": parking.id,
@@ -731,5 +991,13 @@ def get_parking(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
-        "verification_status": parking.verification_status
+
+        "created_slots": total_slots_created,
+        "available_slots": available_slots,
+        "occupied_slots": occupied_slots,
+        "maintenance_slots": maintenance_slots,
+
+        "verification_status": (
+            parking.verification_status
+        )
     }

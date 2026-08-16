@@ -151,10 +151,19 @@ class ParkingSlot(Base):
     )
 
     # =====================================================
-    # RELATIONSHIP
+    # PARKING LOCATION RELATIONSHIP
     # =====================================================
 
     parking_location = relationship(
         "ParkingLocation",
         back_populates="slots"
+    )
+
+    # =====================================================
+    # BOOKINGS RELATIONSHIP
+    # =====================================================
+
+    bookings = relationship(
+        "Booking",
+        back_populates="slot"
     )

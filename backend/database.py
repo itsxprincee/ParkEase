@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from urllib.parse import quote_plus
 
@@ -43,29 +43,130 @@ DATABASE_URL = (
 
 
 # =========================================================
-# ENGINE
+# DISPLAY DATABASE CONFIGURATION
+# =========================================================
+
+print("\n" + "=" * 55)
+print("         PARKEASE DATABASE CONFIGURATION")
+print("=" * 55)
+print(f"Database User : {DB_USER}")
+print(f"Database Host : {DB_HOST}")
+print(f"Database Port : {DB_PORT}")
+print(f"Database Name : {DB_NAME}")
+print("=" * 55)
+
+
+# =========================================================
+# CREATE DATABASE ENGINE
 # =========================================================
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
     pool_recycle=3600,
+    echo=False,
 )
 
 
 # =========================================================
-# SESSION
+# VERIFY ACTUAL MYSQL CONNECTION
+# =========================================================
+
+try:
+    with engine.connect() as connection:
+
+        result = connection.execute(
+            text(
+                """
+                SELECT
+                    DATABASE() AS current_database,
+                    @@hostname AS mysql_host,
+                    @@port AS mysql_port
+                """
+            )
+        ).fetchone()
+
+        print("\n" + "=" * 55)
+        print("          CONNECTED MYSQL SERVER")
+        print("=" * 55)
+        print(f"Current Database : {result.current_database}")
+        print(f"MySQL Host       : {result.mysql_host}")
+        print(f"MySQL Port       : {result.mysql_port}")
+        print("=" * 55)
+
+        # -------------------------------------------------
+        # CHECK VEHICLES TABLE
+        # -------------------------------------------------
+
+        vehicle_columns = connection.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = :database_name
+                AND TABLE_NAME = 'vehicles'
+                ORDER BY ORDINAL_POSITION
+                """
+            ),
+            {
+                "database_name": DB_NAME
+            },
+        ).fetchall()
+
+        print("\n" + "=" * 55)
+        print("           VEHICLES TABLE COLUMNS")
+        print("=" * 55)
+
+        if vehicle_columns:
+            for column in vehicle_columns:
+                print(f"- {column.COLUMN_NAME}")
+
+            column_names = [
+                column.COLUMN_NAME
+                for column in vehicle_columns
+            ]
+
+            print("=" * 55)
+
+            if "user_id" in column_names:
+                print(
+                    "SUCCESS: vehicles.user_id EXISTS"
+                )
+            else:
+                print(
+                    "ERROR: vehicles.user_id DOES NOT EXIST"
+                )
+
+        else:
+            print(
+                "ERROR: vehicles table was not found "
+                "in the connected database."
+            )
+
+        print("=" * 55 + "\n")
+
+except Exception as error:
+
+    print("\n" + "=" * 55)
+    print("          DATABASE CONNECTION ERROR")
+    print("=" * 55)
+    print(error)
+    print("=" * 55 + "\n")
+
+
+# =========================================================
+# DATABASE SESSION
 # =========================================================
 
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
 )
 
 
 # =========================================================
-# BASE
+# SQLALCHEMY BASE
 # =========================================================
 
 Base = declarative_base()
@@ -76,9 +177,11 @@ Base = declarative_base()
 # =========================================================
 
 def get_db():
+
     db = SessionLocal()
 
     try:
         yield db
+
     finally:
         db.close()

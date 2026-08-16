@@ -27,6 +27,7 @@ import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import MyBookings from "./pages/customer/MyBookings";
 import MyVehicles from "./pages/customer/MyVehicles";
 import ParkingDetails from "./pages/customer/ParkingDetails";
+import BookParking from "./pages/customer/BookParking";
 import QRCode from "./pages/customer/QRCode";
 import Profile from "./pages/customer/Profile";
 
@@ -88,6 +89,8 @@ function App() {
             CUSTOMER ROUTES
         ===================================================== */}
 
+        {/* CUSTOMER DASHBOARD */}
+
         <Route
           path="/customer/dashboard"
           element={
@@ -96,6 +99,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* MY BOOKINGS */}
 
         <Route
           path="/customer/my-bookings"
@@ -106,6 +111,8 @@ function App() {
           }
         />
 
+        {/* MY VEHICLES */}
+
         <Route
           path="/customer/my-vehicles"
           element={
@@ -114,6 +121,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* PARKING DETAILS */}
 
         <Route
           path="/customer/parking/:id"
@@ -124,6 +133,19 @@ function App() {
           }
         />
 
+        {/* BOOK PARKING */}
+
+        <Route
+          path="/customer/parking/:id/book"
+          element={
+            <ProtectedRoute>
+              <BookParking />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* QR CODE */}
+
         <Route
           path="/customer/qr"
           element={
@@ -133,9 +155,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            CUSTOMER PROFILE
-        ===================================================== */}
+        {/* CUSTOMER PROFILE */}
 
         <Route
           path="/profile"
@@ -194,9 +214,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            MANAGE PARKING SLOTS
-        ===================================================== */}
+        {/* MANAGE PARKING SLOTS */}
 
         <Route
           path="/owner/parking/:id/slots"

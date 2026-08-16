@@ -8,6 +8,8 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaEye,
+  FaFilter,
+  FaParking,
   FaSearch,
   FaSyncAlt,
   FaTimes,
@@ -17,8 +19,6 @@ import {
   FaQrcode,
   FaSortAmountDown,
   FaCreditCard,
-  FaFilter,
-  FaParking,
 } from "react-icons/fa";
 
 import axios from "../../api/axios";
@@ -37,6 +37,7 @@ function MyBookings() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [deleteBooking, setDeleteBooking] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -46,6 +47,11 @@ function MyBookings() {
       setToast(null);
     }, 3500);
   };
+
+  // =========================================================
+  // LOAD BOOKINGS
+  // Only loads when the page opens or when Refresh is clicked.
+  // =========================================================
 
   const loadBookings = async (isRefresh = false) => {
     try {
@@ -65,33 +71,38 @@ function MyBookings() {
     } catch (error) {
       console.error("Failed to load bookings:", error);
 
-      showToast(
+      const message =
         error?.response?.data?.detail ||
-          "Unable to load your bookings.",
-        "error"
-      );
+        "Unable to load your bookings.";
+
+      showToast(message, "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
+  // =========================================================
+  // INITIAL LOAD ONLY
+  // =========================================================
+
   useEffect(() => {
     loadBookings();
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadBookings(true);
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // =========================================================
+  // NORMALIZE STATUS
+  // =========================================================
 
   const normalizeStatus = (status) => {
     if (!status) return "UNKNOWN";
+
     return String(status).trim().toUpperCase();
   };
+
+  // =========================================================
+  // STATUS CONFIG
+  // =========================================================
 
   const getStatusConfig = (status) => {
     const normalized = normalizeStatus(status);
@@ -137,6 +148,10 @@ function MyBookings() {
     }
   };
 
+  // =========================================================
+  // PAYMENT CONFIG
+  // =========================================================
+
   const getPaymentConfig = (status) => {
     const normalized = String(status || "PENDING")
       .trim()
@@ -171,6 +186,10 @@ function MyBookings() {
     }
   };
 
+  // =========================================================
+  // STATISTICS
+  // =========================================================
+
   const statistics = useMemo(() => {
     return {
       total: bookings.length,
@@ -199,6 +218,10 @@ function MyBookings() {
       ).length,
     };
   }, [bookings]);
+
+  // =========================================================
+  // SEARCH + FILTER + SORT
+  // =========================================================
 
   const filteredBookings = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
@@ -256,6 +279,10 @@ function MyBookings() {
     });
   }, [bookings, searchTerm, statusFilter, sortBy]);
 
+  // =========================================================
+  // CANCEL BOOKING
+  // =========================================================
+
   const confirmCancelBooking = async () => {
     if (!deleteBooking) return;
 
@@ -276,7 +303,10 @@ function MyBookings() {
       setBookings((previous) =>
         previous.map((booking) =>
           booking.id === deleteBooking.id
-            ? { ...booking, status: "Cancelled" }
+            ? {
+                ...booking,
+                status: "Cancelled",
+              }
             : booking
         )
       );
@@ -288,64 +318,98 @@ function MyBookings() {
           "Booking cancelled successfully.",
         "success"
       );
+
+      // Refresh once after successful cancellation
+      await loadBookings(true);
     } catch (error) {
-      showToast(
+      console.error("Failed to cancel booking:", error);
+
+      const message =
         error?.response?.data?.detail ||
-          error?.response?.data?.message ||
-          error?.message ||
-          "Unable to cancel booking.",
-        "error"
-      );
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to cancel booking.";
+
+      showToast(message, "error");
     } finally {
       setCancelling(false);
     }
   };
 
+  // =========================================================
+  // CAN CANCEL
+  // =========================================================
+
   const canCancelBooking = (booking) => {
     const status = normalizeStatus(booking?.status);
 
-    return status === "BOOKED" || status === "CONFIRMED";
+    return (
+      status === "BOOKED" ||
+      status === "CONFIRMED"
+    );
   };
+
+  // =========================================================
+  // CAN VIEW QR
+  // =========================================================
 
   const canViewQR = (booking) => {
     const status = normalizeStatus(booking?.status);
 
-    return [
-      "BOOKED",
-      "CONFIRMED",
-      "ACTIVE",
-      "ONGOING",
-    ].includes(status);
+    return (
+      status === "BOOKED" ||
+      status === "CONFIRMED" ||
+      status === "ACTIVE" ||
+      status === "ONGOING"
+    );
   };
+
+  // =========================================================
+  // FORMAT DATE
+  // =========================================================
 
   const formatDate = (value) => {
     if (!value) return "—";
 
-    const date = new Date(value);
+    try {
+      const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) {
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
       return value;
     }
-
-    return date.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
   };
+
+  // =========================================================
+  // FORMAT TIME
+  // =========================================================
 
   const formatTime = (value) => {
     if (!value) return "—";
 
-    const parts = String(value).split(":");
+    const valueString = String(value);
+    const parts = valueString.split(":");
 
-    if (parts.length < 2) return value;
+    if (parts.length < 2) {
+      return valueString;
+    }
 
     const hours = Number(parts[0]);
     const minutes = Number(parts[1]);
 
-    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-      return value;
+    if (
+      Number.isNaN(hours) ||
+      Number.isNaN(minutes)
+    ) {
+      return valueString;
     }
 
     const period = hours >= 12 ? "PM" : "AM";
@@ -357,46 +421,76 @@ function MyBookings() {
     )} ${period}`;
   };
 
+  // =========================================================
+  // FORMAT AMOUNT
+  // =========================================================
+
   const formatAmount = (amount) => {
     const number = Number(amount);
 
-    if (Number.isNaN(number)) return "₹0";
+    if (Number.isNaN(number)) {
+      return "₹0";
+    }
 
     return `₹${number.toLocaleString("en-IN")}`;
   };
 
-  const getParkingName = (booking) =>
-    booking.parking_name ||
-    booking.parking?.name ||
-    booking.parking?.parking_name ||
-    `Parking #${booking.parking_id || "—"}`;
+  // =========================================================
+  // GET PARKING NAME
+  // =========================================================
 
-  const getParkingAddress = (booking) =>
-    booking.address ||
-    booking.parking_address ||
-    booking.parking?.address ||
-    booking.parking?.location ||
-    "";
+  const getParkingName = (booking) => {
+    return (
+      booking.parking_name ||
+      booking.parking?.name ||
+      booking.parking?.parking_name ||
+      `Parking #${booking.parking_id || "—"}`
+    );
+  };
 
-  const getVehicleDetails = (booking) => ({
-    number:
-      booking.vehicle_number ||
-      booking.vehicle?.vehicle_number ||
-      booking.vehicle?.number ||
-      "Not available",
+  // =========================================================
+  // GET ADDRESS
+  // =========================================================
 
-    type:
-      booking.vehicle_type ||
-      booking.vehicle?.vehicle_type ||
-      booking.vehicle?.type ||
-      "",
+  const getParkingAddress = (booking) => {
+    return (
+      booking.address ||
+      booking.parking_address ||
+      booking.parking?.address ||
+      booking.parking?.location ||
+      ""
+    );
+  };
 
-    name:
-      booking.vehicle_name ||
-      booking.vehicle?.vehicle_name ||
-      booking.vehicle?.name ||
-      "",
-  });
+  // =========================================================
+  // GET VEHICLE DETAILS
+  // =========================================================
+
+  const getVehicleDetails = (booking) => {
+    return {
+      number:
+        booking.vehicle_number ||
+        booking.vehicle?.vehicle_number ||
+        booking.vehicle?.number ||
+        "Not available",
+
+      type:
+        booking.vehicle_type ||
+        booking.vehicle?.vehicle_type ||
+        booking.vehicle?.type ||
+        "",
+
+      name:
+        booking.vehicle_name ||
+        booking.vehicle?.vehicle_name ||
+        booking.vehicle?.name ||
+        "",
+    };
+  };
+
+  // =========================================================
+  // VIEW QR
+  // =========================================================
 
   const handleViewQR = (booking) => {
     navigate("/customer/qr", {
@@ -407,13 +501,29 @@ function MyBookings() {
     });
   };
 
+  // =========================================================
+  // BACK
+  // =========================================================
+
+  const goBack = () => {
+    navigate("/customer/dashboard");
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* TOAST */}
+
       {toast && (
         <div className="fixed top-5 right-5 z-[100] w-[calc(100%-2rem)] sm:w-auto sm:min-w-[340px]">
-          <div className="flex items-start gap-3 rounded-2xl border bg-white px-4 py-4 shadow-2xl">
+          <div
+            className={`flex items-start gap-3 rounded-2xl border px-4 py-4 shadow-2xl ${
+              toast.type === "success"
+                ? "bg-white border-green-200"
+                : "bg-white border-red-200"
+            }`}
+          >
             <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center ${
+              className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center ${
                 toast.type === "success"
                   ? "bg-green-100 text-green-600"
                   : "bg-red-100 text-red-600"
@@ -448,21 +558,21 @@ function MyBookings() {
         </div>
       )}
 
+      {/* HEADER */}
+
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-20 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() =>
-                  navigate("/customer/dashboard")
-                }
+                onClick={goBack}
                 className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition"
               >
                 <FaArrowLeft />
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md">
+                <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-200">
                   <FaParking />
                 </div>
 
@@ -484,9 +594,7 @@ function MyBookings() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition disabled:opacity-60"
             >
               <FaSyncAlt
-                className={
-                  refreshing ? "animate-spin" : ""
-                }
+                className={refreshing ? "animate-spin" : ""}
               />
 
               <span className="hidden sm:inline font-medium">
@@ -498,86 +606,110 @@ function MyBookings() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* PAGE INTRO */}
+
         <section className="mb-8">
-          <div>
-            <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm mb-2">
-              <FaReceipt />
-              BOOKING MANAGEMENT
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm mb-2">
+                <FaReceipt />
+                BOOKING MANAGEMENT
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+                Your Parking Bookings
+              </h2>
+
+              <p className="text-slate-500 mt-3 max-w-2xl">
+                View, track, manage and access all your
+                ParkEase parking reservations from one place.
+              </p>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              Your Parking Bookings
-            </h2>
-
-            <p className="text-slate-500 mt-3">
-              View and manage all your parking reservations.
-            </p>
+            <button
+              onClick={() =>
+                navigate("/customer/dashboard")
+              }
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm"
+            >
+              <FaParking />
+              Find Parking
+            </button>
           </div>
         </section>
 
-        {/* PROFESSIONAL COMPACT STATISTICS */}
-        <section className="bg-white border border-slate-200 rounded-2xl shadow-sm mb-6 overflow-hidden">
-          <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-y md:divide-y-0 divide-slate-100">
-            {[
-              {
-                label: "Total",
-                value: statistics.total,
-                icon: <FaReceipt />,
-                iconClass: "bg-slate-100 text-slate-600",
-              },
-              {
-                label: "Booked",
-                value: statistics.booked,
-                icon: <FaCalendarAlt />,
-                iconClass: "bg-blue-50 text-blue-600",
-              },
-              {
-                label: "Active",
-                value: statistics.active,
-                icon: <FaCar />,
-                iconClass: "bg-green-50 text-green-600",
-              },
-              {
-                label: "Completed",
-                value: statistics.completed,
-                icon: <FaCheckCircle />,
-                iconClass: "bg-emerald-50 text-emerald-600",
-              },
-              {
-                label: "Cancelled",
-                value: statistics.cancelled,
-                icon: <FaTimes />,
-                iconClass: "bg-red-50 text-red-600",
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center gap-3 p-4 sm:p-5"
-              >
+        {/* STATISTICS */}
+
+        <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          {[
+            {
+              label: "Total",
+              value: statistics.total,
+              icon: <FaReceipt />,
+              valueClass: "text-slate-900",
+              iconClass: "bg-blue-50 text-blue-600",
+            },
+            {
+              label: "Booked",
+              value: statistics.booked,
+              icon: <FaCalendarAlt />,
+              valueClass: "text-blue-600",
+              iconClass: "bg-blue-50 text-blue-600",
+            },
+            {
+              label: "Active",
+              value: statistics.active,
+              icon: <FaCar />,
+              valueClass: "text-green-600",
+              iconClass: "bg-green-50 text-green-600",
+            },
+            {
+              label: "Completed",
+              value: statistics.completed,
+              icon: <FaCheckCircle />,
+              valueClass: "text-emerald-600",
+              iconClass: "bg-emerald-50 text-emerald-600",
+            },
+            {
+              label: "Cancelled",
+              value: statistics.cancelled,
+              icon: <FaTimes />,
+              valueClass: "text-red-600",
+              iconClass: "bg-red-50 text-red-600",
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">
+                    {item.label}
+                  </p>
+
+                  <p
+                    className={`text-3xl font-bold mt-1 ${item.valueClass}`}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.iconClass}`}
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${item.iconClass}`}
                 >
                   {item.icon}
                 </div>
-
-                <div>
-                  <p className="text-2xl font-bold text-slate-900 leading-none">
-                    {item.value}
-                  </p>
-
-                  <p className="text-xs text-slate-500 mt-1">
-                    {item.label}
-                  </p>
-                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </section>
 
-        {/* SEARCH */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-4 shadow-sm">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="relative flex-1">
+        {/* SEARCH / FILTER / SORT */}
+
+        <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
+          <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+            <div className="relative w-full xl:max-w-md">
               <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
 
               <input
@@ -587,81 +719,78 @@ function MyBookings() {
                 onChange={(event) =>
                   setSearchTerm(event.target.value)
                 }
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition"
               />
             </div>
 
-            <div className="relative">
-              <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 text-slate-500 mr-1">
+                  <FaFilter />
 
-              <select
-                value={sortBy}
-                onChange={(event) =>
-                  setSortBy(event.target.value)
-                }
-                className="w-full lg:w-auto appearance-none pl-9 pr-9 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none"
-              >
-                <option value="NEWEST">
-                  Newest First
-                </option>
+                  <span className="text-sm font-medium">
+                    Filter
+                  </span>
+                </div>
 
-                <option value="OLDEST">
-                  Oldest First
-                </option>
+                {[
+                  "ALL",
+                  "BOOKED",
+                  "ACTIVE",
+                  "COMPLETED",
+                  "CANCELLED",
+                ].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() =>
+                      setStatusFilter(status)
+                    }
+                    className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
+                      statusFilter === status
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {status === "ALL"
+                      ? "All"
+                      : status.charAt(0) +
+                        status.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
 
-                <option value="AMOUNT_HIGH">
-                  Amount: High to Low
-                </option>
+              <div className="relative">
+                <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
 
-                <option value="AMOUNT_LOW">
-                  Amount: Low to High
-                </option>
-              </select>
-            </div>
-          </div>
-        </section>
-
-        {/* CLEAN FILTER BAR */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex items-center gap-2 text-slate-600 shrink-0">
-              <FaFilter className="text-blue-600" />
-              <span className="text-sm font-semibold">
-                Filter by status
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: "ALL", label: "All" },
-                { value: "BOOKED", label: "Booked" },
-                { value: "ACTIVE", label: "Active" },
-                {
-                  value: "COMPLETED",
-                  label: "Completed",
-                },
-                {
-                  value: "CANCELLED",
-                  label: "Cancelled",
-                },
-              ].map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() =>
-                    setStatusFilter(item.value)
+                <select
+                  value={sortBy}
+                  onChange={(event) =>
+                    setSortBy(event.target.value)
                   }
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    statusFilter === item.value
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
-                  }`}
+                  className="w-full sm:w-auto appearance-none pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-200"
                 >
-                  {item.label}
-                </button>
-              ))}
+                  <option value="NEWEST">
+                    Newest First
+                  </option>
+
+                  <option value="OLDEST">
+                    Oldest First
+                  </option>
+
+                  <option value="AMOUNT_HIGH">
+                    Amount: High to Low
+                  </option>
+
+                  <option value="AMOUNT_LOW">
+                    Amount: Low to High
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* RESULTS HEADER */}
 
         <section className="flex items-center justify-between mb-5">
           <div>
@@ -684,12 +813,14 @@ function MyBookings() {
                 setStatusFilter("ALL");
                 setSortBy("NEWEST");
               }}
-              className="text-sm text-blue-600 font-semibold hover:text-blue-700"
+              className="text-sm text-blue-600 font-medium hover:text-blue-700"
             >
               Clear Filters
             </button>
           )}
         </section>
+
+        {/* LOADING */}
 
         {loading ? (
           <div className="bg-white rounded-2xl border border-slate-200 py-20 text-center">
@@ -711,7 +842,8 @@ function MyBookings() {
 
             <p className="text-slate-500 mt-3 max-w-md mx-auto">
               You haven't made any parking reservations
-              yet.
+              yet. Find a parking location and make
+              your first booking.
             </p>
 
             <button
@@ -749,8 +881,9 @@ function MyBookings() {
                 booking.payment_status
               );
 
-              const vehicle =
-                getVehicleDetails(booking);
+              const vehicle = getVehicleDetails(
+                booking
+              );
 
               const parkingName =
                 getParkingName(booking);
@@ -766,7 +899,7 @@ function MyBookings() {
                   <div className="p-6 border-b border-slate-100">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
                           <FaParking />
                         </div>
 
@@ -814,8 +947,8 @@ function MyBookings() {
                         <p className="text-sm font-bold text-slate-900 mt-2">
                           {formatTime(
                             booking.start_time
-                          )}
-                          {" - "}
+                          )}{" "}
+                          -{" "}
                           {formatTime(
                             booking.end_time
                           )}
@@ -831,6 +964,15 @@ function MyBookings() {
                         <p className="text-sm font-bold text-slate-900 mt-2 truncate">
                           {vehicle.number}
                         </p>
+
+                        {(vehicle.name ||
+                          vehicle.type) && (
+                          <p className="text-xs text-slate-400 mt-1 truncate">
+                            {[vehicle.name, vehicle.type]
+                              .filter(Boolean)
+                              .join(" • ")}
+                          </p>
+                        )}
                       </div>
 
                       <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
@@ -841,15 +983,13 @@ function MyBookings() {
 
                         <p className="text-sm font-bold text-slate-900 mt-2">
                           {booking.slot_number ||
-                            `Slot #${
-                              booking.slot_id || "—"
-                            }`}
+                            `Slot #${booking.slot_id || "—"}`}
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-xs text-blue-600 font-medium">
@@ -870,17 +1010,25 @@ function MyBookings() {
                           </p>
                         </div>
 
-                        <FaCreditCard className="text-2xl text-blue-600" />
+                        <div className="w-11 h-11 rounded-xl bg-white text-blue-600 flex items-center justify-center">
+                          <FaCreditCard />
+                        </div>
                       </div>
                     </div>
 
                     {parkingAddress && (
                       <div className="mt-5 flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                        <FaMapMarkerAlt className="text-blue-600 mt-1" />
+                        <FaMapMarkerAlt className="text-blue-600 mt-1 shrink-0" />
 
-                        <p className="text-sm text-slate-700">
-                          {parkingAddress}
-                        </p>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">
+                            Parking Location
+                          </p>
+
+                          <p className="text-sm text-slate-700 mt-1">
+                            {parkingAddress}
+                          </p>
+                        </div>
                       </div>
                     )}
 
@@ -933,214 +1081,246 @@ function MyBookings() {
         )}
       </main>
 
-      {selectedBooking && (() => {
-        const status = getStatusConfig(
-          selectedBooking.status
-        );
+      {/* VIEW BOOKING MODAL */}
 
-        const payment = getPaymentConfig(
-          selectedBooking.payment_status
-        );
+      {selectedBooking &&
+        (() => {
+          const status = getStatusConfig(
+            selectedBooking.status
+          );
 
-        const vehicle = getVehicleDetails(
-          selectedBooking
-        );
+          const payment = getPaymentConfig(
+            selectedBooking.payment_status
+          );
 
-        const parkingName = getParkingName(
-          selectedBooking
-        );
+          const vehicle = getVehicleDetails(
+            selectedBooking
+          );
 
-        const parkingAddress = getParkingAddress(
-          selectedBooking
-        );
+          const parkingName = getParkingName(
+            selectedBooking
+          );
 
-        return (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
-              onClick={() =>
-                setSelectedBooking(null)
-              }
-            />
+          const parkingAddress = getParkingAddress(
+            selectedBooking
+          );
 
-            <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
-              <div className="sticky top-0 z-10 bg-white p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">
-                    Complete Booking Details
-                  </p>
+          return (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+                onClick={() =>
+                  setSelectedBooking(null)
+                }
+              />
 
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">
-                    Booking #{selectedBooking.id}
-                  </h3>
-                </div>
-
-                <button
-                  onClick={() =>
-                    setSelectedBooking(null)
-                  }
-                  className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center"
-                >
-                  <FaTimes />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
+                <div className="sticky top-0 z-10 bg-white p-6 border-b border-slate-100 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400">
-                      Booking Status
+                    <p className="text-xs text-blue-600 font-semibold uppercase tracking-wide">
+                      Complete Booking Details
                     </p>
 
-                    <span
-                      className={`inline-flex mt-2 items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${status.badge}`}
-                    >
-                      {status.icon}
-                      {status.title}
-                    </span>
+                    <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                      Booking #{selectedBooking.id}
+                    </h3>
                   </div>
 
-                  <div className="text-right">
-                    <p className="text-xs text-slate-400">
-                      Payment
-                    </p>
-
-                    <span
-                      className={`inline-flex mt-2 px-3 py-1.5 rounded-full border text-xs font-bold ${payment.className}`}
-                    >
-                      {payment.title}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-slate-900 mb-4">
-                    Parking Information
-                  </h4>
-
-                  <div className="rounded-2xl border border-slate-200 p-5">
-                    <p className="font-bold text-slate-900">
-                      {parkingName}
-                    </p>
-
-                    {parkingAddress && (
-                      <p className="text-sm text-slate-500 mt-3 flex gap-2">
-                        <FaMapMarkerAlt className="text-blue-500 mt-1 shrink-0" />
-                        {parkingAddress}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <p className="text-xs text-slate-400">
-                      Parking Slot
-                    </p>
-
-                    <p className="font-bold text-slate-900 mt-2">
-                      {selectedBooking.slot_number ||
-                        `Slot #${
-                          selectedBooking.slot_id || "—"
-                        }`}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <p className="text-xs text-slate-400">
-                      Booking Date
-                    </p>
-
-                    <p className="font-bold text-slate-900 mt-2">
-                      {formatDate(
-                        selectedBooking.booking_date
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <p className="text-xs text-slate-400">
-                      Start Time
-                    </p>
-
-                    <p className="font-bold text-slate-900 mt-2">
-                      {formatTime(
-                        selectedBooking.start_time
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
-                    <p className="text-xs text-slate-400">
-                      End Time
-                    </p>
-
-                    <p className="font-bold text-slate-900 mt-2">
-                      {formatTime(
-                        selectedBooking.end_time
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-slate-900 mb-4">
-                    Vehicle Information
-                  </h4>
-
-                  <div className="rounded-2xl border border-slate-200 p-5">
-                    <p className="font-bold text-slate-900">
-                      {vehicle.number}
-                    </p>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      {[vehicle.name, vehicle.type]
-                        .filter(Boolean)
-                        .join(" • ") ||
-                        "Vehicle details not available"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-blue-50 border border-blue-100 p-5">
-                  <p className="text-sm text-blue-600">
-                    Total Booking Amount
-                  </p>
-
-                  <p className="text-3xl font-bold text-blue-700 mt-1">
-                    {formatAmount(
-                      selectedBooking.amount
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div className="sticky bottom-0 bg-white p-6 border-t border-slate-100 flex justify-end gap-3">
-                {canViewQR(selectedBooking) && (
                   <button
                     onClick={() =>
-                      handleViewQR(selectedBooking)
+                      setSelectedBooking(null)
                     }
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700"
+                    className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center"
                   >
-                    <FaQrcode />
-                    View QR
+                    <FaTimes />
                   </button>
-                )}
+                </div>
 
-                <button
-                  onClick={() =>
-                    setSelectedBooking(null)
-                  }
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-800"
-                >
-                  Close
-                </button>
+                <div className="p-6 space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div>
+                      <p className="text-xs text-slate-400">
+                        Booking Status
+                      </p>
+
+                      <div className="mt-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${status.badge}`}
+                        >
+                          {status.icon}
+                          {status.title}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs text-slate-400">
+                        Payment
+                      </p>
+
+                      <span
+                        className={`inline-flex mt-2 px-3 py-1.5 rounded-full border text-xs font-bold ${payment.className}`}
+                      >
+                        {payment.title}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-900 mb-4">
+                      Parking Information
+                    </h4>
+
+                    <div className="rounded-2xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-11 h-11 shrink-0 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                          <FaParking />
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-slate-900">
+                            {parkingName}
+                          </p>
+
+                          <p className="text-xs text-slate-400 mt-1">
+                            Parking ID: #
+                            {selectedBooking.parking_id}
+                          </p>
+
+                          {parkingAddress && (
+                            <p className="text-sm text-slate-500 mt-3 flex gap-2">
+                              <FaMapMarkerAlt className="text-blue-500 mt-1 shrink-0" />
+                              {parkingAddress}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400">
+                        Parking Slot
+                      </p>
+
+                      <p className="font-bold text-slate-900 mt-2">
+                        {selectedBooking.slot_number ||
+                          `Slot #${selectedBooking.slot_id || "—"}`}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400">
+                        Booking Date
+                      </p>
+
+                      <p className="font-bold text-slate-900 mt-2">
+                        {formatDate(
+                          selectedBooking.booking_date
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400">
+                        Start Time
+                      </p>
+
+                      <p className="font-bold text-slate-900 mt-2">
+                        {formatTime(
+                          selectedBooking.start_time
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400">
+                        End Time
+                      </p>
+
+                      <p className="font-bold text-slate-900 mt-2">
+                        {formatTime(
+                          selectedBooking.end_time
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-900 mb-4">
+                      Vehicle Information
+                    </h4>
+
+                    <div className="rounded-2xl border border-slate-200 p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                          <FaCar />
+                        </div>
+
+                        <div>
+                          <p className="font-bold text-slate-900">
+                            {vehicle.number}
+                          </p>
+
+                          <p className="text-sm text-slate-500 mt-1">
+                            {[vehicle.name, vehicle.type]
+                              .filter(Boolean)
+                              .join(" • ") ||
+                              "Vehicle details not available"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-blue-50 border border-blue-100 p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-blue-600">
+                          Total Booking Amount
+                        </p>
+
+                        <p className="text-3xl font-bold text-blue-700 mt-1">
+                          {formatAmount(
+                            selectedBooking.amount
+                          )}
+                        </p>
+                      </div>
+
+                      <FaReceipt className="text-3xl text-blue-500" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="sticky bottom-0 bg-white p-6 border-t border-slate-100 flex flex-wrap justify-end gap-3">
+                  {canViewQR(selectedBooking) && (
+                    <button
+                      onClick={() =>
+                        handleViewQR(selectedBooking)
+                      }
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+                    >
+                      <FaQrcode />
+                      View QR
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() =>
+                      setSelectedBooking(null)
+                    }
+                    className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-medium hover:bg-slate-800 transition"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
+
+      {/* CANCEL CONFIRMATION MODAL */}
 
       {deleteBooking && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
@@ -1163,11 +1343,55 @@ function MyBookings() {
                 Cancel booking?
               </h3>
 
-              <p className="text-slate-500 mt-2">
-                Are you sure you want to cancel booking #
-                {deleteBooking.id}? This action will release
-                the parking slot.
+              <p className="text-slate-500 mt-2 leading-relaxed">
+                Are you sure you want to cancel booking{" "}
+                <strong className="text-slate-700">
+                  #{deleteBooking.id}
+                </strong>
+                ? This action will release the parking slot.
               </p>
+
+              <div className="mt-5 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-500">
+                    Date
+                  </span>
+
+                  <span className="text-sm font-semibold text-slate-900">
+                    {formatDate(
+                      deleteBooking.booking_date
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-sm text-slate-500">
+                    Time
+                  </span>
+
+                  <span className="text-sm font-semibold text-slate-900">
+                    {formatTime(
+                      deleteBooking.start_time
+                    )}{" "}
+                    -{" "}
+                    {formatTime(
+                      deleteBooking.end_time
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-sm text-slate-500">
+                    Amount
+                  </span>
+
+                  <span className="text-sm font-bold text-blue-600">
+                    {formatAmount(
+                      deleteBooking.amount
+                    )}
+                  </span>
+                </div>
+              </div>
 
               <div className="flex gap-3 mt-6">
                 <button
@@ -1175,7 +1399,7 @@ function MyBookings() {
                   onClick={() =>
                     setDeleteBooking(null)
                   }
-                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition disabled:opacity-50"
                 >
                   Keep Booking
                 </button>
@@ -1183,7 +1407,7 @@ function MyBookings() {
                 <button
                   disabled={cancelling}
                   onClick={confirmCancelBooking}
-                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {cancelling ? (
                     <>

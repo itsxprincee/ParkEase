@@ -197,19 +197,21 @@ def get_all_parking(
             .count()
         )
 
-        result.append({
-            "id": location.id,
-            "name": location.name,
-            "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
-            "total_slots": location.total_slots,
-            "created_slots": total_created_slots,
-            "available_slots": available_slots,
-            "occupied_slots": occupied_slots,
-            "maintenance_slots": maintenance_slots,
-            "verification_status": location.verification_status
-        })
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "total_slots": location.total_slots,
+                "created_slots": total_created_slots,
+                "available_slots": available_slots,
+                "occupied_slots": occupied_slots,
+                "maintenance_slots": maintenance_slots,
+                "verification_status": location.verification_status
+            }
+        )
 
     return result
 
@@ -248,22 +250,24 @@ def get_approved_parking(
             .count()
         )
 
-        result.append({
-            "id": location.id,
-            "name": location.name,
-            "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
-            "total_slots": location.total_slots,
-            "available_slots": available_slots,
-            "verification_status": location.verification_status
-        })
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "total_slots": location.total_slots,
+                "available_slots": available_slots,
+                "verification_status": location.verification_status
+            }
+        )
 
     return result
 
 
 # =========================================================
-# CUSTOMER - GET AVAILABLE SLOTS
+# CUSTOMER - GET AVAILABLE PARKING SLOTS
 #
 # GET /parking/{parking_id}/slots
 # =========================================================
@@ -305,7 +309,7 @@ def get_customer_parking_slots(
     return {
         "parking_id": parking.id,
         "parking_name": parking.name,
-        "available_slots": len(slots),
+        "total_available_slots": len(slots),
         "slots": [
             {
                 "id": slot.id,
@@ -378,24 +382,26 @@ def get_my_parking(
             .count()
         )
 
-        result.append({
-            "id": location.id,
-            "name": location.name,
-            "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
-            "total_slots": location.total_slots,
-            "created_slots": created_slots,
-            "available_slots": available_slots,
-            "occupied_slots": occupied_slots,
-            "maintenance_slots": maintenance_slots,
-            "verification_status": location.verification_status,
-            "verification_submitted_at": (
-                location.verification_submitted_at
-            ),
-            "verified_at": location.verified_at,
-            "rejection_reason": location.rejection_reason
-        })
+        result.append(
+            {
+                "id": location.id,
+                "name": location.name,
+                "address": location.address,
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "total_slots": location.total_slots,
+                "created_slots": created_slots,
+                "available_slots": available_slots,
+                "occupied_slots": occupied_slots,
+                "maintenance_slots": maintenance_slots,
+                "verification_status": location.verification_status,
+                "verification_submitted_at": (
+                    location.verification_submitted_at
+                ),
+                "verified_at": location.verified_at,
+                "rejection_reason": location.rejection_reason
+            }
+        )
 
     return result
 
@@ -924,8 +930,7 @@ def get_parking(
         db.query(ParkingLocation)
         .filter(
             ParkingLocation.id == parking_id,
-            ParkingLocation.verification_status
-            == "APPROVED"
+            ParkingLocation.verification_status == "APPROVED"
         )
         .first()
     )

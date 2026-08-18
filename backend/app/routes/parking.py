@@ -87,6 +87,28 @@ def get_owner_parking(
     return parking
 
 
+def ensure_parking_slots(parking: ParkingLocation, db: Session):
+    if not parking or not parking.total_slots or parking.total_slots <= 0:
+        return
+
+    count = (
+        db.query(ParkingSlot)
+        .filter(ParkingSlot.parking_id == parking.id)
+        .count()
+    )
+
+    if count == 0:
+        for i in range(1, parking.total_slots + 1):
+            db.add(
+                ParkingSlot(
+                    parking_id=parking.id,
+                    slot_number=f"A{i}",
+                    status="AVAILABLE"
+                )
+            )
+        db.commit()
+
+
 # =========================================================
 # CREATE PARKING
 # =========================================================
@@ -171,6 +193,7 @@ def get_all_parking(
     result = []
 
     for location in locations:
+        ensure_parking_slots(location, db)
 
         total_created_slots = (
             db.query(ParkingSlot)
@@ -250,6 +273,7 @@ def get_approved_parking(
     result = []
 
     for location in locations:
+        ensure_parking_slots(location, db)
 
         available_slots = (
             db.query(ParkingSlot)
@@ -374,6 +398,7 @@ def get_my_parking(
     result = []
 
     for location in locations:
+        ensure_parking_slots(location, db)
 
         created_slots = (
             db.query(ParkingSlot)
@@ -450,6 +475,8 @@ def get_owner_parking_details(
         owner,
         db
     )
+
+    ensure_parking_slots(parking, db)
 
     total_slots_created = (
         db.query(ParkingSlot)
@@ -986,6 +1013,8 @@ def get_parking(
             status_code=404,
             detail="Parking not found or not approved"
         )
+
+    ensure_parking_slots(parking, db)
 
     total_slots_created = (
         db.query(ParkingSlot)

@@ -31,14 +31,14 @@ def dashboard(
     available_slots = db.query(
         ParkingSlot
     ).filter(
-        ParkingSlot.status == "available"
+        ParkingSlot.status == "AVAILABLE"
     ).count()
 
 
     booked_slots = db.query(
         ParkingSlot
     ).filter(
-        ParkingSlot.status == "booked"
+        ParkingSlot.status == "OCCUPIED"
     ).count()
 
 
@@ -50,14 +50,14 @@ def dashboard(
     active_bookings = db.query(
         Booking
     ).filter(
-        Booking.status == "confirmed"
+        Booking.status == "BOOKED"
     ).count()
 
 
     cancelled_bookings = db.query(
         Booking
     ).filter(
-        Booking.status == "cancelled"
+        Booking.status == "CANCELLED"
     ).count()
 
 

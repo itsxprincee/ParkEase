@@ -121,6 +121,16 @@ def create_parking(
     db.commit()
     db.refresh(parking)
 
+    # Auto-generate slots
+    for i in range(1, data.total_slots + 1):
+        slot = ParkingSlot(
+            parking_id=parking.id,
+            slot_number=f"A{i}",
+            status="AVAILABLE"
+        )
+        db.add(slot)
+    db.commit()
+
     return {
         "message": (
             "Parking submitted successfully "
@@ -293,6 +303,24 @@ def get_customer_parking_slots(
             status_code=404,
             detail="Parking not found or not approved"
         )
+
+    # Auto-generate slots if not created yet
+    created_count = (
+        db.query(ParkingSlot)
+        .filter(ParkingSlot.parking_id == parking.id)
+        .count()
+    )
+
+    if created_count == 0 and parking.total_slots > 0:
+        for i in range(1, parking.total_slots + 1):
+            db.add(
+                ParkingSlot(
+                    parking_id=parking.id,
+                    slot_number=f"A{i}",
+                    status="AVAILABLE"
+                )
+            )
+        db.commit()
 
     slots = (
         db.query(ParkingSlot)
@@ -560,6 +588,24 @@ def get_parking_slots(
         owner,
         db
     )
+
+    # Auto-generate slots if not created yet
+    created_count = (
+        db.query(ParkingSlot)
+        .filter(ParkingSlot.parking_id == parking.id)
+        .count()
+    )
+
+    if created_count == 0 and parking.total_slots > 0:
+        for i in range(1, parking.total_slots + 1):
+            db.add(
+                ParkingSlot(
+                    parking_id=parking.id,
+                    slot_number=f"A{i}",
+                    status="AVAILABLE"
+                )
+            )
+        db.commit()
 
     slots = (
         db.query(ParkingSlot)

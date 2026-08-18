@@ -20,7 +20,6 @@ def search_parking(
         ParkingLocation
     ).all()
 
-
     result = []
 
     for location in locations:
@@ -28,10 +27,9 @@ def search_parking(
         available_slots = db.query(
             ParkingSlot
         ).filter(
-            ParkingSlot.location_id == location.id,
-            ParkingSlot.status == "available"
+            ParkingSlot.parking_id == location.id,
+            ParkingSlot.status == "AVAILABLE"
         ).count()
-
 
         result.append({
             "id": location.id,
@@ -42,9 +40,7 @@ def search_parking(
             "available_slots": available_slots
         })
 
-
     return result
-
 
 
 @router.get("/parking/{parking_id}")
@@ -59,19 +55,16 @@ def parking_details(
         ParkingLocation.id == parking_id
     ).first()
 
-
     if not location:
         return {
             "message": "Parking not found"
         }
 
-
     slots = db.query(
         ParkingSlot
     ).filter(
-        ParkingSlot.location_id == parking_id
+        ParkingSlot.parking_id == parking_id
     ).all()
-
 
     return {
         "parking": location,

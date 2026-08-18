@@ -54,8 +54,8 @@ def get_my_parking(
         available_slots = (
             db.query(ParkingSlot)
             .filter(
-                ParkingSlot.location_id == location.id,
-                ParkingSlot.status == "available"
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
             )
             .count()
         )
@@ -63,8 +63,8 @@ def get_my_parking(
         booked_slots = (
             db.query(ParkingSlot)
             .filter(
-                ParkingSlot.location_id == location.id,
-                ParkingSlot.status != "available"
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status != "AVAILABLE"
             )
             .count()
         )
@@ -145,8 +145,8 @@ def get_owner_stats(
         available = (
             db.query(ParkingSlot)
             .filter(
-                ParkingSlot.location_id == location.id,
-                ParkingSlot.status == "available"
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
             )
             .count()
         )
@@ -154,8 +154,8 @@ def get_owner_stats(
         occupied = (
             db.query(ParkingSlot)
             .filter(
-                ParkingSlot.location_id == location.id,
-                ParkingSlot.status != "available"
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status != "AVAILABLE"
             )
             .count()
         )
@@ -226,7 +226,7 @@ def update_owner_parking(
     slots = (
         db.query(ParkingSlot)
         .filter(
-            ParkingSlot.location_id == parking_id
+            ParkingSlot.parking_id == parking_id
         )
         .order_by(ParkingSlot.id)
         .all()
@@ -246,7 +246,7 @@ def update_owner_parking(
         unavailable_slots = [
             slot
             for slot in slots_to_remove
-            if slot.status != "available"
+            if slot.status != "AVAILABLE"
         ]
 
         if unavailable_slots:
@@ -275,9 +275,9 @@ def update_owner_parking(
         ):
 
             new_slot = ParkingSlot(
-                location_id=parking_id,
+                parking_id=parking_id,
                 slot_number=f"A-{number}",
-                status="available"
+                status="AVAILABLE"
             )
 
             db.add(new_slot)
@@ -337,7 +337,7 @@ def delete_owner_parking(
     slots = (
         db.query(ParkingSlot)
         .filter(
-            ParkingSlot.location_id == parking_id
+            ParkingSlot.parking_id == parking_id
         )
         .all()
     )
@@ -349,7 +349,7 @@ def delete_owner_parking(
     unavailable_slots = [
         slot
         for slot in slots
-        if slot.status != "available"
+        if slot.status != "AVAILABLE"
     ]
 
     if unavailable_slots:
@@ -415,7 +415,7 @@ def get_owner_slots(
     slots = (
         db.query(ParkingSlot)
         .filter(
-            ParkingSlot.location_id == parking_id
+            ParkingSlot.parking_id == parking_id
         )
         .order_by(ParkingSlot.id)
         .all()

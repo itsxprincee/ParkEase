@@ -53,8 +53,8 @@ def recommend_parking(
         available_slots = (
             db.query(ParkingSlot)
             .filter(
-                ParkingSlot.location_id == location.id,
-                ParkingSlot.status == "available"
+                ParkingSlot.parking_id == location.id,
+                ParkingSlot.status == "AVAILABLE"
             )
             .count()
         )

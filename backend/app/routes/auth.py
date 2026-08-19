@@ -1325,3 +1325,120 @@ def reset_password(
         "message":
             "Password reset successfully."
     }
+
+
+# =========================================================
+# PROFILE MANAGEMENT SCHEMAS
+# =========================================================
+
+class UpdateProfileRequest(BaseModel):
+    name: str
+    email: EmailStr
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+# =========================================================
+# GET CURRENT USER PROFILE
+# GET /auth/me
+# =========================================================
+
+@router.get("/me")
+def get_my_profile(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "is_verified": getattr(current_user, "is_verified", True)
+    }
+
+
+# =========================================================
+# UPDATE PROFILE
+# PUT /auth/profile
+# =========================================================
+
+@router.put("/profile")
+def update_profile(
+    request: UpdateProfileRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_name = request.name.strip()
+    new_email = request.email.strip().lower()
+
+    if not new_name:
+        raise HTTPException(
+            status_code=400,
+            detail="Name cannot be empty."
+        )
+
+    if new_email != current_user.email:
+        existing = (
+            db.query(User)
+            .filter(
+                User.email == new_email,
+                User.id != current_user.id
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="An account with this email address already exists."
+            )
+        current_user.email = new_email
+
+    current_user.name = new_name
+
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "success": True,
+        "message": "Profile updated successfully.",
+        "user": {
+            "id": current_user.id,
+            "name": current_user.name,
+            "email": current_user.email,
+            "role": current_user.role
+        }
+    }
+
+
+# =========================================================
+# CHANGE PASSWORD
+# PUT /auth/change-password
+# =========================================================
+
+@router.put("/change-password")
+def change_password(
+    request: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not pwd_context.verify(request.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect."
+        )
+
+    if len(request.new_password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be at least 6 characters."
+        )
+
+    current_user.hashed_password = pwd_context.hash(request.new_password)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Password changed successfully."
+    }

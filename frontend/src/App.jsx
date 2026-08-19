@@ -37,6 +37,7 @@ import EditParking from "./pages/owner/EditParking";
 import OwnerParkingDetails from "./pages/owner/OwnerParkingDetails";
 import ManageSlots from "./pages/owner/ManageSlots";
 import ScanQR from "./pages/owner/ScanQR";
+import OwnerProfile from "./pages/owner/OwnerProfile";
 
 // =====================================================
 // ADMIN PAGE

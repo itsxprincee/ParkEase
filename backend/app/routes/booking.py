@@ -451,6 +451,188 @@ def cancel_booking(
 
 
 # =========================================================
+# VEHICLE ENTRY / CHECK-IN
+# POST /booking/entry/{booking_id}
+# =========================================================
+
+@router.post("/entry/{booking_id}")
+def check_in_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    booking = (
+        db.query(Booking)
+        .filter(Booking.id == booking_id)
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking not found"
+        )
+
+    parking = (
+        db.query(ParkingLocation)
+        .filter(ParkingLocation.id == booking.parking_location_id)
+        .first()
+    )
+
+    if not parking:
+        raise HTTPException(
+            status_code=404,
+            detail="Parking location not found"
+        )
+
+    is_owner = parking.owner_id == user.id
+    is_customer = booking.user_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+
+    if not (is_owner or is_customer or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to check in this booking"
+        )
+
+    booking_status = str(booking.status or "").upper().strip()
+
+    if booking_status == "CANCELLED":
+        raise HTTPException(
+            status_code=400,
+            detail="This booking has been cancelled and cannot be checked in"
+        )
+
+    if booking_status == "COMPLETED":
+        raise HTTPException(
+            status_code=400,
+            detail="This booking has already been completed"
+        )
+
+    if booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"]:
+        slot_obj = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first() if booking.slot_id else None
+        return {
+            "success": True,
+            "message": "Vehicle is already checked in and currently parked.",
+            "booking_id": booking.id,
+            "status": "ACTIVE",
+            "parking_name": parking.name,
+            "slot_number": slot_obj.slot_number if slot_obj else "N/A"
+        }
+
+    # Transition status to ACTIVE
+    booking.status = "ACTIVE"
+
+    # Ensure slot is OCCUPIED
+    if booking.slot_id:
+        slot = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first()
+        if slot:
+            slot.status = "OCCUPIED"
+
+    db.commit()
+    db.refresh(booking)
+
+    slot_obj = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first() if booking.slot_id else None
+
+    return {
+        "success": True,
+        "message": f"Vehicle check-in successful! Welcome to {parking.name}.",
+        "booking_id": booking.id,
+        "status": "ACTIVE",
+        "parking_name": parking.name,
+        "slot_number": slot_obj.slot_number if slot_obj else "N/A",
+        "entry_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+
+# =========================================================
+# VEHICLE EXIT / CHECK-OUT
+# POST /booking/exit/{booking_id}
+# =========================================================
+
+@router.post("/exit/{booking_id}")
+def check_out_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    booking = (
+        db.query(Booking)
+        .filter(Booking.id == booking_id)
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking not found"
+        )
+
+    parking = (
+        db.query(ParkingLocation)
+        .filter(ParkingLocation.id == booking.parking_location_id)
+        .first()
+    )
+
+    if not parking:
+        raise HTTPException(
+            status_code=404,
+            detail="Parking location not found"
+        )
+
+    is_owner = parking.owner_id == user.id
+    is_customer = booking.user_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+
+    if not (is_owner or is_customer or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to check out this booking"
+        )
+
+    booking_status = str(booking.status or "").upper().strip()
+
+    if booking_status == "CANCELLED":
+        raise HTTPException(
+            status_code=400,
+            detail="This booking was cancelled and cannot be checked out"
+        )
+
+    if booking_status == "COMPLETED":
+        return {
+            "success": True,
+            "message": "Vehicle has already completed parking and checked out.",
+            "booking_id": booking.id,
+            "status": "COMPLETED",
+            "parking_name": parking.name
+        }
+
+    # Transition status to COMPLETED
+    booking.status = "COMPLETED"
+
+    # Release slot back to AVAILABLE
+    slot_number = "N/A"
+    if booking.slot_id:
+        slot = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first()
+        if slot:
+            slot.status = "AVAILABLE"
+            slot_number = slot.slot_number
+
+    db.commit()
+    db.refresh(booking)
+
+    return {
+        "success": True,
+        "message": f"Vehicle check-out successful! Slot {slot_number} is now AVAILABLE.",
+        "booking_id": booking.id,
+        "status": "COMPLETED",
+        "parking_name": parking.name,
+        "slot_number": slot_number,
+        "exit_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+
+# =========================================================
 # GET SINGLE BOOKING
 #
 # KEEP THIS AFTER STATIC ROUTES

@@ -9,20 +9,17 @@ import {
 // =====================================================
 // AUTH PAGES
 // =====================================================
-
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 
 // =====================================================
 // COMPONENTS
 // =====================================================
-
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // =====================================================
 // CUSTOMER PAGES
 // =====================================================
-
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import MyBookings from "./pages/customer/MyBookings";
 import MyVehicles from "./pages/customer/MyVehicles";
@@ -34,7 +31,6 @@ import Profile from "./pages/customer/Profile";
 // =====================================================
 // OWNER PAGES
 // =====================================================
-
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import AddParking from "./pages/owner/AddParking";
 import EditParking from "./pages/owner/EditParking";
@@ -45,22 +41,17 @@ import ScanQR from "./pages/owner/ScanQR";
 // =====================================================
 // ADMIN PAGE
 // =====================================================
-
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
 // =====================================================
 // APP
 // =====================================================
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* =====================================================
-            DEFAULT ROUTE
-        ===================================================== */}
-
+        {/* DEFAULT ROUTE */}
         <Route
           path="/"
           element={
@@ -71,26 +62,11 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            AUTH ROUTES
-        ===================================================== */}
+        {/* AUTH ROUTES */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-
-        {/* =====================================================
-            CUSTOMER ROUTES
-        ===================================================== */}
-
-        {/* CUSTOMER DASHBOARD */}
-
+        {/* CUSTOMER ROUTES */}
         <Route
           path="/customer/dashboard"
           element={
@@ -99,8 +75,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* MY BOOKINGS */}
 
         <Route
           path="/customer/my-bookings"
@@ -111,8 +85,6 @@ function App() {
           }
         />
 
-        {/* MY VEHICLES */}
-
         <Route
           path="/customer/my-vehicles"
           element={
@@ -121,8 +93,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* PARKING DETAILS */}
 
         <Route
           path="/customer/parking/:id"
@@ -133,8 +103,6 @@ function App() {
           }
         />
 
-        {/* BOOK PARKING */}
-
         <Route
           path="/customer/parking/:id/book"
           element={
@@ -143,8 +111,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* QR CODE */}
 
         <Route
           path="/customer/qr"
@@ -155,8 +121,6 @@ function App() {
           }
         />
 
-        {/* CUSTOMER PROFILE */}
-
         <Route
           path="/profile"
           element={
@@ -166,12 +130,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            OWNER ROUTES
-        ===================================================== */}
-
-        {/* OWNER DASHBOARD */}
-
+        {/* OWNER ROUTES */}
         <Route
           path="/owner"
           element={
@@ -181,7 +140,12 @@ function App() {
           }
         />
 
-        {/* ADD PARKING */}
+        <Route
+          path="/owner/dashboard"
+          element={
+            <Navigate to="/owner" replace />
+          }
+        />
 
         <Route
           path="/owner/add-parking"
@@ -192,8 +156,6 @@ function App() {
           }
         />
 
-        {/* EDIT PARKING */}
-
         <Route
           path="/owner/edit-parking/:id"
           element={
@@ -202,8 +164,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* OWNER PARKING DETAILS */}
 
         <Route
           path="/owner/parking/:id"
@@ -214,8 +174,6 @@ function App() {
           }
         />
 
-        {/* MANAGE PARKING SLOTS */}
-
         <Route
           path="/owner/parking/:id/slots"
           element={
@@ -224,8 +182,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* SCAN QR */}
 
         <Route
           path="/owner/scan-qr"
@@ -236,10 +192,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            ADMIN ROUTE
-        ===================================================== */}
-
+        {/* ADMIN ROUTE */}
         <Route
           path="/admin"
           element={
@@ -249,10 +202,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            OLD CUSTOMER ROUTES - REDIRECTS
-        ===================================================== */}
-
+        {/* COMPATIBILITY REDIRECTS */}
         <Route
           path="/dashboard"
           element={
@@ -303,10 +253,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            PAGE NOT FOUND
-        ===================================================== */}
-
+        {/* 404 FALLBACK */}
         <Route
           path="*"
           element={

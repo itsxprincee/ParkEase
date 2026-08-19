@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -7,6 +8,7 @@ from database import get_db
 from app.models.booking import Booking
 from app.models.parking import ParkingLocation, ParkingSlot
 from app.models.user import User
+from app.models.vehicle import Vehicle
 from app.utils.auth import get_current_user, owner_required
 
 import qrcode
@@ -238,7 +240,6 @@ def verify_qr(
     # -----------------------------------------------------
 
     if data.type != "PARKEASE_BOOKING":
-
         raise HTTPException(
             status_code=400,
             detail="Invalid ParkEase QR code"
@@ -250,14 +251,11 @@ def verify_qr(
 
     booking = (
         db.query(Booking)
-        .filter(
-            Booking.id == data.booking_id
-        )
+        .filter(Booking.id == data.booking_id)
         .first()
     )
 
     if not booking:
-
         raise HTTPException(
             status_code=404,
             detail="Booking not found"
@@ -265,35 +263,25 @@ def verify_qr(
 
     # -----------------------------------------------------
     # SECURITY CHECK
-    #
-    # Owner can only scan bookings for
-    # their own parking location.
+    # Owner can only scan bookings for their own parking location.
     # -----------------------------------------------------
 
     parking = (
         db.query(ParkingLocation)
-        .filter(
-            ParkingLocation.id
-            == booking.parking_location_id
-        )
+        .filter(ParkingLocation.id == booking.parking_location_id)
         .first()
     )
 
     if not parking:
-
         raise HTTPException(
             status_code=404,
             detail="Parking location not found"
         )
 
     if parking.owner_id != owner.id:
-
         raise HTTPException(
             status_code=403,
-            detail=(
-                "You are not authorized to "
-                "verify this parking booking"
-            )
+            detail="You are not authorized to verify bookings for this parking location"
         )
 
     # -----------------------------------------------------
@@ -304,137 +292,107 @@ def verify_qr(
         data.user_id is not None
         and data.user_id != booking.user_id
     ):
-
         raise HTTPException(
             status_code=400,
-            detail=(
-                "QR code user information "
-                "does not match the booking"
-            )
+            detail="QR code user information does not match the booking"
         )
 
     if (
         data.parking_location_id is not None
-        and data.parking_location_id
-        != booking.parking_location_id
+        and data.parking_location_id != booking.parking_location_id
     ):
-
         raise HTTPException(
             status_code=400,
-            detail=(
-                "QR code parking information "
-                "does not match the booking"
-            )
+            detail="QR code parking information does not match the booking"
         )
 
     if (
         data.slot_id is not None
         and data.slot_id != booking.slot_id
     ):
-
         raise HTTPException(
             status_code=400,
-            detail=(
-                "QR code slot information "
-                "does not match the booking"
-            )
+            detail="QR code slot information does not match the booking"
         )
 
     # -----------------------------------------------------
-    # CHECK BOOKING STATUS
+    # GET CUSTOMER & VEHICLE
     # -----------------------------------------------------
 
-    booking_status = str(
-        booking.status or ""
-    ).upper()
-
-    if booking_status == "CANCELLED":
-
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "This booking has been cancelled"
-            )
-        )
-
-    if booking_status == "COMPLETED":
-
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "This booking has already been completed"
-            )
-        )
-
-    # -----------------------------------------------------
-    # GET SLOT
-    # -----------------------------------------------------
+    customer = db.query(User).filter(User.id == booking.user_id).first()
+    customer_vehicle = db.query(Vehicle).filter(Vehicle.user_id == booking.user_id).first()
 
     slot = None
-
     if booking.slot_id:
-
         slot = (
             db.query(ParkingSlot)
-            .filter(
-                ParkingSlot.id
-                == booking.slot_id
-            )
+            .filter(ParkingSlot.id == booking.slot_id)
             .first()
         )
 
-    # -----------------------------------------------------
-    # SUCCESS RESPONSE
-    # -----------------------------------------------------
+    booking_status = str(booking.status or "").upper().strip()
+
+    can_enter = booking_status in ["BOOKED", "CONFIRMED"]
+    can_exit = booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"]
+    is_completed = booking_status == "COMPLETED"
+    is_cancelled = booking_status == "CANCELLED"
 
     return {
         "success": True,
-        "message": (
-            "Valid ParkEase booking"
-        ),
-
+        "message": "Valid ParkEase booking",
+        "can_enter": can_enter,
+        "can_exit": can_exit,
+        "is_completed": is_completed,
+        "is_cancelled": is_cancelled,
         "booking": {
-
             "id": booking.id,
-
+            "booking_id": booking.id,
             "user_id": booking.user_id,
-
-            "parking_location_id": (
-                booking.parking_location_id
-            ),
-
+            "customer_name": customer.name if customer else "Unknown Customer",
+            "customer_email": customer.email if customer else "N/A",
+            "vehicle_name": customer_vehicle.vehicle_name if customer_vehicle else "Standard Vehicle",
+            "vehicle_number": customer_vehicle.vehicle_number if customer_vehicle else "N/A",
+            "vehicle_type": customer_vehicle.vehicle_type if customer_vehicle else "4-Wheeler",
+            "parking_location_id": booking.parking_location_id,
+            "parking_id": booking.parking_location_id,
             "parking_name": parking.name,
-
-            "parking_address": (
-                parking.address
-            ),
-
+            "parking_address": parking.address,
             "slot_id": booking.slot_id,
-
-            "slot_number": (
-                slot.slot_number
-                if slot
-                else None
-            ),
-
+            "slot_number": slot.slot_number if slot else "N/A",
             "status": booking.status,
-
-            "booking_date": (
-                booking.booking_date
-            ),
-
-            "start_time": (
-                str(booking.start_time)
-                if booking.start_time
-                else None
-            ),
-
-            "end_time": (
-                str(booking.end_time)
-                if booking.end_time
-                else None
-            ),
-
+            "booking_date": str(booking.booking_date),
+            "start_time": str(booking.start_time) if booking.start_time else None,
+            "end_time": str(booking.end_time) if booking.end_time else None,
             "amount": booking.amount
         }
     }
+
+
+# =========================================================
+# QR SCAN CHECK-IN (ENTRY)
+# POST /qr/entry/{booking_id}
+# =========================================================
+
+@router.post("/entry/{booking_id}")
+def check_in_qr(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    from app.routes.booking import check_in_booking
+    return check_in_booking(booking_id, db, user)
+
+
+# =========================================================
+# QR SCAN CHECK-OUT (EXIT)
+# POST /qr/exit/{booking_id}
+# =========================================================
+
+@router.post("/exit/{booking_id}")
+def check_out_qr(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    from app.routes.booking import check_out_booking
+    return check_out_booking(booking_id, db, user)

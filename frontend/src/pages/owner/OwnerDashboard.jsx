@@ -835,9 +835,9 @@ function OwnerDashboard() {
                       <button
                         onClick={() => {
                           setProfileOpen(false);
-                          navigate("/profile");
+                          navigate("/owner/profile");
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition text-left font-medium text-xs sm:text-sm"
                       >
                         <FaUserCircle />
                         My Profile
@@ -905,7 +905,7 @@ function OwnerDashboard() {
                   handleRefresh();
                   setMobileMenu(false);
                 }}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-600"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 font-medium text-xs"
               >
                 <FaSyncAlt />
                 Refresh
@@ -916,7 +916,7 @@ function OwnerDashboard() {
                   navigate("/owner/add-parking");
                   setMobileMenu(false);
                 }}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white font-medium text-xs"
               >
                 <FaPlus />
                 Add Parking
@@ -925,8 +925,19 @@ function OwnerDashboard() {
             </div>
 
             <button
+              onClick={() => {
+                navigate("/owner/profile");
+                setMobileMenu(false);
+              }}
+              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 text-slate-700 font-medium text-xs"
+            >
+              <FaUserCircle />
+              My Profile
+            </button>
+
+            <button
               onClick={logout}
-              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-red-200 text-red-600"
+              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-red-200 text-red-600 font-medium text-xs"
             >
               <FaSignOutAlt />
               Logout

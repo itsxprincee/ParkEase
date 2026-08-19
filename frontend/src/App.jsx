@@ -193,6 +193,15 @@ function App() {
           }
         />
 
+        <Route
+          path="/owner/profile"
+          element={
+            <ProtectedRoute ownerOnly>
+              <OwnerProfile />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ADMIN ROUTE */}
         <Route
           path="/admin"

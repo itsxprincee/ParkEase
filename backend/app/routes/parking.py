@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
@@ -114,25 +114,57 @@ def ensure_parking_slots(parking: ParkingLocation, db: Session):
 # =========================================================
 
 @router.post("/create")
-def create_parking(
-    data: ParkingCreate,
+async def create_parking(
+    request: Request,
     db: Session = Depends(get_db),
     owner: User = Depends(owner_required)
 ):
+    content_type = request.headers.get("content-type", "")
 
-    if data.total_slots <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Total slots must be greater than 0"
-        )
+    if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
+        form = await request.form()
+        name = str(form.get("name") or "").strip()
+        address = str(form.get("address") or "").strip()
+        try:
+            latitude = float(form.get("latitude"))
+            longitude = float(form.get("longitude"))
+            total_slots = int(form.get("total_slots"))
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid numbers for latitude, longitude, or total_slots"
+            )
+    else:
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid request body")
+        name = str(body.get("name") or "").strip()
+        address = str(body.get("address") or "").strip()
+        try:
+            latitude = float(body.get("latitude"))
+            longitude = float(body.get("longitude"))
+            total_slots = int(body.get("total_slots"))
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid numbers for latitude, longitude, or total_slots"
+            )
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Parking name is required")
+    if not address:
+        raise HTTPException(status_code=400, detail="Parking address is required")
+    if total_slots <= 0:
+        raise HTTPException(status_code=400, detail="Total slots must be greater than 0")
 
     parking = ParkingLocation(
         owner_id=owner.id,
-        name=data.name.strip(),
-        address=data.address.strip(),
-        latitude=data.latitude,
-        longitude=data.longitude,
-        total_slots=data.total_slots,
+        name=name,
+        address=address,
+        latitude=latitude,
+        longitude=longitude,
+        total_slots=total_slots,
         verification_status="PENDING",
         verification_submitted_at=datetime.utcnow(),
         verified_at=None,
@@ -144,7 +176,7 @@ def create_parking(
     db.refresh(parking)
 
     # Auto-generate slots
-    for i in range(1, data.total_slots + 1):
+    for i in range(1, total_slots + 1):
         slot = ParkingSlot(
             parking_id=parking.id,
             slot_number=f"A{i}",
@@ -591,9 +623,9 @@ def get_owner_parking_details(
 # =========================================================
 
 @router.put("/owner/{parking_id}")
-def update_parking(
+async def update_parking(
     parking_id: int,
-    data: ParkingUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     owner: User = Depends(owner_required)
 ):
@@ -604,11 +636,44 @@ def update_parking(
         db
     )
 
-    if data.total_slots <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Total slots must be greater than 0"
-        )
+    content_type = request.headers.get("content-type", "")
+
+    if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
+        form = await request.form()
+        name = str(form.get("name") or "").strip()
+        address = str(form.get("address") or "").strip()
+        try:
+            latitude = float(form.get("latitude"))
+            longitude = float(form.get("longitude"))
+            total_slots = int(form.get("total_slots"))
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid numbers for latitude, longitude, or total_slots"
+            )
+    else:
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid request body")
+        name = str(body.get("name") or "").strip()
+        address = str(body.get("address") or "").strip()
+        try:
+            latitude = float(body.get("latitude"))
+            longitude = float(body.get("longitude"))
+            total_slots = int(body.get("total_slots"))
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid numbers for latitude, longitude, or total_slots"
+            )
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Parking name is required")
+    if not address:
+        raise HTTPException(status_code=400, detail="Parking address is required")
+    if total_slots <= 0:
+        raise HTTPException(status_code=400, detail="Total slots must be greater than 0")
 
     created_slots = (
         db.query(ParkingSlot)
@@ -618,7 +683,7 @@ def update_parking(
         .count()
     )
 
-    if data.total_slots < created_slots:
+    if total_slots < created_slots:
         raise HTTPException(
             status_code=400,
             detail=(
@@ -627,11 +692,11 @@ def update_parking(
             )
         )
 
-    parking.name = data.name.strip()
-    parking.address = data.address.strip()
-    parking.latitude = data.latitude
-    parking.longitude = data.longitude
-    parking.total_slots = data.total_slots
+    parking.name = name
+    parking.address = address
+    parking.latitude = latitude
+    parking.longitude = longitude
+    parking.total_slots = total_slots
 
     if parking.verification_status == "REJECTED":
         parking.verification_status = "PENDING"

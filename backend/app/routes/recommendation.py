@@ -14,7 +14,6 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     """
     Returns approximate distance in KM using the Haversine formula.
     """
-
     R = 6371  # Earth radius in KM
 
     lat1 = math.radians(lat1)
@@ -38,18 +37,21 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 
 
 @router.get("/")
+@router.get("")
 def recommend_parking(
     lat: float,
     lng: float,
     db: Session = Depends(get_db)
 ):
-
-    locations = db.query(ParkingLocation).all()
+    locations = (
+        db.query(ParkingLocation)
+        .filter(ParkingLocation.verification_status == "APPROVED")
+        .all()
+    )
 
     recommendations = []
 
     for location in locations:
-
         available_slots = (
             db.query(ParkingSlot)
             .filter(

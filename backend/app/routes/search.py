@@ -13,17 +13,24 @@ router = APIRouter(
 
 @router.get("/parking")
 def search_parking(
+    q: str = "",
     db: Session = Depends(get_db)
 ):
+    query = db.query(ParkingLocation).filter(
+        ParkingLocation.verification_status == "APPROVED"
+    )
 
-    locations = db.query(
-        ParkingLocation
-    ).all()
+    if q.strip():
+        search_text = f"%{q.strip().lower()}%"
+        query = query.filter(
+            ParkingLocation.name.ilike(search_text) |
+            ParkingLocation.address.ilike(search_text)
+        )
 
+    locations = query.all()
     result = []
 
     for location in locations:
-
         available_slots = db.query(
             ParkingSlot
         ).filter(
@@ -37,6 +44,7 @@ def search_parking(
             "address": location.address,
             "latitude": location.latitude,
             "longitude": location.longitude,
+            "total_slots": location.total_slots,
             "available_slots": available_slots
         })
 
@@ -48,7 +56,6 @@ def parking_details(
     parking_id: int,
     db: Session = Depends(get_db)
 ):
-
     location = db.query(
         ParkingLocation
     ).filter(

@@ -278,7 +278,7 @@ def verify_qr(
             detail="Parking location not found"
         )
 
-    if parking.owner_id != owner.id:
+    if parking.owner_id != owner.id and getattr(owner, "role", "").lower() != "admin":
         raise HTTPException(
             status_code=403,
             detail="You are not authorized to verify bookings for this parking location"

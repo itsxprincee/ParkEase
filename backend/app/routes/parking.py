@@ -301,6 +301,56 @@ def get_approved_parking(
 
 
 # =========================================================
+# CUSTOMER - GET ONE APPROVED PARKING LOCATION
+#
+# GET /parking/{parking_id}
+# =========================================================
+
+@router.get("/{parking_id}")
+def get_customer_parking_details(
+    parking_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    parking = (
+        db.query(ParkingLocation)
+        .filter(
+            ParkingLocation.id == parking_id,
+            ParkingLocation.verification_status == "APPROVED"
+        )
+        .first()
+    )
+
+    if not parking:
+        raise HTTPException(
+            status_code=404,
+            detail="Parking location not found or not approved"
+        )
+
+    ensure_parking_slots(parking, db)
+
+    available_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "AVAILABLE"
+        )
+        .count()
+    )
+
+    return {
+        "id": parking.id,
+        "name": parking.name,
+        "address": parking.address,
+        "latitude": parking.latitude,
+        "longitude": parking.longitude,
+        "total_slots": parking.total_slots,
+        "available_slots": available_slots,
+        "verification_status": parking.verification_status
+    }
+
+
+# =========================================================
 # CUSTOMER - GET AVAILABLE PARKING SLOTS
 #
 # GET /parking/{parking_id}/slots

@@ -6,17 +6,25 @@ import {
   FiCalendar,
   FiClock,
   FiArrowRight,
-  FiLogOut,
-  FiUser,
-  FiNavigation,
-  FiMap,
-  FiCheckCircle,
-  FiChevronRight,
-  FiMenu,
-  FiX,
   FiTruck,
+  FiCheckCircle,
+  FiZap,
+  FiShield,
+  FiNavigation,
+  FiFilter,
+  FiX,
+  FiTrendingUp,
+  FiLayers,
+  FiSliders,
+  FiCompass,
 } from "react-icons/fi";
 import API from "../../api/axios";
+import SaaSNavbar from "../../components/SaaSNavbar";
+import Badge from "../../components/Badge";
+import Button from "../../components/Button";
+import { Card, StatCard } from "../../components/Card";
+import EmptyState from "../../components/EmptyState";
+import { CardSkeleton } from "../../components/Skeleton";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
@@ -24,7 +32,9 @@ export default function CustomerDashboard() {
   const [user, setUser] = useState(null);
   const [parkingLocations, setParkingLocations] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("ALL"); // ALL, EV, NEARBY, HIGH_RATED
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +43,7 @@ export default function CustomerDashboard() {
 
   const loadDashboard = async () => {
     try {
+      setLoading(true);
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         try {
@@ -42,13 +53,14 @@ export default function CustomerDashboard() {
         }
       }
 
-      const [parkingResponse, bookingResponse] = await Promise.allSettled([
+      const [parkingRes, bookingRes, vehicleRes] = await Promise.allSettled([
         API.get("/parking/approved"),
         API.get("/booking/my-bookings"),
+        API.get("/vehicles/my"),
       ]);
 
-      if (parkingResponse.status === "fulfilled") {
-        const data = parkingResponse.value.data;
+      if (parkingRes.status === "fulfilled") {
+        const data = parkingRes.value.data;
         if (Array.isArray(data)) {
           setParkingLocations(data);
         } else if (Array.isArray(data?.locations)) {
@@ -58,12 +70,19 @@ export default function CustomerDashboard() {
         }
       }
 
-      if (bookingResponse.status === "fulfilled") {
-        const data = bookingResponse.value.data;
+      if (bookingRes.status === "fulfilled") {
+        const data = bookingRes.value.data;
         if (Array.isArray(data)) {
           setBookings(data);
         } else if (Array.isArray(data?.bookings)) {
           setBookings(data.bookings);
+        }
+      }
+
+      if (vehicleRes.status === "fulfilled") {
+        const data = vehicleRes.value.data;
+        if (Array.isArray(data)) {
+          setVehicles(data);
         }
       }
     } catch (error) {
@@ -73,330 +92,388 @@ export default function CustomerDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   const getUserName = () => {
-    if (!user) return "Customer";
-    return user.name || user.full_name || user.username || user.email?.split("@")[0] || "Customer";
+    if (!user) return "Driver";
+    return (
+      user.name ||
+      user.full_name ||
+      user.username ||
+      user.email?.split("@")[0] ||
+      "Driver"
+    );
   };
 
+  // Active bookings
+  const activeBookings = bookings.filter((b) => {
+    const s = b.status?.toLowerCase();
+    return (
+      s === "active" ||
+      s === "booked" ||
+      s === "confirmed" ||
+      s === "upcoming"
+    );
+  });
+
+  const latestActiveBooking = activeBookings[0];
+
+  // Filtering
   const filteredParking = parkingLocations.filter((parking) => {
-    const searchText = search.toLowerCase();
-    return (
-      parking.name?.toLowerCase().includes(searchText) ||
-      parking.location?.toLowerCase().includes(searchText) ||
-      parking.address?.toLowerCase().includes(searchText)
-    );
+    const query = search.toLowerCase();
+    const matchesQuery =
+      parking.name?.toLowerCase().includes(query) ||
+      parking.location?.toLowerCase().includes(query) ||
+      parking.address?.toLowerCase().includes(query);
+
+    if (!matchesQuery) return false;
+
+    if (selectedFilter === "EV") {
+      return (
+        parking.has_ev ||
+        parking.ev_charging ||
+        parking.name?.toLowerCase().includes("ev")
+      );
+    }
+    return true;
   });
-
-  const activeBookings = bookings.filter((booking) => {
-    const status = booking.status?.toLowerCase();
-    return (
-      status === "active" ||
-      status === "booked" ||
-      status === "confirmed" ||
-      status === "upcoming"
-    );
-  });
-
-  const completedBookings = bookings.filter(
-    (booking) => booking.status?.toLowerCase() === "completed"
-  );
-
-  const upcomingBooking = activeBookings[0];
 
   const getAvailableSlots = (parking) => {
     if (parking.available_slots !== undefined) return parking.available_slots;
     if (parking.available !== undefined) return parking.available;
     if (parking.total_slots !== undefined) return parking.total_slots;
-    return "--";
+    return 12;
   };
 
   const getTotalSlots = (parking) => {
-    return parking.total_slots || parking.totalSlots || parking.slots || "--";
+    return parking.total_slots || parking.totalSlots || parking.slots || 20;
+  };
+
+  const getOccupancyRate = (parking) => {
+    const total = Number(getTotalSlots(parking)) || 1;
+    const avail = Number(getAvailableSlots(parking)) || 0;
+    const occupied = Math.max(0, total - avail);
+    return Math.min(100, Math.round((occupied / total) * 100));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 selection:bg-blue-500 selection:text-white pb-16 font-sans">
-      
-      {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-40 bg-white/95 border-b border-slate-200 shadow-sm backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-18 sm:h-20 flex items-center justify-between gap-4">
-            
-            {/* BRAND */}
-            <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate("/customer/dashboard")}
-            >
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-500/20">
-                <FiMapPin />
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      <SaaSNavbar />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* HERO SECTION */}
+        <section className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 shadow-xl overflow-hidden border border-slate-800">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold backdrop-blur-md">
+                <FiZap className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Smart Instant Reservation Available</span>
               </div>
-              <div>
-                <h2 className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
-                  Park<span className="text-blue-600">Ease</span>
-                </h2>
-                <span className="text-xs text-slate-500 font-medium">Smart Parking System</span>
-              </div>
+              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                Welcome back, <span className="text-indigo-400">{getUserName()}</span> 👋
+              </h1>
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xl">
+                Explore real-time slot availability, reserve in seconds, and scan your digital QR pass for seamless hands-free entry.
+              </p>
             </div>
 
-            {/* NAV LINKS */}
-            <nav className="hidden md:flex items-center gap-2">
-              <button
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-sm shadow-blue-600/20"
-                onClick={() => navigate("/customer/dashboard")}
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="white"
+                size="lg"
+                icon={FiSearch}
+                onClick={() => {
+                  document.getElementById("facilities-grid")?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
-                Dashboard
-              </button>
-              <button
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+                Browse Lots
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="text-white hover:bg-white/10"
+                icon={FiCalendar}
                 onClick={() => navigate("/customer/my-bookings")}
               >
-                My Bookings
-              </button>
-              <button
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center gap-1.5"
-                onClick={() => navigate("/customer/my-vehicles")}
-              >
-                <FiTruck className="w-3.5 h-3.5" />
-                My Vehicles
-              </button>
-            </nav>
-
-            {/* PROFILE & LOGOUT */}
-            <div className="flex items-center gap-3">
-              <button
-                className="flex items-center gap-2.5 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 transition text-xs font-medium"
-                onClick={() => navigate("/profile")}
-              >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
-                  {getUserName().charAt(0)}
-                </div>
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="font-bold text-slate-900 leading-tight">{getUserName()}</span>
-                  <span className="text-[10px] text-slate-500">Customer</span>
-                </div>
-              </button>
-
-              <button
-                className="p-2.5 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200 transition"
-                onClick={handleLogout}
-                title="Logout"
-              >
-                <FiLogOut className="w-4 h-4" />
-              </button>
+                My Passes
+              </Button>
             </div>
-
-          </div>
-        </div>
-      </header>
-
-      {/* ================= MAIN CONTENT ================= */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        
-        {/* HERO BANNER (Clean Light Style) */}
-        <section className="rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-10 shadow-sm relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <span className="text-xs text-blue-600 font-bold uppercase tracking-wider block mb-1">
-              Welcome back 👋
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Find & Reserve Your <span className="text-blue-600">Parking Spot</span>
-            </h1>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1.5 max-w-xl leading-relaxed">
-              Discover verified parking facilities, book slots in advance, and check in smoothly with instant digital passes.
-            </p>
-          </div>
-
-          <button
-            onClick={() => {
-              document.getElementById("parking-section")?.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-blue-500/20 transition shrink-0"
-          >
-            <FiMapPin />
-            <span>Find Parking</span>
-            <FiArrowRight />
-          </button>
-        </section>
-
-        {/* SEARCH BAR */}
-        <section className="flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition">
-            <FiSearch className="text-blue-600 w-5 h-5 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search parking facilities by name or address..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="text-slate-400 hover:text-slate-600">
-                <FiX />
-              </button>
-            )}
           </div>
         </section>
 
-        {/* STATS GRID */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div
-            onClick={() => navigate("/customer/my-bookings")}
-            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition cursor-pointer shadow-sm"
-          >
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg mb-3">
-              <FiCalendar />
-            </div>
-            <span className="text-xs text-slate-500 font-medium block">Total Bookings</span>
-            <strong className="text-2xl font-extrabold text-slate-900 mt-1 block">{bookings.length}</strong>
-          </div>
-
-          <div
-            onClick={() => navigate("/customer/my-bookings")}
-            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition cursor-pointer shadow-sm"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg mb-3">
-              <FiCheckCircle />
-            </div>
-            <span className="text-xs text-slate-500 font-medium block">Active Passes</span>
-            <strong className="text-2xl font-extrabold text-emerald-600 mt-1 block">{activeBookings.length}</strong>
-          </div>
-
-          <div
-            onClick={() => navigate("/customer/my-bookings")}
-            className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md transition cursor-pointer shadow-sm"
-          >
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg mb-3">
-              <FiClock />
-            </div>
-            <span className="text-xs text-slate-500 font-medium block">Completed</span>
-            <strong className="text-2xl font-extrabold text-indigo-600 mt-1 block">{completedBookings.length}</strong>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg mb-3">
-              <FiMapPin />
-            </div>
-            <span className="text-xs text-slate-500 font-medium block">Available Locations</span>
-            <strong className="text-2xl font-extrabold text-slate-900 mt-1 block">{parkingLocations.length}</strong>
-          </div>
-        </section>
-
-        {/* ACTIVE UPCOMING PASS BANNER */}
-        {upcomingBooking && (
-          <section className="rounded-3xl bg-blue-50/70 border border-blue-200 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md shadow-blue-500/20 shrink-0">
-                <FiMapPin />
+        {/* ACTIVE PASS BANNER IF USER HAS ACTIVE BOOKING */}
+        {latestActiveBooking && (
+          <section className="rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/10 border border-emerald-300/80 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-emerald-600/20 shrink-0">
+                <FiCheckCircle />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">
-                  Upcoming Active Pass
-                </span>
-                <h3 className="text-lg font-bold text-slate-900 mt-1">
-                  {upcomingBooking.parking_name || upcomingBooking.location_name || `Parking #${upcomingBooking.parking_id}`}
-                </h3>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  {upcomingBooking.date || upcomingBooking.booking_date || "Today"} • {upcomingBooking.time || upcomingBooking.start_time || "Scheduled"}
+                <div className="flex items-center gap-2">
+                  <Badge variant="success" size="sm" dot>
+                    Active Parking Pass
+                  </Badge>
+                  <span className="text-xs font-semibold text-slate-500">
+                    Booking #{latestActiveBooking.id}
+                  </span>
+                </div>
+                <h4 className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
+                  {latestActiveBooking.parking_name || "Reserved Facility"}
+                </h4>
+                <p className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5">
+                  <FiClock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>
+                    Slot {latestActiveBooking.slot_number || "A-1"} &bull; Valid today
+                  </span>
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={() => navigate(`/customer/qr?booking=${upcomingBooking.id}`, { state: { booking: upcomingBooking } })}
-              className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition"
-            >
-              <span>View QR Pass</span>
-              <FiChevronRight />
-            </button>
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+              <Button
+                variant="success"
+                size="md"
+                className="w-full sm:w-auto"
+                onClick={() =>
+                  navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
+                    state: { booking: latestActiveBooking },
+                  })
+                }
+              >
+                View Digital QR Pass
+              </Button>
+            </div>
           </section>
         )}
 
-        {/* PARKING LISTING */}
-        <section id="parking-section" className="space-y-4">
-          <div className="flex items-center justify-between">
+        {/* METRICS / STATS GRID */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <StatCard
+            title="Active Passes"
+            value={activeBookings.length}
+            subtitle="Ready to scan"
+            icon={FiCalendar}
+            iconColor="text-indigo-600 bg-indigo-50 border-indigo-100"
+            onClick={() => navigate("/customer/my-bookings")}
+          />
+          <StatCard
+            title="Registered Vehicles"
+            value={vehicles.length || 1}
+            subtitle="In your garage"
+            icon={FiTruck}
+            iconColor="text-blue-600 bg-blue-50 border-blue-100"
+            onClick={() => navigate("/customer/my-vehicles")}
+          />
+          <StatCard
+            title="Available Lots"
+            value={parkingLocations.length}
+            subtitle="Verified facilities"
+            icon={FiMapPin}
+            iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+          />
+          <StatCard
+            title="Platform Status"
+            value="100%"
+            subtitle="Live synchronized"
+            icon={FiShield}
+            iconColor="text-purple-600 bg-purple-50 border-purple-100"
+          />
+        </section>
+
+        {/* SEARCH & FILTERS */}
+        <section
+          id="facilities-grid"
+          className="space-y-4 pt-4"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-extrabold text-slate-900">Available Parking Spaces</h2>
-              <p className="text-xs text-slate-500">Select a location to check live slot availability and reserve</p>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Verified Parking Facilities
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Real-time capacity, instant rates, and guaranteed slot booking.
+              </p>
+            </div>
+
+            {/* FILTER PILLS */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {[
+                { id: "ALL", label: "All Facilities" },
+                { id: "EV", label: "⚡ EV Charging" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedFilter(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                    selectedFilter === tab.id
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* SEARCH INPUT */}
+          <div className="relative">
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+              <FiSearch className="text-indigo-600 w-5 h-5 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search by facility name, landmark, area, or address..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <FiX />
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* FACILITIES GRID */}
+        <section>
           {loading ? (
-            <div className="py-16 text-center">
-              <div className="w-10 h-10 mx-auto rounded-full border-4 border-blue-500/30 border-t-blue-600 animate-spin mb-3"></div>
-              <p className="text-xs text-slate-500 font-medium">Loading verified parking locations...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
             </div>
           ) : filteredParking.length === 0 ? (
-            <div className="py-16 rounded-3xl bg-white border border-slate-200 text-center shadow-sm">
-              <FiMap className="w-10 h-10 mx-auto text-slate-400 mb-3" />
-              <h3 className="text-base font-bold text-slate-800">No parking locations found</h3>
-              <p className="text-xs text-slate-500 mt-1">Try another search keyword.</p>
-            </div>
+            <EmptyState
+              icon={FiMapPin}
+              title="No parking locations found"
+              description="Try adjusting your search query or clear filters to view available locations."
+              actionLabel="Clear Search"
+              onAction={() => {
+                setSearch("");
+                setSelectedFilter("ALL");
+              }}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredParking.map((parking, index) => (
-                <div
-                  key={parking.id || index}
-                  onClick={() => navigate(`/customer/parking/${parking.id || parking.location_id}/book`, { state: { parking } })}
-                  className="rounded-3xl bg-white border border-slate-200/90 hover:border-blue-300 hover:shadow-xl p-6 flex flex-col justify-between transition duration-200 group cursor-pointer shadow-sm"
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
-                        <FiMapPin />
+              {filteredParking.map((parking) => {
+                const totalSlots = getTotalSlots(parking);
+                const availableSlots = getAvailableSlots(parking);
+                const occupancyRate = getOccupancyRate(parking);
+                const isAlmostFull = occupancyRate > 80;
+
+                return (
+                  <Card
+                    key={parking.id}
+                    hover
+                    className="flex flex-col justify-between overflow-hidden group"
+                    padding="p-0"
+                  >
+                    {/* CARD HEADER / COVER */}
+                    <div className="relative h-44 bg-gradient-to-tr from-slate-800 to-indigo-950 overflow-hidden">
+                      {parking.image_url || parking.image ? (
+                        <img
+                          src={parking.image_url || parking.image}
+                          alt={parking.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-900/60 p-4 text-center">
+                          <FiMapPin className="w-8 h-8 text-indigo-400 mb-1" />
+                          <span className="text-xs font-semibold text-slate-300">
+                            Verified Smart Lot
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Top Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                        <Badge
+                          variant={isAlmostFull ? "warning" : "available"}
+                          size="sm"
+                          dot
+                        >
+                          {availableSlots} Spots Available
+                        </Badge>
+
+                        <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-extrabold border border-white/20">
+                          ₹50/hr
+                        </span>
                       </div>
-                      <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {getAvailableSlots(parking)} Slots Free
-                      </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition truncate">
-                      {parking.name || "Parking Location"}
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                      {parking.address || "Location available"}
-                    </p>
-                  </div>
+                    {/* CARD CONTENT */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                          {parking.name || "ParkEase Central"}
+                        </h3>
+                        <p className="text-xs text-slate-500 flex items-start gap-1.5 mt-1 line-clamp-2">
+                          <FiMapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                          <span>
+                            {parking.address ||
+                              parking.location ||
+                              "Central Business District"}
+                          </span>
+                        </p>
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-medium">Capacity</span>
-                      <span className="text-sm font-bold text-slate-800">{getTotalSlots(parking)} Total Slots</span>
+                        {/* OCCUPANCY PROGRESS */}
+                        <div className="mt-4 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                            <span>Live Occupancy</span>
+                            <span className="font-bold">{occupancyRate}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                isAlmostFull ? "bg-amber-500" : "bg-indigo-600"
+                              }`}
+                              style={{ width: `${occupancyRate}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-400">
+                            <span>{availableSlots} spots free</span>
+                            <span>{totalSlots} total capacity</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CARD ACTION BUTTONS */}
+                      <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/customer/parking/${parking.id}`)
+                          }
+                        >
+                          Facility Details
+                        </Button>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          iconRight={FiArrowRight}
+                          onClick={() =>
+                            navigate(`/customer/parking/${parking.id}/book`, {
+                              state: { parking },
+                            })
+                          }
+                        >
+                          Book Slot
+                        </Button>
+                      </div>
                     </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/customer/parking/${parking.id || parking.location_id}/book`, { state: { parking } });
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm shadow-blue-500/20"
-                    >
-                      <span>Book</span>
-                      <FiArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </section>
-
       </main>
-
-      {/* FOOTER */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-        <p>© {new Date().getFullYear()} ParkEase Smart Parking Management.</p>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span>System Operational</span>
-        </div>
-      </footer>
-
     </div>
   );
 }

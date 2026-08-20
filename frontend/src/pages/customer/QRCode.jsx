@@ -1,73 +1,70 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import {
-  FaArrowLeft,
-  FaParking,
-  FaMapMarkerAlt,
-  FaCar,
-  FaCalendarAlt,
-  FaClock,
-  FaCheckCircle,
-  FaDownload,
-  FaPrint,
-  FaSyncAlt,
-  FaExclamationTriangle,
-  FaShieldAlt,
-  FaTicketAlt,
-  FaDirections,
-} from "react-icons/fa";
+  FiArrowLeft,
+  FiDownload,
+  FiPrinter,
+  FiMapPin,
+  FiCalendar,
+  FiClock,
+  FiTruck,
+  FiCheckCircle,
+  FiShield,
+  FiRefreshCw,
+  FiNavigation,
+  FiAlertCircle,
+} from "react-icons/fi";
 import API from "../../api/axios";
+import SaaSNavbar from "../../components/SaaSNavbar";
+import Badge from "../../components/Badge";
+import Button from "../../components/Button";
+import { Card } from "../../components/Card";
+import { CardSkeleton } from "../../components/Skeleton";
 
-function QRCode() {
+export default function QRCode() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const qrRef = useRef(null);
 
   const queryBookingId = searchParams.get("booking");
-  const stateBookingId = location.state?.bookingId || location.state?.booking?.id;
+  const stateBookingId =
+    location.state?.bookingId || location.state?.booking?.id;
   const targetBookingId = queryBookingId || stateBookingId;
 
   const [booking, setBooking] = useState(location.state?.booking || null);
   const [loading, setLoading] = useState(!location.state?.booking);
   const [refreshing, setRefreshing] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const loadBooking = async (isRefresh = false) => {
     try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else if (!booking) {
-        setLoading(true);
-      }
+      if (isRefresh) setRefreshing(true);
+      else if (!booking) setLoading(true);
 
       const response = await API.get("/booking/my-bookings");
       const list = Array.isArray(response.data)
         ? response.data
         : response.data?.bookings || [];
 
-      let selectedBooking = null;
-
+      let found = null;
       if (targetBookingId) {
-        selectedBooking = list.find(
-          (item) => String(item.id) === String(targetBookingId)
-        );
+        found = list.find((item) => String(item.id) === String(targetBookingId));
+      }
+      if (!found && list.length > 0) {
+        found = list[0];
       }
 
-      if (!selectedBooking && list.length > 0) {
-        selectedBooking =
-          list.find(
-            (item) =>
-              String(item.status).toUpperCase() === "ACTIVE" ||
-              String(item.status).toUpperCase() === "BOOKED" ||
-              String(item.status).toUpperCase() === "CONFIRMED"
-          ) || list[0];
-      }
-
-      if (selectedBooking) {
-        setBooking(selectedBooking);
-      }
+      setBooking(found);
     } catch (error) {
-      console.error("Failed to load QR booking:", error);
+      console.error("Failed to load booking pass:", error);
+      showToast("Unable to load booking pass.", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -78,324 +75,228 @@ function QRCode() {
     loadBooking();
   }, [targetBookingId]);
 
-  const downloadQR = () => {
-    const canvas = document.getElementById("parkease-qr-canvas");
-    if (!canvas) return;
-
-    const pngUrl = canvas
-      .toDataURL("image/png")
-      .replace("image/png", "image/octet-stream");
-
-    const downloadLink = document.createElement("a");
-    downloadLink.href = pngUrl;
-    downloadLink.download = `ParkEase-Pass-Booking-${booking?.id || "Ticket"}.png`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+  const handleDownloadQR = () => {
+    try {
+      const canvas = qrRef.current?.querySelector("canvas");
+      if (!canvas) {
+        showToast("QR Code image not ready.", "error");
+        return;
+      }
+      const url = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ParkEase-Pass-${booking?.id || "ticket"}.png`;
+      link.click();
+      showToast("Pass QR downloaded successfully!", "success");
+    } catch (e) {
+      console.error("Download error:", e);
+      showToast("Failed to download image.", "error");
+    }
   };
 
-  const printTicket = () => {
-    window.print();
-  };
-
-  const status = String(booking?.status || "BOOKED").toUpperCase();
-  const isActive = status === "ACTIVE" || status === "PARKED" || status === "CHECKED_IN";
-  const isCompleted = status === "COMPLETED";
-  const isCancelled = status === "CANCELLED";
-
-  const getPassHeaderConfig = () => {
-    if (isActive) {
-      return {
-        tag: "EXIT PASS & PARKED",
-        tagBg: "bg-emerald-100 text-emerald-800 border-emerald-300",
-        instruction: "Show this QR at the exit gate for seamless check-out",
-        icon: <FaCar className="text-emerald-600" />,
-        stepTitle: "Step 2: Exit & Release Slot",
-      };
-    }
-
-    if (isCompleted) {
-      return {
-        tag: "COMPLETED RECEIPT",
-        tagBg: "bg-slate-100 text-slate-700 border-slate-300",
-        instruction: "Vehicle has checked out. Thank you for using ParkEase!",
-        icon: <FaCheckCircle className="text-emerald-600" />,
-        stepTitle: "Booking Completed",
-      };
-    }
-
-    if (isCancelled) {
-      return {
-        tag: "CANCELLED",
-        tagBg: "bg-red-100 text-red-700 border-red-300",
-        instruction: "This reservation was cancelled.",
-        icon: <FaExclamationTriangle className="text-red-600" />,
-        stepTitle: "Reservation Cancelled",
-      };
-    }
-
-    return {
-      tag: "ENTRY PASS",
-      tagBg: "bg-blue-100 text-blue-800 border-blue-300",
-      instruction: "Present this QR at the entrance for quick vehicle check-in",
-      icon: <FaTicketAlt className="text-blue-600" />,
-      stepTitle: "Step 1: Check-in at Entry",
-    };
-  };
-
-  const passConfig = getPassHeaderConfig();
-
-  const qrPayload = JSON.stringify({
-    type: "PARKEASE_BOOKING",
+  const qrValue = JSON.stringify({
+    app: "ParkEase",
     booking_id: booking?.id,
-    user_id: booking?.user_id,
-    parking_id: booking?.parking_id || booking?.parking_location_id,
-    slot_id: booking?.slot_id,
-    slot_number: booking?.slot_number,
-    status: booking?.status,
-    booking_date: booking?.booking_date,
-    start_time: booking?.start_time,
-    end_time: booking?.end_time,
-    amount: booking?.amount,
+    slot: booking?.slot_number,
+    vehicle: booking?.vehicle_number,
+    facility: booking?.parking_name,
+    date: booking?.booking_date,
+    valid: true,
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto rounded-full border-4 border-blue-500/30 border-t-blue-600 animate-spin" />
-          <p className="mt-4 text-slate-600 font-medium text-sm">
-            Generating your Digital Parking Pass...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      <SaaSNavbar />
 
-  if (!booking) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white border border-slate-200 max-w-md w-full rounded-3xl p-8 text-center text-slate-800 shadow-xl">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-3xl mb-4 border border-red-200">
-            <FaExclamationTriangle />
+      {/* TOAST ALERT */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+              toast.type === "error"
+                ? "bg-rose-50/95 text-rose-800 border-rose-200"
+                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+            }`}
+          >
+            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+            <span>{toast.message}</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">No Active Booking Found</h2>
-          <p className="text-slate-500 mt-2 text-sm leading-relaxed">
-            You don't have any selected booking right now. Please reserve a new slot or check your bookings history.
-          </p>
+        </div>
+      )}
+
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* BACK & ACTIONS */}
+        <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/customer/my-bookings")}
-            className="mt-6 w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md shadow-blue-500/20"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
           >
-            Go to My Bookings
+            <FiArrowLeft className="w-3.5 h-3.5" />
+            <span>My Bookings</span>
           </button>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={FiRefreshCw}
+              loading={refreshing}
+              onClick={() => loadBooking(true)}
+            >
+              Sync Pass
+            </Button>
+          </div>
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 flex flex-col items-center justify-center text-slate-800 print:bg-white print:p-0 font-sans">
-      
-      {/* TOP NAV BAR */}
-      <div className="w-full max-w-md mb-4 flex items-center justify-between print:hidden">
-        <button
-          onClick={() => navigate("/customer/my-bookings")}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 transition text-sm font-semibold shadow-sm"
-        >
-          <FaArrowLeft /> My Bookings
-        </button>
-
-        <button
-          onClick={() => loadBooking(true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 transition text-sm font-semibold shadow-sm"
-          title="Refresh Pass Status"
-        >
-          <FaSyncAlt className={refreshing ? "animate-spin text-blue-600" : ""} />
-          {refreshing ? "Updating..." : "Live Status"}
-        </button>
-      </div>
-
-      {/* MAIN PASS CONTAINER (Light Theme Ticket) */}
-      <div className="w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-xl overflow-hidden">
-        
-        {/* PASS HEADER / BANNER */}
-        <div className="p-6 sm:p-7 bg-slate-50 border-b border-slate-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-lg font-black shadow-md shadow-blue-500/20">
-                <FaParking />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                  ParkEase Pass
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Booking #{booking.id}
+        {loading ? (
+          <CardSkeleton />
+        ) : !booking ? (
+          <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 p-8 space-y-4">
+            <FiAlertCircle className="w-12 h-12 text-slate-400 mx-auto" />
+            <h3 className="text-lg font-bold text-slate-900">
+              No Active Pass Found
+            </h3>
+            <p className="text-xs text-slate-500">
+              You do not have an active booking session. Reserve a parking spot to get your digital entry QR ticket.
+            </p>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => navigate("/customer/dashboard")}
+            >
+              Explore Parking Spots
+            </Button>
+          </div>
+        ) : (
+          /* DIGITAL BOARDING PASS TICKET */
+          <div
+            id="printable-receipt"
+            className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden"
+          >
+            {/* TICKET TOP HEADER */}
+            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="success" size="sm" dot>
+                    Verified Digital Ticket
+                  </Badge>
+                  <span className="text-xs font-semibold text-slate-300">
+                    Pass #{booking.id}
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  {booking.parking_name || "ParkEase Smart Facility"}
+                </h2>
+                <p className="text-xs text-slate-300 flex items-center gap-1.5">
+                  <FiMapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span>{booking.parking_address || "Central Zone"}</span>
                 </p>
               </div>
-            </div>
 
-            <div className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border shadow-sm ${passConfig.tagBg}`}>
-              {passConfig.tag}
-            </div>
-          </div>
-
-          <div className="mt-5 pt-4 border-t border-slate-200 flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <h2 className="font-extrabold text-lg text-slate-900 leading-snug">
-                {booking.parking_name || "Smart Parking Facility"}
-              </h2>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                <FaMapMarkerAlt className="text-blue-600 shrink-0" />
-                <span className="truncate">{booking.address || "Verified Parking Hub"}</span>
+              <div className="sm:text-right">
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold block">
+                  Designated Spot
+                </span>
+                <span className="text-2xl sm:text-3xl font-black text-indigo-400">
+                  {booking.slot_number || "A-1"}
+                </span>
               </div>
             </div>
 
-            <div className="text-right shrink-0">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                Assigned Slot
+            {/* CUT-OUT TICKETS DIVIDER */}
+            <div className="relative flex items-center justify-between px-6 py-2 bg-slate-100/60 border-y border-dashed border-slate-200">
+              <div className="w-4 h-8 rounded-r-full bg-slate-50 border-r border-t border-b border-slate-200 -ml-6" />
+              <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+                Hold under scanner at barrier gate
               </span>
-              <span className="inline-block mt-0.5 px-3 py-1 rounded-xl bg-blue-600 text-white font-extrabold text-base shadow-sm">
-                {booking.slot_number ? booking.slot_number : `Slot #${booking.slot_id || "A1"}`}
-              </span>
+              <div className="w-4 h-8 rounded-l-full bg-slate-50 border-l border-t border-b border-slate-200 -mr-6" />
             </div>
-          </div>
-        </div>
 
-        {/* PASS BODY */}
-        <div className="p-6 sm:p-7 flex flex-col items-center">
-          
-          {/* QR CODE */}
-          <div className="relative p-4 bg-white rounded-3xl shadow-md border-2 border-slate-200">
-            <QRCodeCanvas
-              id="parkease-qr-canvas"
-              value={qrPayload}
-              size={210}
-              bgColor="#ffffff"
-              fgColor="#0f172a"
-              level="H"
-              includeMargin={true}
-            />
-
-            {isActive && (
-              <div className="absolute -top-3 -right-3 px-3 py-1 bg-emerald-600 text-white text-xs font-extrabold rounded-full shadow-lg flex items-center gap-1.5 animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                PARKED
+            {/* TICKET BODY: QR CODE + METRICS */}
+            <div className="p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-8">
+              {/* QR CODE CONTAINER */}
+              <div className="flex flex-col items-center space-y-3">
+                <div
+                  ref={qrRef}
+                  className="p-4 bg-white rounded-2xl border-2 border-indigo-500 shadow-md flex items-center justify-center"
+                >
+                  <QRCodeCanvas
+                    value={qrValue}
+                    size={190}
+                    level="H"
+                    includeMargin={false}
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
+                  <FiCheckCircle className="w-4 h-4" />
+                  <span>Ready for Instant Gate Scanning</span>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* INSTRUCTION CARD */}
-          <div className={`mt-6 w-full p-4 rounded-2xl border text-center ${
-            isActive
-              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-              : isCompleted
-              ? "bg-slate-50 border-slate-200 text-slate-700"
-              : "bg-blue-50 border-blue-200 text-blue-900"
-          }`}>
-            <div className="flex items-center justify-center gap-2 font-bold text-sm">
-              {passConfig.icon}
-              <span>{passConfig.stepTitle}</span>
-            </div>
-            <p className="text-xs mt-1 text-slate-600 leading-relaxed">
-              {passConfig.instruction}
-            </p>
-          </div>
+              {/* TICKET DETAILS MATRIX */}
+              <div className="flex-1 w-full space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Booking Date
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                      {booking.booking_date || "Today"}
+                    </span>
+                  </div>
 
-          {/* PERFORATED TICKET DIVIDER */}
-          <div className="relative w-full my-6 flex items-center justify-center">
-            <div className="w-full border-t-2 border-dashed border-slate-200" />
-            <span className="absolute px-3 bg-white text-[10px] uppercase font-bold tracking-widest text-slate-400">
-              Booking Details
-            </span>
-          </div>
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Time Slot
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                      {booking.start_time || "10:00"} - {booking.end_time || "12:00"}
+                    </span>
+                  </div>
 
-          {/* DETAILS GRID */}
-          <div className="w-full grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <FaCalendarAlt className="text-blue-600" /> Booking Date
-              </span>
-              <p className="font-bold text-slate-900 mt-1">
-                {booking.booking_date
-                  ? new Date(booking.booking_date).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "Today"}
-              </p>
-            </div>
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Registered Vehicle
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                      {booking.vehicle_number || "MH-01-AB-1234"}
+                    </span>
+                  </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <FaClock className="text-blue-600" /> Time Window
-              </span>
-              <p className="font-bold text-slate-900 mt-1 truncate">
-                {booking.start_time || "00:00"} - {booking.end_time || "23:59"}
-              </p>
-            </div>
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Fare Paid
+                    </span>
+                    <span className="text-sm font-extrabold text-emerald-600 mt-0.5 block">
+                      ₹{booking.total_amount || 105}
+                    </span>
+                  </div>
+                </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <FaCar className="text-blue-600" /> Vehicle
-              </span>
-              <p className="font-bold text-slate-900 mt-1 truncate">
-                {booking.vehicle_number || "4-Wheeler"}
-              </p>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-slate-500 flex items-center gap-1.5 font-medium">
-                <FaShieldAlt className="text-emerald-600" /> Pass Status
-              </span>
-              <p className={`font-bold mt-1 ${
-                isActive ? "text-emerald-600" : isCompleted ? "text-slate-500" : "text-blue-600"
-              }`}>
-                {booking.status || "CONFIRMED"}
-              </p>
+                {/* ACTION BUTTONS */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    icon={FiDownload}
+                    onClick={handleDownloadQR}
+                  >
+                    Save Image
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    icon={FiPrinter}
+                    onClick={() => window.print()}
+                  >
+                    Print Ticket
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* ACTIONS */}
-          <div className="mt-6 w-full flex items-center gap-3 print:hidden">
-            <button
-              onClick={downloadQR}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-center gap-2 transition"
-            >
-              <FaDownload /> Save Pass
-            </button>
-
-            <button
-              onClick={printTicket}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-center gap-2 transition"
-            >
-              <FaPrint /> Print
-            </button>
-          </div>
-
-          {booking.address && (
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                (booking.parking_name || "") + " " + booking.address
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-xs text-white flex items-center justify-center gap-2 transition shadow-md shadow-blue-500/20 print:hidden"
-            >
-              <FaDirections /> Navigate to Parking
-            </a>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6 text-center text-xs text-slate-400 print:hidden flex items-center gap-1.5">
-        <FaShieldAlt /> Secured by ParkEase FastPass™ System
-      </div>
+        )}
+      </main>
     </div>
   );
 }
-
-export default QRCode;

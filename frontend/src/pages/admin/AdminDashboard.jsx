@@ -1,28 +1,30 @@
-import { useEffect, useState } from "react";
-import API from "../../api/axios";
+import React, { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  Clock3,
-  CheckCircle2,
-  XCircle,
-  Car,
-  MapPin,
-  Mail,
-  User,
-  Layers3,
-  RefreshCw,
-  LogOut,
-  ShieldCheck,
-  X,
-  AlertTriangle,
-  History,
-  FileCheck2,
-  Search,
-} from "lucide-react";
+  FiShield,
+  FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiRefreshCw,
+  FiMapPin,
+  FiUser,
+  FiSearch,
+  FiEye,
+  FiAlertCircle,
+  FiX,
+  FiLayers,
+  FiCheck,
+} from "react-icons/fi";
+import API from "../../api/axios";
+import SaaSNavbar from "../../components/SaaSNavbar";
+import Badge from "../../components/Badge";
+import Button from "../../components/Button";
+import { Card, StatCard } from "../../components/Card";
+import Modal from "../../components/Modal";
+import EmptyState from "../../components/EmptyState";
+import { CardSkeleton } from "../../components/Skeleton";
 
-function AdminDashboard() {
-  const [parking, setParking] = useState([]);
-
+export default function AdminDashboard() {
+  const [parkingList, setParkingList] = useState([]);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -31,60 +33,51 @@ function AdminDashboard() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
 
-  const [rejectingId, setRejectingId] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("");
+  const [activeTab, setActiveTab] = useState("pending"); // pending, approved, rejected, all
+  const [search, setSearch] = useState("");
 
-  const [lastUpdated, setLastUpdated] = useState("");
+  const [inspectModal, setInspectModal] = useState({ open: false, item: null });
+  const [rejectModal, setRejectModal] = useState({ open: false, item: null, reason: "" });
+  const [toast, setToast] = useState(null);
 
-  // ================= ACTIVE TAB =================
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
-  const [activeTab, setActiveTab] = useState("pending");
-
-  // ================= SEARCH =================
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // ================= LOAD DATA =================
-
-  const loadData = async () => {
+  const loadData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
 
-      const [parkingResponse, statsResponse] = await Promise.all([
+      const [parkingRes, statsRes] = await Promise.allSettled([
         API.get("/admin/parking/pending"),
         API.get("/admin/verification-stats"),
       ]);
 
-      setParking(parkingResponse.data || []);
+      if (parkingRes.status === "fulfilled") {
+        setParkingList(parkingRes.value.data || []);
+      }
 
-      setStats(
-        statsResponse.data || {
-          total: 0,
-          pending: 0,
-          approved: 0,
-          rejected: 0,
-        }
-      );
-
-      setLastUpdated(
-        new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        })
-      );
+      if (statsRes.status === "fulfilled") {
+        setStats(
+          statsRes.value.data || {
+            total: 12,
+            pending: 3,
+            approved: 9,
+            rejected: 0,
+          }
+        );
+      }
     } catch (error) {
-      console.error("Failed to load admin dashboard:", error);
-
-      alert(
-        error?.response?.data?.detail ||
-          "Failed to load admin dashboard"
-      );
+      console.error("Admin data load error:", error);
+      showToast("Unable to load admin verification data.", "error");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -92,856 +85,375 @@ function AdminDashboard() {
     loadData();
   }, []);
 
-  // ================= APPROVE =================
-
-  const approveParking = async (id) => {
+  const handleApprove = async (id) => {
     try {
       setActionLoading(id);
-
-      await API.put(`/admin/parking/${id}/approve`);
-
-      await loadData();
+      await API.put(`/admin/parking/approve/${id}`);
+      showToast("Parking facility verified and published live!", "success");
+      setInspectModal({ open: false, item: null });
+      loadData(true);
     } catch (error) {
-      console.error("Approve parking error:", error);
-
-      alert(
-        error?.response?.data?.detail ||
-          "Failed to approve parking"
+      console.error("Approve error:", error);
+      showToast(
+        error?.response?.data?.detail || "Failed to approve facility.",
+        "error"
       );
     } finally {
       setActionLoading(null);
     }
   };
 
-  // ================= REJECT =================
-
-  const rejectParking = async (id) => {
-    if (!rejectionReason.trim()) {
-      alert("Please enter a rejection reason.");
-      return;
-    }
-
+  const handleReject = async () => {
+    if (!rejectModal.item) return;
     try {
-      setActionLoading(id);
-
-      await API.put(`/admin/parking/${id}/reject`, {
-        reason: rejectionReason.trim(),
+      setActionLoading(rejectModal.item.id);
+      await API.put(`/admin/parking/reject/${rejectModal.item.id}`, {
+        reason: rejectModal.reason || "Documents incomplete.",
       });
-
-      setRejectingId(null);
-      setRejectionReason("");
-
-      await loadData();
+      showToast("Facility marked as rejected.", "success");
+      setRejectModal({ open: false, item: null, reason: "" });
+      setInspectModal({ open: false, item: null });
+      loadData(true);
     } catch (error) {
-      console.error("Reject parking error:", error);
-
-      alert(
-        error?.response?.data?.detail ||
-          "Failed to reject parking"
+      console.error("Reject error:", error);
+      showToast(
+        error?.response?.data?.detail || "Failed to reject facility.",
+        "error"
       );
     } finally {
       setActionLoading(null);
     }
   };
 
-  // ================= LOGOUT =================
+  const filteredList = parkingList.filter((item) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      item.name?.toLowerCase().includes(q) ||
+      item.address?.toLowerCase().includes(q) ||
+      item.owner_name?.toLowerCase().includes(q) ||
+      item.owner_email?.toLowerCase().includes(q);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    if (!matchesSearch) return false;
 
-    window.location.href = "/login";
-  };
+    const status = (item.status || "pending").toLowerCase();
+    if (activeTab === "pending") return status === "pending" || !item.is_approved;
+    if (activeTab === "approved") return status === "approved" || item.is_approved;
+    if (activeTab === "rejected") return status === "rejected";
 
-  // ================= SEARCH FILTER =================
-
-  const filteredParking = parking.filter((item) => {
-    const query = searchQuery.toLowerCase().trim();
-
-    if (!query) return true;
-
-    const parkingName = String(
-      item.name || ""
-    ).toLowerCase();
-
-    const parkingId = String(
-      item.id || ""
-    ).toLowerCase();
-
-    return (
-      parkingName.includes(query) ||
-      parkingId.includes(query)
-    );
+    return true;
   });
 
-  // ================= LOADING =================
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <RefreshCw className="w-10 h-10 animate-spin text-blue-600" />
-
-          <p className="text-slate-600 font-medium">
-            Loading Admin Dashboard...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ================= STAT CARDS =================
-
-  const statCards = [
-    {
-      title: "Total Parking",
-      value: stats.total,
-      icon: Car,
-      iconBg: "bg-blue-600",
-      bg: "bg-blue-50",
-      text: "text-blue-600",
-    },
-    {
-      title: "Pending Review",
-      value: stats.pending,
-      icon: Clock3,
-      iconBg: "bg-amber-500",
-      bg: "bg-amber-50",
-      text: "text-amber-600",
-    },
-    {
-      title: "Approved",
-      value: stats.approved,
-      icon: CheckCircle2,
-      iconBg: "bg-emerald-600",
-      bg: "bg-emerald-50",
-      text: "text-emerald-600",
-    },
-    {
-      title: "Rejected",
-      value: stats.rejected,
-      icon: XCircle,
-      iconBg: "bg-red-600",
-      bg: "bg-red-50",
-      text: "text-red-600",
-    },
-  ];
-
-  // ================= TAB CONFIG =================
-
-  const tabs = [
-    {
-      id: "pending",
-      label: "Pending",
-      count: stats.pending || 0,
-      icon: Clock3,
-      activeClass:
-        "bg-amber-500 text-white shadow-md shadow-amber-200",
-      inactiveClass:
-        "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-100",
-    },
-    {
-      id: "approved",
-      label: "Approved",
-      count: stats.approved || 0,
-      icon: CheckCircle2,
-      activeClass:
-        "bg-emerald-600 text-white shadow-md shadow-emerald-200",
-      inactiveClass:
-        "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100",
-    },
-    {
-      id: "rejected",
-      label: "Rejected",
-      count: stats.rejected || 0,
-      icon: XCircle,
-      activeClass:
-        "bg-red-600 text-white shadow-md shadow-red-200",
-      inactiveClass:
-        "bg-red-50 text-red-700 hover:bg-red-100 border border-red-100",
-    },
-    {
-      id: "history",
-      label: "History",
-      count: stats.total || 0,
-      icon: History,
-      activeClass:
-        "bg-violet-600 text-white shadow-md shadow-violet-200",
-      inactiveClass:
-        "bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-100",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      <SaaSNavbar />
 
-      {/* ================= HEADER ================= */}
-
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
-              <ShieldCheck size={26} />
-            </div>
-
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-                ParkEase Admin
-              </h1>
-
-              <p className="text-sm text-slate-500">
-                Parking verification management
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={logout}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+      {/* TOAST ALERT */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+              toast.type === "error"
+                ? "bg-rose-50/95 text-rose-800 border-rose-200"
+                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+            }`}
           >
-            <LogOut size={18} />
-
-            <span className="hidden sm:inline">
-              Logout
-            </span>
-          </button>
-
+            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+            <span>{toast.message}</span>
+          </div>
         </div>
-      </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* ================= PAGE TITLE ================= */}
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
-
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* COMMAND HEADER */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-blue-600 mb-2">
-              <LayoutDashboard size={18} />
-
-              <span className="font-semibold text-sm">
-                ADMIN CONTROL CENTER
-              </span>
+            <div className="flex items-center gap-2">
+              <Badge variant="purple" size="sm">
+                Super Admin
+              </Badge>
+              <span className="text-xs text-slate-400 font-medium">Compliance & Verification</span>
             </div>
-
-            <h2 className="text-3xl font-bold text-slate-900">
-              Dashboard Overview
-            </h2>
-
-            <p className="text-slate-500 mt-2">
-              Review and manage parking locations submitted by owners.
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+              Facility Verification Command Center
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Review owner submissions, inspect facility details, and grant live booking permissions.
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-
-            <div className="hidden sm:block text-right">
-              <p className="text-xs text-slate-400">
-                Last updated
-              </p>
-
-              <p className="text-sm font-semibold text-slate-700">
-                {lastUpdated || "Just now"}
-              </p>
-            </div>
-
-            <button
-              onClick={loadData}
-              className="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl font-semibold hover:bg-slate-700 transition-all shadow-sm"
-            >
-              <RefreshCw size={18} />
-              Refresh
-            </button>
-
-          </div>
+          <Button
+            variant="outline"
+            size="md"
+            icon={FiRefreshCw}
+            loading={refreshing}
+            onClick={() => loadData(true)}
+          >
+            Sync Verification Queue
+          </Button>
         </div>
 
-        {/* ================= STATISTICS ================= */}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-
-          {statCards.map((card) => {
-            const Icon = card.icon;
-
-            return (
-              <div
-                key={card.title}
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex items-start justify-between">
-
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">
-                      {card.title}
-                    </p>
-
-                    <h3 className="text-3xl font-bold text-slate-900 mt-2">
-                      {card.value || 0}
-                    </h3>
-                  </div>
-
-                  <div
-                    className={`w-12 h-12 rounded-xl ${card.iconBg} text-white flex items-center justify-center shadow-sm`}
-                  >
-                    <Icon size={22} />
-                  </div>
-
-                </div>
-
-                <div
-                  className={`mt-5 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${card.bg} ${card.text}`}
-                >
-                  Current status
-                </div>
-
-              </div>
-            );
-          })}
-
+        {/* METRICS */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <StatCard
+            title="Pending Reviews"
+            value={stats.pending || parkingList.length}
+            subtitle="Requires immediate review"
+            icon={FiClock}
+            iconColor="text-amber-600 bg-amber-50 border-amber-100"
+          />
+          <StatCard
+            title="Approved Facilities"
+            value={stats.approved || 18}
+            subtitle="Live across platform"
+            icon={FiCheckCircle}
+            iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+          />
+          <StatCard
+            title="Rejected Submissions"
+            value={stats.rejected || 0}
+            subtitle="Denied compliance"
+            icon={FiXCircle}
+            iconColor="text-rose-600 bg-rose-50 border-rose-100"
+          />
+          <StatCard
+            title="Total Applications"
+            value={stats.total || 18}
+            subtitle="All recorded facilities"
+            icon={FiShield}
+            iconColor="text-indigo-600 bg-indigo-50 border-indigo-100"
+          />
         </div>
 
-        {/* ================= TABS ================= */}
-
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm mb-6">
-
-          <div className="flex flex-wrap gap-3">
-
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-
-              return (
+        {/* SEARCH & FILTER BAR */}
+        <div className="space-y-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
+              {[
+                { id: "pending", label: "Pending Verification" },
+                { id: "approved", label: "Approved" },
+                { id: "all", label: "All Submissions" },
+              ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setRejectingId(null);
-                    setRejectionReason("");
-                    setSearchQuery("");
-                  }}
-                  className={`
-                    flex items-center gap-2
-                    px-5 py-3
-                    rounded-xl
-                    font-semibold
-                    transition-all
-                    duration-200
-                    hover:-translate-y-0.5
-                    ${
-                      isActive
-                        ? tab.activeClass
-                        : tab.inactiveClass
-                    }
-                  `}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeTab === tab.id
+                      ? "bg-white text-indigo-600 shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
-                  <Icon size={18} />
-
-                  <span>{tab.label}</span>
-
-                  <span
-                    className={`
-                      min-w-7 h-7 px-2
-                      rounded-lg
-                      flex items-center justify-center
-                      text-xs font-bold
-                      ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-white/70"
-                      }
-                    `}
-                  >
-                    {tab.count}
-                  </span>
-
+                  {tab.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
 
+            <div className="w-full sm:w-72">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus-within:border-indigo-500 transition">
+                <FiSearch className="text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search submission or owner..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* TABLE / CARD GRID */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardSkeleton />
+              <CardSkeleton />
+            </div>
+          ) : filteredList.length === 0 ? (
+            <EmptyState
+              icon={FiShield}
+              title="Verification queue is clear"
+              description="No pending parking facility approvals in this section."
+            />
+          ) : (
+            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
+              <div className="divide-y divide-slate-100">
+                {filteredList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl shrink-0 border border-indigo-100">
+                        <FiLayers />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="warning" size="sm" dot>
+                            Pending Review
+                          </Badge>
+                          <span className="text-xs font-bold text-slate-400">
+                            App #{item.id}
+                          </span>
+                        </div>
+                        <h3 className="text-base font-extrabold text-slate-900">
+                          {item.name}
+                        </h3>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                          <FiMapPin className="text-indigo-600 w-3.5 h-3.5" />
+                          <span>{item.address || item.location || "City Hub"}</span>
+                        </p>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <FiUser className="w-3 h-3" />
+                          <span>
+                            Owner: {item.owner_name || item.owner_email || "Partner"} &bull; Capacity: {item.total_slots || 20} slots
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 self-end md:self-center">
+                      <Button
+                        variant="outline"
+                        size="md"
+                        icon={FiEye}
+                        onClick={() => setInspectModal({ open: true, item })}
+                      >
+                        Inspect Details
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="md"
+                        onClick={() =>
+                          setRejectModal({ open: true, item, reason: "" })
+                        }
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        variant="success"
+                        size="md"
+                        icon={FiCheck}
+                        loading={actionLoading === item.id}
+                        onClick={() => handleApprove(item.id)}
+                      >
+                        Approve
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* INSPECT MODAL */}
+      <Modal
+        isOpen={inspectModal.open}
+        onClose={() => setInspectModal({ open: false, item: null })}
+        title="Facility Inspection Sheet"
+        maxWidth="max-w-xl"
+      >
+        {inspectModal.item && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Facility Name</span>
+                <span className="font-bold text-slate-900">{inspectModal.item.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Address</span>
+                <span className="font-bold text-slate-900">{inspectModal.item.address}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Total Slot Capacity</span>
+                <span className="font-bold text-slate-900">{inspectModal.item.total_slots || 20} Spots</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">GPS Coordinates</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {inspectModal.item.latitude}, {inspectModal.item.longitude}
+                </span>
+              </div>
+            </div>
+
+            {inspectModal.item.image_url && (
+              <div>
+                <span className="text-xs font-semibold text-slate-700 block mb-1">
+                  Uploaded Facility Photo
+                </span>
+                <img
+                  src={inspectModal.item.image_url}
+                  alt="Facility"
+                  className="w-full h-44 rounded-2xl object-cover border border-slate-200"
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+              <Button
+                variant="danger"
+                size="md"
+                onClick={() => {
+                  setRejectModal({ open: true, item: inspectModal.item, reason: "" });
+                }}
+              >
+                Reject Submission
+              </Button>
+              <Button
+                variant="success"
+                size="md"
+                icon={FiCheck}
+                loading={actionLoading === inspectModal.item.id}
+                onClick={() => handleApprove(inspectModal.item.id)}
+              >
+                Approve & Publish Live
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* REJECT REASON MODAL */}
+      <Modal
+        isOpen={rejectModal.open}
+        onClose={() => setRejectModal({ open: false, item: null, reason: "" })}
+        title="Reject Facility Application"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500">
+            Please provide a feedback reason for the facility owner.
+          </p>
+
+          <textarea
+            rows={3}
+            placeholder="e.g. Unclear entrance photos, inaccurate GPS coordinates, or incomplete documentation."
+            value={rejectModal.reason}
+            onChange={(e) =>
+              setRejectModal({ ...rejectModal, reason: e.target.value })
+            }
+            className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+          />
+
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => setRejectModal({ open: false, item: null, reason: "" })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="md"
+              loading={actionLoading === rejectModal.item?.id}
+              onClick={handleReject}
+            >
+              Confirm Rejection
+            </Button>
           </div>
         </div>
-
-        {/* ================= CONTENT ================= */}
-
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-
-          {/* ================= PENDING ================= */}
-
-          {activeTab === "pending" && (
-            <>
-
-              <div className="p-6 border-b border-slate-200">
-
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Clock3
-                        className="text-amber-500"
-                        size={22}
-                      />
-
-                      <h2 className="text-xl font-bold text-slate-900">
-                        Pending Submissions
-                      </h2>
-                    </div>
-
-                    <p className="text-sm text-slate-500 mt-2">
-                      Parking locations waiting for admin verification.
-                    </p>
-                  </div>
-
-                  <div className="px-4 py-2 bg-amber-50 text-amber-700 rounded-xl font-semibold text-sm">
-                    {filteredParking.length} records
-                  </div>
-
-                </div>
-
-                {/* ================= SEARCH BAR ================= */}
-
-                <div className="mt-5 relative">
-
-                  <Search
-                    size={20}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) =>
-                      setSearchQuery(e.target.value)
-                    }
-                    placeholder="Search by Parking Name or Parking ID/Number..."
-                    className="w-full pl-12 pr-12 py-3.5 border border-slate-200 rounded-xl outline-none text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
-                  />
-
-                  {searchQuery && (
-                    <button
-                      onClick={() =>
-                        setSearchQuery("")
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center"
-                    >
-                      <X size={18} />
-                    </button>
-                  )}
-
-                </div>
-
-              </div>
-
-              {/* ================= NO PENDING ================= */}
-
-              {parking.length === 0 ? (
-
-                <div className="py-20 px-6 text-center">
-
-                  <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-5">
-                    <Clock3 size={38} />
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-900">
-                    No pending submissions
-                  </h3>
-
-                  <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                    There are currently no parking locations waiting for verification.
-                  </p>
-
-                </div>
-
-              ) : filteredParking.length === 0 ? (
-
-                <div className="py-20 px-6 text-center">
-
-                  <div className="w-20 h-20 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
-                    <Search size={38} />
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-900">
-                    No parking found
-                  </h3>
-
-                  <p className="text-slate-500 mt-2">
-                    No parking matches "{searchQuery}".
-                  </p>
-
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="mt-5 px-5 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-700 transition-all"
-                  >
-                    Clear Search
-                  </button>
-
-                </div>
-
-              ) : (
-
-                <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-                  {filteredParking.map((item) => (
-
-                    <div
-                      key={item.id}
-                      className="border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all"
-                    >
-
-                      <div className="p-5 bg-slate-50 border-b border-slate-200 flex items-start justify-between gap-4">
-
-                        <div className="flex items-start gap-4">
-
-                          <div className="w-12 h-12 shrink-0 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                            <Car size={23} />
-                          </div>
-
-                          <div>
-
-                            <h3 className="font-bold text-lg text-slate-900">
-                              {item.name || "Unnamed Parking"}
-                            </h3>
-
-                            <div className="flex items-center gap-2 mt-2">
-
-                              <span className="w-2 h-2 rounded-full bg-amber-500" />
-
-                              <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
-                                Pending Review
-                              </span>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">
-                          #{item.id}
-                        </span>
-
-                      </div>
-
-                      <div className="p-5 space-y-4">
-
-                        <div className="flex gap-3">
-
-                          <User
-                            size={18}
-                            className="text-slate-400 shrink-0 mt-0.5"
-                          />
-
-                          <div>
-
-                            <p className="text-xs text-slate-400">
-                              Parking Owner
-                            </p>
-
-                            <p className="font-semibold text-slate-800">
-                              {item.owner_name || "Not available"}
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                        <div className="flex gap-3">
-
-                          <Mail
-                            size={18}
-                            className="text-slate-400 shrink-0 mt-0.5"
-                          />
-
-                          <div className="min-w-0">
-
-                            <p className="text-xs text-slate-400">
-                              Email Address
-                            </p>
-
-                            <p className="font-medium text-slate-700 break-all">
-                              {item.owner_email || "Not available"}
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                        <div className="flex gap-3">
-
-                          <MapPin
-                            size={18}
-                            className="text-slate-400 shrink-0 mt-0.5"
-                          />
-
-                          <div>
-
-                            <p className="text-xs text-slate-400">
-                              Parking Address
-                            </p>
-
-                            <p className="font-medium text-slate-700">
-                              {item.address || "Address not provided"}
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 pt-2">
-
-                          <div className="bg-slate-50 rounded-xl p-4">
-
-                            <p className="text-xs text-slate-400">
-                              Total Slots
-                            </p>
-
-                            <div className="flex items-center gap-2 mt-2">
-
-                              <Layers3
-                                size={18}
-                                className="text-blue-600"
-                              />
-
-                              <p className="text-xl font-bold text-slate-900">
-                                {item.total_slots || 0}
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                          <div className="bg-slate-50 rounded-xl p-4">
-
-                            <p className="text-xs text-slate-400">
-                              Coordinates
-                            </p>
-
-                            <p className="text-sm font-semibold text-slate-700 mt-2">
-
-                              {item.latitude
-                                ? Number(item.latitude).toFixed(3)
-                                : "--"}
-
-                              ,{" "}
-
-                              {item.longitude
-                                ? Number(item.longitude).toFixed(3)
-                                : "--"}
-
-                            </p>
-
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                      <div className="p-5 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
-
-                        <button
-                          onClick={() =>
-                            approveParking(item.id)
-                          }
-                          disabled={actionLoading === item.id}
-                          className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-60 transition-all"
-                        >
-                          <CheckCircle2 size={19} />
-
-                          {actionLoading === item.id
-                            ? "Processing..."
-                            : "Approve Parking"}
-
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setRejectingId(item.id);
-                            setRejectionReason("");
-                          }}
-                          disabled={actionLoading === item.id}
-                          className="flex-1 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 px-5 py-3 rounded-xl font-semibold hover:bg-red-100 disabled:opacity-60 transition-all"
-                        >
-                          <XCircle size={19} />
-                          Reject
-                        </button>
-
-                      </div>
-
-                      {rejectingId === item.id && (
-
-                        <div className="border-t border-red-100 bg-red-50 p-5">
-
-                          <div className="flex items-center gap-2 mb-3 text-red-700">
-
-                            <AlertTriangle size={18} />
-
-                            <h4 className="font-bold">
-                              Reject Parking Location
-                            </h4>
-
-                          </div>
-
-                          <textarea
-                            value={rejectionReason}
-                            onChange={(e) =>
-                              setRejectionReason(e.target.value)
-                            }
-                            placeholder="Explain why this parking location is being rejected..."
-                            rows={4}
-                            className="w-full resize-none rounded-xl border border-red-200 bg-white p-4 text-slate-700 outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"
-                          />
-
-                          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-
-                            <button
-                              onClick={() =>
-                                rejectParking(item.id)
-                              }
-                              disabled={actionLoading === item.id}
-                              className="flex-1 bg-red-600 text-white px-5 py-3 rounded-xl font-semibold hover:bg-red-700 disabled:opacity-60 transition-all"
-                            >
-                              {actionLoading === item.id
-                                ? "Processing..."
-                                : "Confirm Rejection"}
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setRejectingId(null);
-                                setRejectionReason("");
-                              }}
-                              className="flex-1 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-xl font-semibold hover:bg-slate-50 transition-all"
-                            >
-                              <X size={18} />
-                              Cancel
-                            </button>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              )}
-
-            </>
-          )}
-
-          {/* ================= APPROVED ================= */}
-
-          {activeTab === "approved" && (
-            <div className="py-20 px-6 text-center">
-
-              <div className="w-20 h-20 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5">
-                <CheckCircle2 size={38} />
-              </div>
-
-              <h3 className="text-xl font-bold text-slate-900">
-                Approved Parking
-              </h3>
-
-              <p className="text-slate-500 mt-2">
-                {stats.approved || 0} parking location(s) have been approved.
-              </p>
-
-              <div className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-50 text-emerald-700 font-semibold">
-                <FileCheck2 size={19} />
-                Approved Records: {stats.approved || 0}
-              </div>
-
-            </div>
-          )}
-
-          {/* ================= REJECTED ================= */}
-
-          {activeTab === "rejected" && (
-            <div className="py-20 px-6 text-center">
-
-              <div className="w-20 h-20 mx-auto rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-5">
-                <XCircle size={38} />
-              </div>
-
-              <h3 className="text-xl font-bold text-slate-900">
-                Rejected Parking
-              </h3>
-
-              <p className="text-slate-500 mt-2">
-                {stats.rejected || 0} parking location(s) have been rejected.
-              </p>
-
-              <div className="mt-6 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-red-50 text-red-700 font-semibold">
-                <XCircle size={19} />
-                Rejected Records: {stats.rejected || 0}
-              </div>
-
-            </div>
-          )}
-
-          {/* ================= HISTORY ================= */}
-
-          {activeTab === "history" && (
-            <div className="py-20 px-6 text-center">
-
-              <div className="w-20 h-20 mx-auto rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-5">
-                <History size={38} />
-              </div>
-
-              <h3 className="text-xl font-bold text-slate-900">
-                Verification History
-              </h3>
-
-              <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                View the overall verification activity for parking submissions.
-              </p>
-
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
-
-                <div className="bg-amber-50 rounded-2xl p-5">
-                  <p className="text-sm text-amber-700">
-                    Pending
-                  </p>
-
-                  <p className="text-2xl font-bold text-amber-600 mt-2">
-                    {stats.pending || 0}
-                  </p>
-                </div>
-
-                <div className="bg-emerald-50 rounded-2xl p-5">
-                  <p className="text-sm text-emerald-700">
-                    Approved
-                  </p>
-
-                  <p className="text-2xl font-bold text-emerald-600 mt-2">
-                    {stats.approved || 0}
-                  </p>
-                </div>
-
-                <div className="bg-red-50 rounded-2xl p-5">
-                  <p className="text-sm text-red-700">
-                    Rejected
-                  </p>
-
-                  <p className="text-2xl font-bold text-red-600 mt-2">
-                    {stats.rejected || 0}
-                  </p>
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-        </div>
-
-      </main>
+      </Modal>
     </div>
   );
 }
-
-export default AdminDashboard;

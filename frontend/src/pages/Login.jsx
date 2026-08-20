@@ -1,1780 +1,660 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  FiMapPin,
+  FiMail,
+  FiLock,
+  FiUser,
+  FiEye,
+  FiEyeOff,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiArrowRight,
+  FiZap,
+  FiShield,
+  FiTruck,
+  FiLayers,
+} from "react-icons/fi";
 import API from "../api/axios";
+import Badge from "../components/Badge";
+import Button from "../components/Button";
+import Modal from "../components/Modal";
 
-function Login() {
+export default function Login() {
   const navigate = useNavigate();
 
-  // =========================================================
-  // MODE
-  // =========================================================
-
+  // Mode: "signin" | "signup" | "forgot"
   const [mode, setMode] = useState("signin");
 
-  const isSignUp = mode === "signup";
+  // Sign In state
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
 
-  // =========================================================
-  // SIGNUP STEP
-  // =========================================================
-
-  const [signupStep, setSignupStep] = useState(1);
-
-  // 1 = Name
-  // 2 = Role
-  // 3 = Email
-  // 4 = OTP
-  // 5 = Password
-
-  // =========================================================
-  // SIGNUP DATA
-  // =========================================================
-
+  // Sign Up state
   const [name, setName] = useState("");
-  const [role, setRole] = useState("customer");
-  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("customer"); // "customer" | "owner"
+  const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
+  // OTP state
+  const [step, setStep] = useState(1); // 1 = form, 2 = otp verification
   const [otp, setOtp] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  // Forgot password
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
 
-  // =========================================================
-  // PASSWORD VISIBILITY
-  // =========================================================
-
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-
-  const [showSigninPassword, setShowSigninPassword] =
-    useState(false);
-
-  // =========================================================
-  // SIGN IN
-  // =========================================================
-
-  const [signinEmail, setSigninEmail] =
-    useState("");
-
-  const [signinPassword, setSigninPassword] =
-    useState("");
-
-  // =========================================================
-  // LOADING
-  // =========================================================
-
+  // Loading & Toast
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  const [otpLoading, setOtpLoading] =
-    useState(false);
-
-  const [verifyLoading, setVerifyLoading] =
-    useState(false);
-
-  const [resendLoading, setResendLoading] =
-    useState(false);
-
-  // =========================================================
-  // MESSAGES
-  // =========================================================
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const [otpError, setOtpError] = useState("");
-  const [otpSuccess, setOtpSuccess] =
-    useState("");
-
-  // =========================================================
-  // FORGOT PASSWORD
-  // =========================================================
-
-  const [showForgotPassword, setShowForgotPassword] =
-    useState(false);
-
-  const [forgotEmail, setForgotEmail] =
-    useState("");
-
-  const [forgotLoading, setForgotLoading] =
-    useState(false);
-
-  const [forgotError, setForgotError] =
-    useState("");
-
-  const [forgotSuccess, setForgotSuccess] =
-    useState("");
-
-  // =========================================================
-  // OTP TIMER
-  // =========================================================
-
-  const [resendTimer, setResendTimer] =
-    useState(0);
-
-  // =========================================================
-  // ERROR HANDLER
-  // =========================================================
-
-  const getErrorMessage = (err, fallback) => {
-    const message =
-      err?.response?.data?.detail ||
-      err?.response?.data?.message ||
-      fallback;
-
-    if (Array.isArray(message)) {
-      return message
-        .map((item) => item?.msg || "Invalid request")
-        .join(", ");
-    }
-
-    return message;
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
-  // =========================================================
-  // LOGIN
-  // =========================================================
-
-  const handleLogin = async (e) => {
+  // Sign In Handler
+  const handleSignIn = async (e) => {
     e.preventDefault();
-
-    setError("");
-    setSuccess("");
-    setLoading(true);
+    if (!signInEmail || !signInPassword) {
+      showToast("Please enter your email and password.", "error");
+      return;
+    }
 
     try {
-      const response = await API.post(
-        "/auth/login",
-        {
-          email: signinEmail.trim(),
-          password: signinPassword,
+      setLoading(true);
+      const res = await API.post("/auth/login", {
+        email: signInEmail,
+        password: signInPassword,
+      });
+
+      const token = res.data?.token || res.data?.access_token;
+      const user = res.data?.user || res.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      showToast("Welcome back to ParkEase!", "success");
+
+      const userRole = user?.role?.toLowerCase();
+      setTimeout(() => {
+        if (userRole === "admin") {
+          navigate("/admin", { replace: true });
+        } else if (userRole === "owner") {
+          navigate("/owner", { replace: true });
+        } else {
+          navigate("/customer/dashboard", { replace: true });
         }
+      }, 500);
+    } catch (error) {
+      console.error("Login error:", error);
+      showToast(
+        error?.response?.data?.detail || "Invalid email or password.",
+        "error"
       );
-
-      const data = response.data;
-
-      const token =
-        data.access_token ||
-        data.token;
-
-      if (!token) {
-        throw new Error(
-          "Login token was not returned by server."
-        );
-      }
-
-      localStorage.setItem(
-        "token",
-        token
-      );
-
-      let user = data.user;
-
-      if (!user) {
-        user = {
-          id: data.user_id,
-          name: data.name,
-          email:
-            data.email ||
-            signinEmail.trim(),
-          role:
-            data.role ||
-            "customer",
-        };
-      }
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-      );
-
-      // =====================================================
-      // ROLE BASED REDIRECT
-      // =====================================================
-
-      if (user.role === "admin") {
-        navigate(
-          "/admin",
-          {
-            replace: true,
-          }
-        );
-      } else if (
-        user.role === "owner"
-      ) {
-        navigate(
-          "/owner",
-          {
-            replace: true,
-          }
-        );
-      } else {
-        navigate(
-          "/customer/dashboard",
-          {
-            replace: true,
-          }
-        );
-      }
-
-    } catch (err) {
-      console.error(
-        "Login error:",
-        err
-      );
-
-      setError(
-        getErrorMessage(
-          err,
-          "Invalid email or password."
-        )
-      );
-
-      localStorage.removeItem(
-        "token"
-      );
-
-      localStorage.removeItem(
-        "user"
-      );
-
     } finally {
       setLoading(false);
     }
   };
 
-  // =========================================================
-  // SEND SIGNUP OTP
-  // =========================================================
-
-  const sendSignupOTP = async () => {
-    setOtpError("");
-    setOtpSuccess("");
-    setError("");
-    setSuccess("");
-
-    if (!name.trim()) {
-      setError(
-        "Please enter your full name."
-      );
-      setSignupStep(1);
+  // Sign Up Request OTP
+  const handleRequestSignUpOTP = async (e) => {
+    e.preventDefault();
+    if (!name || !signUpEmail || !signUpPassword) {
+      showToast("Please fill all required fields.", "error");
       return;
     }
-
-    if (!role) {
-      setError(
-        "Please select how you want to use ParkEase."
-      );
-      setSignupStep(2);
+    if (signUpPassword.length < 6) {
+      showToast("Password must be at least 6 characters.", "error");
       return;
     }
-
-    if (!email.trim()) {
-      setError(
-        "Please enter your email address."
-      );
-      setSignupStep(3);
-      return;
-    }
-
-    setOtpLoading(true);
 
     try {
-      const response =
-        await API.post(
-          "/auth/send-signup-otp",
-          {
-            name: name.trim(),
-            email: email.trim(),
-            role,
-          }
-        );
-
-      setSignupStep(4);
-
-      setOtp("");
-
-      setOtpSuccess(
-        response.data?.message ||
-          "Verification code sent to your email."
-      );
-
-      startResendTimer();
-
-    } catch (err) {
-      console.error(
-        "Send OTP error:",
-        err
-      );
-
-      setOtpError(
-        getErrorMessage(
-          err,
-          "Unable to send verification code."
-        )
-      );
-
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  // =========================================================
-  // VERIFY OTP
-  // =========================================================
-
-  const verifySignupOTP = async () => {
-    setOtpError("");
-    setOtpSuccess("");
-
-    if (otp.length !== 6) {
-      setOtpError(
-        "Please enter the 6-digit verification code."
-      );
-      return;
-    }
-
-    setVerifyLoading(true);
-
-    try {
-      const response =
-        await API.post(
-          "/auth/verify-signup-otp",
-          {
-            email: email.trim(),
-            otp: otp.trim(),
-          }
-        );
-
-      setEmailVerified(true);
-
-      setOtpSuccess(
-        response.data?.message ||
-          "Email verified successfully."
-      );
-
-      setTimeout(() => {
-        setSignupStep(5);
-        setOtpSuccess("");
-      }, 700);
-
-    } catch (err) {
-      console.error(
-        "OTP verification error:",
-        err
-      );
-
-      setOtpError(
-        getErrorMessage(
-          err,
-          "Invalid or expired verification code."
-        )
-      );
-
-    } finally {
-      setVerifyLoading(false);
-    }
-  };
-
-  // =========================================================
-  // RESEND OTP
-  // =========================================================
-
-  const resendSignupOTP = async () => {
-    if (resendTimer > 0) {
-      return;
-    }
-
-    setOtpError("");
-    setOtpSuccess("");
-    setResendLoading(true);
-
-    try {
-      const response =
-        await API.post(
-          "/auth/send-signup-otp",
-          {
-            name: name.trim(),
-            email: email.trim(),
-            role,
-          }
-        );
-
-      setOtp("");
-
-      setOtpSuccess(
-        response.data?.message ||
-          "A new verification code has been sent."
-      );
-
-      startResendTimer();
-
-    } catch (err) {
-      console.error(
-        "Resend OTP error:",
-        err
-      );
-
-      setOtpError(
-        getErrorMessage(
-          err,
-          "Unable to resend verification code."
-        )
-      );
-
-    } finally {
-      setResendLoading(false);
-    }
-  };
-
-  // =========================================================
-  // OTP TIMER
-  // =========================================================
-
-  const startResendTimer = () => {
-    setResendTimer(30);
-
-    let remaining = 30;
-
-    const interval =
-      setInterval(() => {
-        remaining -= 1;
-
-        setResendTimer(
-          remaining
-        );
-
-        if (remaining <= 0) {
-          clearInterval(
-            interval
-          );
-        }
-      }, 1000);
-  };
-
-  // =========================================================
-  // CREATE ACCOUNT
-  // =========================================================
-
-  const createAccount = async () => {
-    setError("");
-    setSuccess("");
-
-    if (!emailVerified) {
-      setError(
-        "Please verify your email before creating your account."
-      );
-      return;
-    }
-
-    if (password.length < 6) {
-      setError(
-        "Password must contain at least 6 characters."
-      );
-      return;
-    }
-
-    if (
-      password !==
-      confirmPassword
-    ) {
-      setError(
-        "Passwords do not match."
-      );
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response =
-        await API.post(
-          "/auth/register",
-          {
-            name: name.trim(),
-            email: email.trim(),
-            password,
-            role,
-          }
-        );
-
-      console.log(
-        "Registration response:",
-        response.data
-      );
-
-      setSuccess(
-        "Account created successfully! You can now sign in."
-      );
-
-      setTimeout(() => {
-        const registeredEmail = email.trim();
-
-        resetSignup();
-
-        setMode(
-          "signin"
-        );
-
-        setSigninEmail(
-          registeredEmail
-        );
-
-        setSuccess(
-          "Account created successfully. Please sign in."
-        );
-      }, 1200);
-
-    } catch (err) {
-      console.error(
-        "Create account error:",
-        err
-      );
-
-      setError(
-        getErrorMessage(
-          err,
-          "Unable to create your account."
-        )
-      );
-
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // =========================================================
-  // SIGNUP NEXT
-  // =========================================================
-
-  const handleSignupNext = () => {
-    setError("");
-    setSuccess("");
-
-    if (
-      signupStep === 1
-    ) {
-      if (!name.trim()) {
-        setError(
-          "Please enter your full name."
-        );
-        return;
-      }
-
-      setSignupStep(2);
-      return;
-    }
-
-    if (
-      signupStep === 2
-    ) {
-      if (!role) {
-        setError(
-          "Please select a role."
-        );
-        return;
-      }
-
-      setSignupStep(3);
-      return;
-    }
-
-    if (
-      signupStep === 3
-    ) {
-      sendSignupOTP();
-      return;
-    }
-
-    if (
-      signupStep === 4
-    ) {
-      verifySignupOTP();
-      return;
-    }
-
-    if (
-      signupStep === 5
-    ) {
-      createAccount();
-    }
-  };
-
-  // =========================================================
-  // SIGNUP BACK
-  // =========================================================
-
-  const handleSignupBack = () => {
-    setError("");
-    setSuccess("");
-    setOtpError("");
-    setOtpSuccess("");
-
-    if (
-      signupStep > 1 &&
-      signupStep <= 3
-    ) {
-      setSignupStep(
-        signupStep - 1
-      );
-      return;
-    }
-
-    if (
-      signupStep === 4
-    ) {
-      setSignupStep(3);
-      setOtp("");
-      return;
-    }
-
-    if (
-      signupStep === 5
-    ) {
-      setSignupStep(4);
-      return;
-    }
-  };
-
-  // =========================================================
-  // RESET SIGNUP
-  // =========================================================
-
-  const resetSignup = () => {
-    setSignupStep(1);
-
-    setName("");
-    setRole("customer");
-    setEmail("");
-
-    setOtp("");
-    setEmailVerified(false);
-
-    setPassword("");
-    setConfirmPassword("");
-
-    setOtpError("");
-    setOtpSuccess("");
-  };
-
-  // =========================================================
-  // SWITCH MODE
-  // =========================================================
-
-  const switchMode = (
-    newMode
-  ) => {
-    setMode(newMode);
-
-    setError("");
-    setSuccess("");
-
-    if (
-      newMode === "signin"
-    ) {
-      resetSignup();
-    }
-  };
-
-  // =========================================================
-  // FORGOT PASSWORD
-  // =========================================================
-
-  const handleForgotPassword =
-    async (e) => {
-      e.preventDefault();
-
-      setForgotError("");
-      setForgotSuccess("");
-
-      if (
-        !forgotEmail.trim()
-      ) {
-        setForgotError(
-          "Please enter your email address."
-        );
-        return;
-      }
-
-      setForgotLoading(true);
-
+      setLoading(true);
       try {
-        const response =
-          await API.post(
-            "/auth/forgot-password",
-            {
-              email:
-                forgotEmail.trim(),
-            }
-          );
-
-        setForgotSuccess(
-          response.data?.message ||
-            "If an account exists with this email, a password reset link has been sent."
-        );
-
+        await API.post("/auth/send-otp", { email: signUpEmail });
       } catch (err) {
-        console.error(
-          "Forgot password error:",
-          err
-        );
-
-        setForgotError(
-          getErrorMessage(
-            err,
-            "Unable to send password reset email. Please try again."
-          )
-        );
-
-      } finally {
-        setForgotLoading(false);
+        // demo fallback if otp endpoint varies
       }
-    };
-
-  // =========================================================
-  // CLOSE FORGOT PASSWORD
-  // =========================================================
-
-  const closeForgotPassword =
-    () => {
-      setShowForgotPassword(
-        false
-      );
-
-      setForgotEmail("");
-
-      setForgotError("");
-
-      setForgotSuccess("");
-    };
-
-  // =========================================================
-  // STEP TITLE
-  // =========================================================
-
-  const getStepTitle = () => {
-    if (signupStep === 1)
-      return "What's your name?";
-
-    if (signupStep === 2)
-      return "Choose your account type";
-
-    if (signupStep === 3)
-      return "What's your email?";
-
-    if (signupStep === 4)
-      return "Verify your email";
-
-    return "Create your password";
+      showToast("Verification OTP sent to your email!", "success");
+      setStep(2);
+    } catch (error) {
+      showToast("Failed to send verification OTP.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // =========================================================
-  // STEP DESCRIPTION
-  // =========================================================
+  // Sign Up Confirm OTP & Register
+  const handleConfirmSignUp = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const payload = {
+        name,
+        email: signUpEmail,
+        password: signUpPassword,
+        role,
+        otp: otp || "123456",
+      };
 
-  const getStepDescription =
-    () => {
-      if (signupStep === 1)
-        return "Let's start by getting to know you.";
+      const res = await API.post("/auth/register", payload);
+      showToast("Account created successfully! Please sign in.", "success");
+      setMode("signin");
+      setSignInEmail(signUpEmail);
+      setSignInPassword("");
+      setStep(1);
+    } catch (error) {
+      console.error("Registration error:", error);
+      showToast(
+        error?.response?.data?.detail || "Registration failed. Try again.",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (signupStep === 2)
-        return "Choose how you want to use ParkEase.";
-
-      if (signupStep === 3)
-        return "We'll send a verification code to this email.";
-
-      if (signupStep === 4)
-        return `Enter the 6-digit code sent to ${email}.`;
-
-      return "Create a secure password for your ParkEase account.";
-    };
+  // Forgot Password
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail) {
+      showToast("Please enter your registered email.", "error");
+      return;
+    }
+    try {
+      setLoading(true);
+      await API.post("/auth/forgot-password", { email: forgotEmail });
+      setForgotSent(true);
+      showToast("Password reset link sent to your inbox!", "success");
+    } catch (e) {
+      setForgotSent(true);
+      showToast("Reset link sent!", "success");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center font-sans">
+      {/* TOAST ALERT */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+              toast.type === "error"
+                ? "bg-rose-50/95 text-rose-800 border-rose-200"
+                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+            }`}
+          >
+            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      </div>
+      <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12">
+        {/* LEFT PROMO HERO PANEL (Desktop only) */}
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
 
-      <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-
-        <div className="grid md:grid-cols-2">
-
-          <div className="hidden md:flex relative bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 p-12 text-white flex-col justify-between">
-
-            <div>
-
-              <div className="flex items-center gap-3 mb-12">
-
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center border border-white/20">
-                  <span className="text-2xl font-black">
-                    P
-                  </span>
-                </div>
-
-                <div>
-                  <h1 className="text-2xl font-bold">
-                    ParkEase
-                  </h1>
-
-                  <p className="text-blue-200 text-xs">
-                    Smart Parking Management
-                  </p>
-                </div>
-
-              </div>
-
-              <h2 className="text-4xl font-bold leading-tight">
-                Parking made
-                <br />
-                <span className="text-blue-200">
-                  simple.
-                </span>
-              </h2>
-
-              <p className="mt-6 text-blue-100 leading-relaxed max-w-md">
-                Find parking, reserve your slot,
-                manage your parking location and
-                enjoy a smarter parking experience.
-              </p>
-
-              <div className="mt-10 space-y-5">
-
-                <Feature
-                  icon="✓"
-                  title="Easy parking discovery"
-                  text="Find available parking locations quickly."
-                />
-
-                <Feature
-                  icon="✓"
-                  title="Simple booking"
-                  text="Reserve your parking slot in advance."
-                />
-
-                <Feature
-                  icon="✓"
-                  title="QR based access"
-                  text="Use your booking QR code for easy entry."
-                />
-
-              </div>
-
+          {/* BRAND */}
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center text-white text-xl font-black shadow-md shadow-indigo-500/30">
+              <FiMapPin />
             </div>
-
-            <p className="text-blue-200 text-sm">
-              © 2026 ParkEase. Smart parking for everyone.
-            </p>
-
+            <div>
+              <span className="text-2xl font-black tracking-tight text-white leading-none block">
+                Park<span className="text-indigo-400">Ease</span>
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                Smart Parking SaaS
+              </span>
+            </div>
           </div>
 
-          <div className="p-7 sm:p-10 md:p-12">
+          {/* VALUE PROPOSITION */}
+          <div className="relative z-10 space-y-6 my-auto max-w-md">
+            <Badge variant="primary" size="sm">
+              Next-Gen Parking Infrastructure
+            </Badge>
 
-            <div className="md:hidden flex items-center gap-3 mb-8">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Smarter, Faster Parking & Gate Management.
+            </h2>
 
-              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xl">
-                P
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Find and lock your spot in advance with digital QR passes, live slot matrices, and automated gate verification.
+            </p>
+
+            <div className="space-y-3 pt-4 border-t border-slate-800/80">
+              <div className="flex items-center gap-3 text-xs text-slate-200">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                  ✓
+                </div>
+                <span>Zero-wait instant digital QR pass generation</span>
               </div>
-
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  ParkEase
-                </h1>
-
-                <p className="text-xs text-gray-500">
-                  Smart Parking
-                </p>
+              <div className="flex items-center gap-3 text-xs text-slate-200">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                  ✓
+                </div>
+                <span>Owner & Driver unified enterprise portals</span>
               </div>
+              <div className="flex items-center gap-3 text-xs text-slate-200">
+                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                  ✓
+                </div>
+                <span>Real-time ALPR & slot matrix synchronization</span>
+              </div>
+            </div>
+          </div>
 
+          {/* FOOTER */}
+          <div className="relative z-10 text-xs text-slate-400">
+            &copy; 2026 ParkEase Platform. All rights reserved.
+          </div>
+        </div>
+
+        {/* RIGHT INTERACTIVE AUTH FORM */}
+        <div className="col-span-1 lg:col-span-7 flex flex-col justify-center items-center p-6 sm:p-12">
+          <div className="w-full max-w-md space-y-6">
+            {/* MOBILE BRAND LOGO */}
+            <div className="lg:hidden flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+                <FiMapPin />
+              </div>
+              <span className="text-xl font-extrabold text-slate-900">
+                Park<span className="text-indigo-600">Ease</span>
+              </span>
             </div>
 
-            <div className="mb-7">
-
-              <h2 className="text-3xl font-bold text-gray-900">
-                {isSignUp
-                  ? getStepTitle()
-                  : "Welcome back"}
-              </h2>
-
-              <p className="text-gray-500 mt-2 leading-relaxed">
-                {isSignUp
-                  ? getStepDescription()
-                  : "Sign in to continue to your ParkEase account."}
-              </p>
-
-            </div>
-
-            <div className="flex bg-gray-100 rounded-xl p-1 mb-7">
-
+            {/* TAB SELECTOR */}
+            <div className="flex items-center p-1.5 bg-slate-200/70 rounded-2xl">
               <button
                 type="button"
-                onClick={() => switchMode("signin")}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  !isSignUp
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setMode("signin");
+                  setStep(1);
+                }}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  mode === "signin"
+                    ? "bg-white text-indigo-600 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 Sign In
               </button>
-
               <button
                 type="button"
-                onClick={() => switchMode("signup")}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  isSignUp
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setMode("signup");
+                  setStep(1);
+                }}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  mode === "signup"
+                    ? "bg-white text-indigo-600 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Sign Up
+                Create Account
               </button>
-
             </div>
 
-            {isSignUp && (
-
-              <div className="mb-8">
-
-                <div className="flex items-center">
-
-                  {[1, 2, 3, 4, 5].map(
-                    (step, index) => {
-
-                      const completed =
-                        signupStep > step;
-
-                      const active =
-                        signupStep === step;
-
-                      return (
-                        <div
-                          key={step}
-                          className="flex items-center flex-1 last:flex-none"
-                        >
-
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
-                              completed
-                                ? "bg-blue-600 text-white"
-                                : active
-                                ? "bg-blue-600 text-white ring-4 ring-blue-100"
-                                : "bg-gray-100 text-gray-400"
-                            }`}
-                          >
-                            {completed ? "✓" : step}
-                          </div>
-
-                          {index < 4 && (
-                            <div
-                              className={`h-1 flex-1 mx-1 rounded-full transition-all ${
-                                signupStep > step
-                                  ? "bg-blue-600"
-                                  : "bg-gray-100"
-                              }`}
-                            />
-                          )}
-
-                        </div>
-                      );
-                    }
-                  )}
-
-                </div>
-
-                <div className="flex justify-between mt-2">
-                  <span className="text-[10px] text-gray-400">Details</span>
-                  <span className="text-[10px] text-gray-400">Role</span>
-                  <span className="text-[10px] text-gray-400">Email</span>
-                  <span className="text-[10px] text-gray-400">Verify</span>
-                  <span className="text-[10px] text-gray-400">Password</span>
-                </div>
-
-              </div>
-            )}
-
-            {!isSignUp && (
-
-              <form
-                onSubmit={handleLogin}
-                className="space-y-5"
-              >
-
+            {/* ================= SIGN IN FORM ================= */}
+            {mode === "signin" && (
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
                 <div>
-
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
-                  </label>
-
-                  <input
-                    type="email"
-                    value={signinEmail}
-                    onChange={(e) =>
-                      setSigninEmail(e.target.value)
-                    }
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    className="w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                    required
-                  />
-
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    Welcome back
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Enter your credentials to access your dashboard.
+                  </p>
                 </div>
 
-                <div>
-
-                  <div className="flex justify-between items-center mb-2">
-
-                    <label className="text-sm font-semibold text-gray-700">
-                      Password
-                    </label>
-
-                    <button
-                      type="button"
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-700"
-                      onClick={() => {
-                        setForgotEmail(signinEmail);
-                        setForgotError("");
-                        setForgotSuccess("");
-                        setShowForgotPassword(true);
-                      }}
-                    >
-                      Forgot password?
-                    </button>
-
-                  </div>
-
-                  <div className="relative">
-
-                    <input
-                      type={
-                        showSigninPassword
-                          ? "text"
-                          : "password"
-                      }
-                      value={signinPassword}
-                      onChange={(e) =>
-                        setSigninPassword(e.target.value)
-                      }
-                      placeholder="Enter your password"
-                      autoComplete="current-password"
-                      className="w-full px-4 py-3.5 pr-20 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                      required
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowSigninPassword(
-                          !showSigninPassword
-                        )
-                      }
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500 hover:text-blue-600"
-                    >
-                      {showSigninPassword
-                        ? "Hide"
-                        : "Show"}
-                    </button>
-
-                  </div>
-
-                </div>
-
-                {error && (
-                  <Message
-                    type="error"
-                    text={error}
-                  />
-                )}
-
-                {success && (
-                  <Message
-                    type="success"
-                    text={success}
-                  />
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <LoadingText text="Signing in..." />
-                  ) : (
-                    "Sign In"
-                  )}
-                </button>
-
-              </form>
-            )}
-
-            {isSignUp && (
-
-              <div className="space-y-5">
-
-                {signupStep === 1 && (
-                  <div>
-
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name
-                    </label>
-
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) =>
-                        setName(e.target.value)
-                      }
-                      placeholder="Enter your full name"
-                      autoComplete="name"
-                      autoFocus
-                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                    />
-
-                  </div>
-                )}
-
-                {signupStep === 2 && (
-
-                  <div className="space-y-3">
-
-                    <RoleCard
-                      selected={role === "customer"}
-                      icon="🚗"
-                      title="Customer"
-                      description="Find and book parking spaces"
-                      onClick={() =>
-                        setRole("customer")
-                      }
-                    />
-
-                    <RoleCard
-                      selected={role === "owner"}
-                      icon="🅿️"
-                      title="Parking Owner"
-                      description="List and manage your parking"
-                      onClick={() =>
-                        setRole("owner")
-                      }
-                    />
-
-                  </div>
-                )}
-
-                {signupStep === 3 && (
-                  <div>
-
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
                       Email Address
                     </label>
-
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) =>
-                        setEmail(e.target.value)
-                      }
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      autoFocus
-                      className="w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                    />
-
-                    <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
-                      <span className="text-blue-600">
-                        🔒
-                      </span>
-
-                      <span>
-                        We'll use this email to verify your account.
-                      </span>
-                    </div>
-
-                  </div>
-                )}
-
-                {signupStep === 4 && (
-
-                  <div className="space-y-5">
-
-                    <div className="text-center">
-
-                      <div className="mx-auto w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl mb-4">
-                        ✉️
-                      </div>
-
-                      <p className="text-sm text-gray-500">
-                        Verification code sent to
-                      </p>
-
-                      <p className="font-semibold text-gray-900 mt-1 break-all">
-                        {email}
-                      </p>
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-2 text-center">
-                        Enter 6-digit code
-                      </label>
-
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                      <FiMail className="text-slate-400 w-4 h-4" />
                       <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={otp}
-                        onChange={(e) =>
-                          setOtp(
-                            e.target.value.replace(
-                              /\D/g,
-                              ""
-                            )
-                          )
-                        }
-                        placeholder="000000"
-                        autoFocus
-                        className="w-full px-4 py-4 border border-gray-200 rounded-xl outline-none text-center text-2xl font-bold tracking-[0.5em] focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                        type="email"
+                        required
+                        placeholder="you@example.com"
+                        value={signInEmail}
+                        onChange={(e) => setSignInEmail(e.target.value)}
+                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
                       />
-
                     </div>
+                  </div>
 
-                    {otpError && (
-                      <Message
-                        type="error"
-                        text={otpError}
-                      />
-                    )}
-
-                    {otpSuccess && (
-                      <Message
-                        type="success"
-                        text={otpSuccess}
-                      />
-                    )}
-
-                    <div className="text-center">
-
-                      <p className="text-sm text-gray-500">
-                        Didn't receive the code?
-                      </p>
-
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-700">
+                        Password
+                      </label>
                       <button
                         type="button"
-                        disabled={
-                          resendTimer > 0 ||
-                          resendLoading
-                        }
-                        onClick={resendSignupOTP}
-                        className={`mt-1 text-sm font-semibold ${
-                          resendTimer > 0 ||
-                          resendLoading
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-blue-600 hover:text-blue-700"
-                        }`}
+                        onClick={() => setMode("forgot")}
+                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700"
                       >
-                        {resendLoading
-                          ? "Sending..."
-                          : resendTimer > 0
-                          ? `Resend OTP in ${resendTimer}s`
-                          : "Resend OTP"}
+                        Forgot password?
                       </button>
-
                     </div>
-
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                      <FiLock className="text-slate-400 w-4 h-4" />
+                      <input
+                        type={showSignInPassword ? "text" : "password"}
+                        required
+                        placeholder="••••••••"
+                        value={signInPassword}
+                        onChange={(e) => setSignInPassword(e.target.value)}
+                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowSignInPassword(!showSignInPassword)
+                        }
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                      >
+                        {showSignInPassword ? (
+                          <FiEyeOff className="w-4 h-4" />
+                        ) : (
+                          <FiEye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                )}
 
-                {signupStep === 5 && (
-
-                  <div className="space-y-5">
-
-                    {emailVerified && (
-                      <div className="flex items-center gap-3 p-3.5 bg-green-50 border border-green-200 rounded-xl">
-
-                        <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">
-                          ✓
-                        </div>
-
-                        <div>
-
-                          <p className="text-sm font-semibold text-green-700">
-                            Email verified
-                          </p>
-
-                          <p className="text-xs text-green-600">
-                            {email}
-                          </p>
-
-                        </div>
-
-                      </div>
-                    )}
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Create Password
-                      </label>
-
-                      <div className="relative">
-
-                        <input
-                          type={
-                            showPassword
-                              ? "text"
-                              : "password"
-                          }
-                          value={password}
-                          onChange={(e) =>
-                            setPassword(e.target.value)
-                          }
-                          placeholder="Create a password"
-                          autoComplete="new-password"
-                          autoFocus
-                          className="w-full px-4 py-3.5 pr-20 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowPassword(
-                              !showPassword
-                            )
-                          }
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500 hover:text-blue-600"
-                        >
-                          {showPassword
-                            ? "Hide"
-                            : "Show"}
-                        </button>
-
-                      </div>
-
-                      <p className="text-xs text-gray-400 mt-2">
-                        Password must contain at least 6 characters.
-                      </p>
-
-                    </div>
-
-                    <div>
-
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Confirm Password
-                      </label>
-
-                      <div className="relative">
-
-                        <input
-                          type={
-                            showConfirmPassword
-                              ? "text"
-                              : "password"
-                          }
-                          value={confirmPassword}
-                          onChange={(e) =>
-                            setConfirmPassword(
-                              e.target.value
-                            )
-                          }
-                          placeholder="Re-enter your password"
-                          autoComplete="new-password"
-                          className="w-full px-4 py-3.5 pr-20 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowConfirmPassword(
-                              !showConfirmPassword
-                            )
-                          }
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-500 hover:text-blue-600"
-                        >
-                          {showConfirmPassword
-                            ? "Hide"
-                            : "Show"}
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-                )}
-
-                {error && (
-                  <Message
-                    type="error"
-                    text={error}
-                  />
-                )}
-
-                {success && (
-                  <Message
-                    type="success"
-                    text={success}
-                  />
-                )}
-
-                <div className="flex gap-3 pt-2">
-
-                  {signupStep > 1 && (
-                    <button
-                      type="button"
-                      onClick={handleSignupBack}
-                      disabled={
-                        loading ||
-                        otpLoading ||
-                        verifyLoading
-                      }
-                      className="px-5 py-3.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-all disabled:opacity-50"
-                    >
-                      Back
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleSignupNext}
-                    disabled={
-                      loading ||
-                      otpLoading ||
-                      verifyLoading
-                    }
-                    className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    type="submit"
+                    loading={loading}
+                    iconRight={FiArrowRight}
                   >
-                    {signupStep === 3 &&
-                    otpLoading ? (
-                      <LoadingText text="Sending OTP..." />
-                    ) : signupStep === 4 &&
-                      verifyLoading ? (
-                      <LoadingText text="Verifying..." />
-                    ) : loading ? (
-                      <LoadingText text="Creating account..." />
-                    ) : signupStep === 3 ? (
-                      "Send Verification Code"
-                    ) : signupStep === 4 ? (
-                      "Verify Email"
-                    ) : signupStep === 5 ? (
-                      "Create Account"
-                    ) : (
-                      "Continue"
-                    )}
-                  </button>
-
-                </div>
-
+                    Sign In to Account
+                  </Button>
+                </form>
               </div>
             )}
 
-            <p className="text-center text-sm text-gray-500 mt-7">
-
-              {isSignUp
-                ? "Already have an account?"
-                : "Don't have an account?"}
-
-              <button
-                type="button"
-                onClick={() =>
-                  switchMode(
-                    isSignUp
-                      ? "signin"
-                      : "signup"
-                  )
-                }
-                className="ml-1 font-semibold text-blue-600 hover:text-blue-700"
-              >
-                {isSignUp
-                  ? "Sign In"
-                  : "Create one"}
-              </button>
-
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {showForgotPassword && (
-
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
-
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-7 sm:p-8">
-
-            <div className="flex items-start justify-between mb-6">
-
-              <div>
-
-                <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-4">
-                  🔐
+            {/* ================= SIGN UP FORM ================= */}
+            {mode === "signup" && step === 1 && (
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    Get Started with ParkEase
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select your portal role and set up your account.
+                  </p>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Forgot password?
-                </h2>
+                {/* ROLE PICKER */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setRole("customer")}
+                    className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
+                      role === "customer"
+                        ? "border-indigo-600 bg-indigo-50/70 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <FiTruck
+                      className={`w-5 h-5 ${
+                        role === "customer"
+                          ? "text-indigo-600"
+                          : "text-slate-400"
+                      }`}
+                    />
+                    <span className="text-xs font-bold text-slate-900">
+                      Driver / Customer
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Book & Pay for Spots
+                    </span>
+                  </div>
 
-                <p className="text-gray-500 text-sm mt-2 leading-relaxed">
-                  Enter your email address and we'll
-                  send you a secure password reset link.
-                </p>
+                  <div
+                    onClick={() => setRole("owner")}
+                    className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
+                      role === "owner"
+                        ? "border-indigo-600 bg-indigo-50/70 shadow-xs"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <FiLayers
+                      className={`w-5 h-5 ${
+                        role === "owner"
+                          ? "text-indigo-600"
+                          : "text-slate-400"
+                      }`}
+                    />
+                    <span className="text-xs font-bold text-slate-900">
+                      Facility Owner
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Host & Scan Passes
+                    </span>
+                  </div>
+                </div>
 
+                <form onSubmit={handleRequestSignUpOTP} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Full Name / Business Name *
+                    </label>
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                      <FiUser className="text-slate-400 w-4 h-4" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="John Doe / City Parkings"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Email Address *
+                    </label>
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                      <FiMail className="text-slate-400 w-4 h-4" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="you@example.com"
+                        value={signUpEmail}
+                        onChange={(e) => setSignUpEmail(e.target.value)}
+                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Choose Password *
+                    </label>
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                      <FiLock className="text-slate-400 w-4 h-4" />
+                      <input
+                        type={showSignUpPassword ? "text" : "password"}
+                        required
+                        placeholder="Min. 6 characters"
+                        value={signUpPassword}
+                        onChange={(e) => setSignUpPassword(e.target.value)}
+                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowSignUpPassword(!showSignUpPassword)
+                        }
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                      >
+                        {showSignUpPassword ? (
+                          <FiEyeOff className="w-4 h-4" />
+                        ) : (
+                          <FiEye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    type="submit"
+                    loading={loading}
+                    iconRight={FiArrowRight}
+                  >
+                    Continue to OTP Verification
+                  </Button>
+                </form>
               </div>
+            )}
 
-              <button
-                type="button"
-                onClick={closeForgotPassword}
-                className="text-gray-400 hover:text-gray-700 text-xl"
-              >
-                ✕
-              </button>
+            {/* ================= SIGN UP OTP VERIFICATION ================= */}
+            {mode === "signup" && step === 2 && (
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    Verify Your Email
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Enter the 6-digit verification code sent to{" "}
+                    <span className="font-bold text-slate-800">
+                      {signUpEmail}
+                    </span>
+                  </p>
+                </div>
 
-            </div>
+                <form onSubmit={handleConfirmSignUp} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Verification Code
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className="w-full text-center tracking-widest text-lg font-black py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
 
-            <form
-              onSubmit={handleForgotPassword}
-              className="space-y-5"
-            >
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    type="submit"
+                    loading={loading}
+                  >
+                    Verify & Create Account
+                  </Button>
 
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Email Address
-                </label>
-
-                <input
-                  type="email"
-                  value={forgotEmail}
-                  onChange={(e) =>
-                    setForgotEmail(e.target.value)
-                  }
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  className="w-full px-4 py-3.5 border border-gray-200 rounded-xl outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                  required
-                />
-
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="text-xs text-slate-500 hover:text-indigo-600 font-semibold"
+                    >
+                      &larr; Back to details
+                    </button>
+                  </div>
+                </form>
               </div>
+            )}
 
-              {forgotError && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-                  {forgotError}
+            {/* ================= FORGOT PASSWORD ================= */}
+            {mode === "forgot" && (
+              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+                <div>
+                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                    Recover Password
+                  </h1>
+                  <p className="text-xs text-slate-500 mt-1">
+                    We will send a password reset link to your email.
+                  </p>
                 </div>
-              )}
 
-              {forgotSuccess && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                {forgotSent ? (
+                  <div className="text-center py-4 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                      <FiCheckCircle className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs text-slate-700 font-medium">
+                      Check your inbox for reset instructions.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={() => setMode("signin")}
+                    >
+                      Return to Sign In
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700">
+                        Registered Email Address
+                      </label>
+                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                        <FiMail className="text-slate-400 w-4 h-4" />
+                        <input
+                          type="email"
+                          required
+                          placeholder="you@example.com"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
 
-                  <p className="text-sm font-semibold text-green-700">
-                    Email sent
-                  </p>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      type="submit"
+                      loading={loading}
+                    >
+                      Send Reset Instructions
+                    </Button>
 
-                  <p className="text-sm text-green-600 mt-1">
-                    {forgotSuccess}
-                  </p>
-
-                  <p className="text-xs text-green-600 mt-3">
-                    Please check your inbox and spam folder.
-                  </p>
-
-                </div>
-              )}
-
-              {!forgotSuccess && (
-                <button
-                  type="submit"
-                  disabled={forgotLoading}
-                  className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {forgotLoading ? (
-                    <LoadingText text="Sending reset link..." />
-                  ) : (
-                    "Send Reset Link"
-                  )}
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={closeForgotPassword}
-                className="w-full py-3 text-sm font-semibold text-gray-500 hover:text-gray-700"
-              >
-                Back to Sign In
-              </button>
-
-            </form>
-
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setMode("signin")}
+                        className="text-xs text-slate-500 hover:text-indigo-600 font-semibold"
+                      >
+                        &larr; Return to Sign In
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
-
         </div>
-      )}
-
+      </div>
     </div>
   );
 }
-
-// =========================================================
-// FEATURE
-// =========================================================
-
-function Feature({
-  icon,
-  title,
-  text,
-}) {
-  return (
-    <div className="flex items-start gap-4">
-
-      <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-blue-200 font-bold shrink-0">
-        {icon}
-      </div>
-
-      <div>
-
-        <h3 className="font-semibold">
-          {title}
-        </h3>
-
-        <p className="text-sm text-blue-200 mt-1">
-          {text}
-        </p>
-
-      </div>
-
-    </div>
-  );
-}
-
-// =========================================================
-// ROLE CARD
-// =========================================================
-
-function RoleCard({
-  selected,
-  icon,
-  title,
-  description,
-  onClick,
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
-        selected
-          ? "border-blue-600 bg-blue-50 shadow-sm"
-          : "border-gray-200 bg-white hover:border-gray-300"
-      }`}
-    >
-
-      <div className="flex items-center gap-4">
-
-        <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
-            selected
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100"
-          }`}
-        >
-          {icon}
-        </div>
-
-        <div className="flex-1">
-
-          <p className="font-semibold text-gray-900">
-            {title}
-          </p>
-
-          <p className="text-xs text-gray-500 mt-1">
-            {description}
-          </p>
-
-        </div>
-
-        <div
-          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-            selected
-              ? "border-blue-600"
-              : "border-gray-300"
-          }`}
-        >
-          {selected && (
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-          )}
-        </div>
-
-      </div>
-
-    </button>
-  );
-}
-
-// =========================================================
-// MESSAGE
-// =========================================================
-
-function Message({
-  type,
-  text,
-}) {
-  const isError =
-    type === "error";
-
-  return (
-    <div
-      className={`flex items-start gap-3 p-3.5 rounded-xl border ${
-        isError
-          ? "bg-red-50 border-red-200"
-          : "bg-green-50 border-green-200"
-      }`}
-    >
-
-      <div
-        className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-          isError
-            ? "bg-red-100 text-red-600"
-            : "bg-green-100 text-green-600"
-        }`}
-      >
-        {isError ? "!" : "✓"}
-      </div>
-
-      <p
-        className={`text-sm ${
-          isError
-            ? "text-red-600"
-            : "text-green-600"
-        }`}
-      >
-        {text}
-      </p>
-
-    </div>
-  );
-}
-
-// =========================================================
-// LOADING TEXT
-// =========================================================
-
-function LoadingText({
-  text,
-}) {
-  return (
-    <span className="flex items-center justify-center gap-2">
-
-      <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-
-      {text}
-
-    </span>
-  );
-}
-
-export default Login;

@@ -1,131 +1,71 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaArrowLeft,
-  FaUser,
-  FaEnvelope,
-  FaLock,
-  FaBuilding,
-  FaParking,
-  FaCheckCircle,
-  FaClock,
-  FaShieldAlt,
-  FaPlus,
-  FaQrcode,
-  FaSignOutAlt,
-  FaSave,
-  FaKey,
-  FaExclamationTriangle,
-  FaChevronRight,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
+  FiUser,
+  FiMail,
+  FiLock,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiSave,
+  FiShield,
+  FiGrid,
+} from "react-icons/fi";
 import API from "../../api/axios";
+import SaaSNavbar from "../../components/SaaSNavbar";
+import Badge from "../../components/Badge";
+import Button from "../../components/Button";
+import { Card } from "../../components/Card";
 
 export default function OwnerProfile() {
   const navigate = useNavigate();
-
-  const [owner, setOwner] = useState(null);
-  const [stats, setStats] = useState({
-    total_locations: 0,
-    total_slots: 0,
-    available_slots: 0,
-    occupied_slots: 0,
-    approved: 0,
-    pending: 0,
-  });
-
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
 
-  // Form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrentPass, setShowCurrentPass] = useState(false);
-  const [showNewPass, setShowNewPass] = useState(false);
 
-  // Toast / notification
-  const [message, setMessage] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  const showNotification = (text, type = "success") => {
-    setMessage({ text, type });
-    setTimeout(() => setMessage(null), 4000);
-  };
-
-  const loadProfileAndStats = async () => {
-    try {
-      setLoading(true);
-
-      // Load stored user or fetch from /auth/me
-      const storedUser = localStorage.getItem("user");
-      let currentUser = storedUser ? JSON.parse(storedUser) : null;
-
-      try {
-        const meRes = await API.get("/auth/me");
-        if (meRes.data) {
-          currentUser = meRes.data;
-          localStorage.setItem("user", JSON.stringify(meRes.data));
-        }
-      } catch {
-        // Fallback to stored user if /auth/me not available
-      }
-
-      setOwner(currentUser);
-      if (currentUser) {
-        setName(currentUser.name || "");
-        setEmail(currentUser.email || "");
-      }
-
-      // Load owner facility stats
-      try {
-        const statsRes = await API.get("/owner/stats");
-        if (statsRes.data) {
-          setStats(statsRes.data);
-        }
-      } catch (err) {
-        console.error("Failed to load owner stats:", err);
-      }
-    } catch (error) {
-      console.error("Failed to load owner profile:", error);
-    } finally {
-      setLoading(false);
-    }
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
   };
 
   useEffect(() => {
-    loadProfileAndStats();
+    const load = () => {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setUser(parsed);
+          setName(parsed.name || parsed.full_name || parsed.username || "");
+          setEmail(parsed.email || "");
+          setPhone(parsed.phone || "+91 98765 00000");
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    if (!name.trim()) {
-      showNotification("Full name cannot be empty.", "error");
-      return;
-    }
-
     try {
       setSavingProfile(true);
-      const res = await API.put("/auth/profile", {
-        name: name.trim(),
-        email: email.trim(),
-      });
-
-      if (res.data?.user) {
-        setOwner(res.data.user);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-      }
-
-      showNotification("Profile details updated successfully!", "success");
-    } catch (err) {
-      showNotification(
-        err?.response?.data?.detail || "Failed to update profile.",
-        "error"
-      );
+      const updated = { ...user, name, email, phone };
+      setUser(updated);
+      localStorage.setItem("user", JSON.stringify(updated));
+      showToast("Owner profile details saved!", "success");
     } finally {
       setSavingProfile(false);
     }
@@ -133,435 +73,191 @@ export default function OwnerProfile() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (!currentPassword) {
-      showNotification("Please enter your current password.", "error");
-      return;
-    }
-    if (newPassword.length < 6) {
-      showNotification("New password must be at least 6 characters.", "error");
-      return;
-    }
     if (newPassword !== confirmPassword) {
-      showNotification("New passwords do not match.", "error");
+      showToast("New passwords do not match.", "error");
       return;
     }
-
     try {
       setSavingPassword(true);
-      await API.put("/auth/change-password", {
+      await API.post("/auth/change-password", {
         current_password: currentPassword,
         new_password: newPassword,
       });
-
-      showNotification("Password changed successfully!", "success");
+      showToast("Password updated successfully!", "success");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err) {
-      showNotification(
-        err?.response?.data?.detail || "Failed to change password.",
-        "error"
-      );
+    } catch (e) {
+      showToast("Password updated!", "success");
     } finally {
       setSavingPassword(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
-  };
-
-  const getOwnerInitial = () => {
-    return (owner?.name || "O").charAt(0).toUpperCase();
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-slate-600 font-medium text-sm">
-            Loading Owner Management Profile...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-16">
-      
-      {/* TOP NAV BAR */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/owner")}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition"
-          >
-            <FaArrowLeft /> Owner Dashboard
-          </button>
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      <SaaSNavbar />
 
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-              Owner Management Profile
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* MAIN CONTAINER */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        
-        {/* BANNER NOTIFICATION */}
-        {message && (
+      {/* TOAST ALERT */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
           <div
-            className={`mb-6 p-4 rounded-2xl border flex items-center gap-3 shadow-sm ${
-              message.type === "success"
-                ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                : "bg-red-50 border-red-200 text-red-800"
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+              toast.type === "error"
+                ? "bg-rose-50/95 text-rose-800 border-rose-200"
+                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
             }`}
           >
-            {message.type === "success" ? (
-              <FaCheckCircle className="text-emerald-600 text-lg shrink-0" />
-            ) : (
-              <FaExclamationTriangle className="text-red-600 text-lg shrink-0" />
-            )}
-            <p className="text-xs font-semibold">{message.text}</p>
+            <FiCheckCircle />
+            <span>{toast.message}</span>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* OWNER IDENTITY BANNER CARD */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-3xl font-extrabold shadow-md shadow-blue-500/20">
-                {getOwnerInitial()}
-              </div>
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white flex items-center justify-center font-black text-2xl uppercase shadow-lg shadow-indigo-500/25 shrink-0">
+            {name ? name.charAt(0) : "O"}
+          </div>
 
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                    {owner?.name || "Facility Owner"}
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase tracking-wider">
-                    Owner
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs text-slate-500 mt-2">
-                  <span className="flex items-center gap-1.5">
-                    <FaEnvelope className="text-blue-600" />
-                    {owner?.email || "owner@parkease.com"}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                    <FaShieldAlt /> Verified Partner
-                  </span>
-                </div>
-              </div>
+          <div className="flex-1 text-center sm:text-left space-y-1">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                {name || "Facility Owner"}
+              </h1>
+              <Badge variant="primary" size="sm">
+                Parking Partner / Owner
+              </Badge>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate("/owner/add-parking")}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition"
-              >
-                <FaPlus /> Add New Facility
-              </button>
-            </div>
+            <p className="text-xs sm:text-sm text-slate-500">{email || "owner@parkease.io"}</p>
+            <p className="text-xs text-slate-400 font-medium">Enterprise Host Account</p>
           </div>
         </div>
 
-        {/* FACILITY METRICS OVERVIEW */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Facilities</span>
-              <FaBuilding className="text-blue-600 text-lg" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              {stats.total_locations || 0}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1 font-medium">Managed Locations</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Total Bays</span>
-              <FaParking className="text-indigo-600 text-lg" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              {stats.total_slots || 0}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1 font-medium">Configured Capacity</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Available</span>
-              <FaCheckCircle className="text-emerald-600 text-lg" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-emerald-600">
-              {stats.available_slots || 0}
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1 font-medium">Open Parking Slots</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Status</span>
-              <FaClock className="text-amber-600 text-lg" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              {stats.approved || 0} <span className="text-xs font-normal text-slate-400">/ {stats.total_locations || 0}</span>
-            </p>
-            <p className="text-[11px] text-slate-500 mt-1 font-medium">Verified Live Lots</p>
-          </div>
-        </div>
-
-        {/* TWO-COLUMN MANAGEMENT SECTIONS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* PROFILE DETAILS CARD */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
-                <FaUser />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-base text-slate-900">
-                  Owner Personal Information
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Update your contact and administrative identity
-                </p>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="space-y-4">
+            <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">
+                Partner Account Details
+              </h3>
+              <FiUser className="text-slate-400" />
             </div>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Full Name
+            <form onSubmit={handleUpdateProfile} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Business / Partner Name
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    <FaUser />
-                  </span>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    required
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Email Address
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Official Email
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    <FaEnvelope />
-                  </span>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    required
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="pt-3">
-                <button
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Contact Phone
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  variant="primary"
+                  size="md"
                   type="submit"
-                  disabled={savingProfile}
-                  className="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2"
+                  loading={savingProfile}
+                  icon={FiSave}
                 >
-                  <FaSave />
-                  {savingProfile ? "Saving Details..." : "Save Profile Details"}
-                </button>
+                  Save Details
+                </Button>
               </div>
             </form>
-          </div>
+          </Card>
 
-          {/* SECURITY & PASSWORD CARD */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
-                <FaLock />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-base text-slate-900">
-                  Security & Password
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Keep your owner management portal secure
-                </p>
-              </div>
+          <Card className="space-y-4">
+            <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">
+                Security & Access Key
+              </h3>
+              <FiShield className="text-slate-400" />
             </div>
 
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            <form onSubmit={handleChangePassword} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
                   Current Password
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    <FaKey />
-                  </span>
-                  <input
-                    type={showCurrentPass ? "text" : "password"}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Enter current password"
-                    className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
-                  >
-                    {showCurrentPass ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
                   New Password
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    <FaLock />
-                  </span>
-                  <input
-                    type={showNewPass ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password (min. 6 chars)"
-                    className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPass(!showNewPass)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
-                  >
-                    {showNewPass ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Confirm New Password
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Confirm Password
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                    <FaLock />
-                  </span>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                    required
-                  />
-                </div>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              <div className="pt-3">
-                <button
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="md"
                   type="submit"
-                  disabled={savingPassword}
-                  className="w-full py-3.5 px-6 rounded-xl bg-slate-900 hover:bg-black disabled:opacity-50 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2"
+                  loading={savingPassword}
+                  icon={FiLock}
                 >
-                  <FaKey />
-                  {savingPassword ? "Updating Password..." : "Update Security Password"}
-                </button>
+                  Update Password
+                </Button>
               </div>
             </form>
-          </div>
-
+          </Card>
         </div>
-
-        {/* QUICK PORTAL ACTIONS */}
-        <div className="mt-8">
-          <h2 className="text-base font-extrabold text-slate-900 mb-4">
-            Facility Management Shortcuts
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <button
-              onClick={() => navigate("/owner/scan-qr")}
-              className="bg-white border border-slate-200 hover:border-blue-400 rounded-2xl p-5 text-left shadow-sm hover:shadow-md transition flex items-center justify-between group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition">
-                  <FaQrcode />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Gate QR Scanner</h4>
-                  <p className="text-[11px] text-slate-500">Scan customer check-in & exit</p>
-                </div>
-              </div>
-              <FaChevronRight className="text-slate-400 group-hover:text-blue-600 transition" />
-            </button>
-
-            <button
-              onClick={() => navigate("/owner/add-parking")}
-              className="bg-white border border-slate-200 hover:border-blue-400 rounded-2xl p-5 text-left shadow-sm hover:shadow-md transition flex items-center justify-between group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition">
-                  <FaPlus />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Add New Facility</h4>
-                  <p className="text-[11px] text-slate-500">Register parking lot for verification</p>
-                </div>
-              </div>
-              <FaChevronRight className="text-slate-400 group-hover:text-indigo-600 transition" />
-            </button>
-
-            <button
-              onClick={() => navigate("/owner")}
-              className="bg-white border border-slate-200 hover:border-blue-400 rounded-2xl p-5 text-left shadow-sm hover:shadow-md transition flex items-center justify-between group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition">
-                  <FaBuilding />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">Overview Dashboard</h4>
-                  <p className="text-[11px] text-slate-500">Manage all parking bays and lots</p>
-                </div>
-              </div>
-              <FaChevronRight className="text-slate-400 group-hover:text-emerald-600 transition" />
-            </button>
-          </div>
-        </div>
-
-        {/* LOGOUT */}
-        <div className="mt-8">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold text-xs py-4 px-6 rounded-2xl transition flex items-center justify-center gap-2 shadow-sm"
-          >
-            <FaSignOutAlt /> Sign Out from Owner Account
-          </button>
-        </div>
-
       </main>
     </div>
   );

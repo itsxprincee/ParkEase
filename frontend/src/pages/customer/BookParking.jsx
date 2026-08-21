@@ -10,11 +10,7 @@ import {
   FiZap,
   FiShield,
   FiPlus,
-  FiX,
   FiInfo,
-  FiTag,
-  FiChevronRight,
-  FiDollarSign,
   FiAlertCircle,
 } from "react-icons/fi";
 import API from "../../api/axios";
@@ -23,8 +19,7 @@ import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import { Card } from "../../components/Card";
 import Modal from "../../components/Modal";
-import EmptyState from "../../components/EmptyState";
-import { CardSkeleton } from "../../components/Skeleton";
+import { Skeleton } from "../../components/Skeleton";
 
 export default function BookParking() {
   const { id } = useParams();
@@ -67,7 +62,8 @@ export default function BookParking() {
   const [toast, setToast] = useState(null);
   const [successModal, setSuccessModal] = useState(null);
 
-  const HOURLY_RATE = 50;
+  // Dynamic rate from parking API, fallback to 50
+  const HOURLY_RATE = parking?.price_per_hour || parking?.hourly_rate || 50;
   const PLATFORM_FEE = 5;
 
   const showToast = (message, type = "success") => {
@@ -101,18 +97,6 @@ export default function BookParking() {
         allSlots = response.data.slots;
       }
 
-      // If backend returned empty, generate standard demo slots
-      if (allSlots.length === 0) {
-        allSlots = Array.from({ length: 12 }, (_, i) => ({
-          id: i + 1,
-          slot_number: `A-${i + 1}`,
-          is_ev: i % 4 === 0,
-          vehicle_type: i % 4 === 0 ? "EV" : i % 5 === 0 ? "Bike" : "Car",
-          is_occupied: i === 2 || i === 5,
-          status: i === 2 || i === 5 ? "occupied" : "available",
-        }));
-      }
-
       setSlots(allSlots);
 
       // Auto-select first available slot
@@ -127,16 +111,7 @@ export default function BookParking() {
       }
     } catch (error) {
       console.error("Failed to load slots:", error);
-      // Fallback slots
-      const fallback = Array.from({ length: 8 }, (_, i) => ({
-        id: i + 1,
-        slot_number: `P-${i + 1}`,
-        is_ev: i === 0,
-        vehicle_type: "Car",
-        status: "available",
-      }));
-      setSlots(fallback);
-      setSelectedSlot(fallback[0]);
+      showToast("Could not load parking slots.", "error");
     }
   };
 
@@ -167,7 +142,15 @@ export default function BookParking() {
     setSelectedDurationHours(hours);
     const [startH, startM] = startTime.split(":").map(Number);
     const endH = (startH + hours) % 24;
-    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM || 0).padStart(2, "0")}`);
+    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`);
+  };
+
+  // Handle start time change and recalculate end time preserving minutes
+  const handleStartTimeChange = (value) => {
+    setStartTime(value);
+    const [startH, startM] = value.split(":").map(Number);
+    const endH = (startH + selectedDurationHours) % 24;
+    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`);
   };
 
   // Add vehicle handler
@@ -216,6 +199,10 @@ export default function BookParking() {
       showToast("Please select an available parking slot.", "error");
       return;
     }
+    if (!selectedVehicle) {
+      showToast("Please add and select a vehicle before booking.", "error");
+      return;
+    }
 
     try {
       setBookingLoading(true);
@@ -223,9 +210,9 @@ export default function BookParking() {
       const payload = {
         parking_id: parseInt(id),
         slot_id: selectedSlot.id,
-        vehicle_id: selectedVehicle?.id || null,
-        vehicle_number: selectedVehicle?.vehicle_number || "MH-01-AB-1234",
-        vehicle_type: selectedVehicle?.vehicle_type || "Car",
+        vehicle_id: selectedVehicle.id,
+        vehicle_number: selectedVehicle.vehicle_number,
+        vehicle_type: selectedVehicle.vehicle_type,
         booking_date: bookingDate,
         start_time: startTime,
         end_time: endTime,
@@ -238,7 +225,7 @@ export default function BookParking() {
         id: Math.floor(1000 + Math.random() * 9000),
         ...payload,
         parking_name: parking?.name || "ParkEase Central",
-        slot_number: selectedSlot.slot_number,
+        slot_number: selectedSlot?.slot_number,
       };
 
       setSuccessModal(bookedData);
@@ -252,6 +239,34 @@ export default function BookParking() {
       setBookingLoading(false);
     }
   };
+
+  // Loading Skeleton
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+        <SaaSNavbar />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8 w-20" />
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-36 rounded-full" />
+              <Skeleton className="h-6 w-36 rounded-full" />
+            </div>
+          </div>
+          <Skeleton className="h-28 w-full rounded-3xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-80 w-full rounded-2xl" />
+              <Skeleton className="h-64 w-full rounded-2xl" />
+            </div>
+            <div>
+              <Skeleton className="h-96 w-full rounded-2xl" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
@@ -395,12 +410,7 @@ export default function BookParking() {
                     <input
                       type="time"
                       value={startTime}
-                      onChange={(e) => {
-                        setStartTime(e.target.value);
-                        const [startH, startM] = e.target.value.split(":").map(Number);
-                        const endH = (startH + selectedDurationHours) % 24;
-                        setEndTime(`${String(endH).padStart(2, "0")}:${String(startM || 0).padStart(2, "0")}`);
-                      }}
+                      onChange={(e) => handleStartTimeChange(e.target.value)}
                       className="w-full bg-transparent text-xs text-slate-800 font-medium focus:outline-none"
                     />
                   </div>
@@ -435,14 +445,20 @@ export default function BookParking() {
                 </div>
 
                 {vehicles.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 text-xs text-amber-800 flex items-center justify-between">
-                    <span>No vehicles registered. Add one for quick pass issuance.</span>
+                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <FiAlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-amber-800">No vehicles registered</p>
+                        <p className="text-[11px] text-amber-700 mt-0.5">You must add a vehicle before completing a booking.</p>
+                      </div>
+                    </div>
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={() => setShowAddVehicleModal(true)}
                     >
-                      + Add
+                      + Add Vehicle
                     </Button>
                   </div>
                 ) : (
@@ -513,6 +529,7 @@ export default function BookParking() {
                     { id: "ALL", label: "All Spots" },
                     { id: "EV", label: "⚡ EV Only" },
                     { id: "CAR", label: "Car" },
+                    { id: "BIKE", label: "Bike" },
                   ].map((filter) => (
                     <button
                       key={filter.id}
@@ -549,7 +566,28 @@ export default function BookParking() {
                 </div>
               </div>
 
-              {/* INTERACTIVE SLOT MAP GRID */}
+              {/* INTERACTIVE SLOT MAP GRID or EMPTY STATE */}
+              {slots.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+                    <FiMapPin className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-700">No slots available</p>
+                    <p className="text-xs text-slate-500 mt-0.5">This facility has no configured parking slots yet.</p>
+                  </div>
+                </div>
+              ) : filteredSlots.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
+                  <p className="text-sm font-bold text-slate-600">No slots match this filter.</p>
+                  <button
+                    onClick={() => setSlotFilter("ALL")}
+                    className="text-xs text-indigo-600 font-semibold hover:underline"
+                  >
+                    Show all slots
+                  </button>
+                </div>
+              ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {filteredSlots.map((slot) => {
                   const isOccupied =
@@ -600,6 +638,7 @@ export default function BookParking() {
                   );
                 })}
               </div>
+              )}
             </Card>
           </div>
 
@@ -631,8 +670,8 @@ export default function BookParking() {
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-500">Vehicle</span>
-                  <span className="font-bold text-slate-800">
-                    {selectedVehicle?.vehicle_number || "MH-01-AB-1234"}
+                  <span className={`font-bold ${selectedVehicle ? "text-slate-800" : "text-rose-500"}`}>
+                    {selectedVehicle?.vehicle_number || "Not selected"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
@@ -653,7 +692,7 @@ export default function BookParking() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1">
-                    <span>SaaS Convenience Fee</span>
+                    <span>Platform Fee</span>
                     <FiInfo className="w-3 h-3 text-slate-400" />
                   </span>
                   <span className="font-semibold text-slate-800">
@@ -677,11 +716,20 @@ export default function BookParking() {
                 size="lg"
                 fullWidth
                 loading={bookingLoading}
-                disabled={!selectedSlot}
+                disabled={!selectedSlot || !selectedVehicle}
                 onClick={handleConfirmBooking}
               >
                 Confirm & Get Digital Pass
               </Button>
+
+              {/* Inline hint when prerequisites missing */}
+              {(!selectedSlot || !selectedVehicle) && (
+                <p className="text-[11px] text-amber-600 font-medium text-center">
+                  {!selectedVehicle
+                    ? "⚠ Add a vehicle to continue."
+                    : "⚠ Select a parking slot to continue."}
+                </p>
+              )}
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
                 <FiShield className="w-3.5 h-3.5 text-emerald-500" />
@@ -772,9 +820,10 @@ export default function BookParking() {
       {/* SUCCESS CONFIRMATION MODAL */}
       <Modal
         isOpen={!!successModal}
-        onClose={() => navigate("/customer/my-bookings")}
+        onClose={() => {}}
         title="Reservation Confirmed! 🎉"
         maxWidth="max-w-md"
+        showClose={false}
       >
         <div className="text-center py-2 space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100 shadow-xs">
@@ -797,7 +846,11 @@ export default function BookParking() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Time Window</span>
-              <span className="font-bold text-slate-800">{successModal?.start_time} - {successModal?.end_time}</span>
+              <span className="font-bold text-slate-800">{successModal?.start_time} – {successModal?.end_time}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Vehicle</span>
+              <span className="font-bold text-slate-800">{successModal?.vehicle_number || selectedVehicle?.vehicle_number}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Total Paid</span>

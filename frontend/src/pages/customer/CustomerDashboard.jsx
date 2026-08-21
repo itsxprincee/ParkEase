@@ -8,6 +8,7 @@ import {
   FiArrowRight,
   FiTruck,
   FiCheckCircle,
+  FiAlertCircle,
   FiZap,
   FiShield,
   FiNavigation,
@@ -22,6 +23,7 @@ import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
+import Modal from "../../components/Modal";
 import { Card, StatCard } from "../../components/Card";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
@@ -34,12 +36,83 @@ export default function CustomerDashboard() {
   const [bookings, setBookings] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("ALL"); // ALL, EV, NEARBY, HIGH_RATED
+  const [selectedFilter, setSelectedFilter] = useState("ALL"); // ALL, NEARBY, FREE, EV, SECURITY, CCTV, COVERED
   const [loading, setLoading] = useState(true);
+
+  // GPS & Google Maps State
+  const [userCoords, setUserCoords] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [mapModalParking, setMapModalParking] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  // Distance calculator using Haversine formula in KM
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371; // Earth radius in km
+    const dLat = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
+    const dLon = ((Number(lon2) - Number(lon1)) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((Number(lat1) * Math.PI) / 180) *
+        Math.cos((Number(lat2) * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dist = R * c;
+    return dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+  };
+
+  const getNumericDistance = (parking) => {
+    if (!userCoords || !parking.latitude || !parking.longitude) return 999999;
+    const R = 6371;
+    const dLat = ((Number(parking.latitude) - Number(userCoords.lat)) * Math.PI) / 180;
+    const dLon = ((Number(parking.longitude) - Number(userCoords.lng)) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((Number(userCoords.lat) * Math.PI) / 180) *
+        Math.cos((Number(parking.latitude) * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  // Find Nearest via Browser GPS
+  const handleLocateNearest = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser.", "error");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setUserCoords(coords);
+        setSelectedFilter("NEARBY");
+        setIsLocating(false);
+        showToast("📍 Live GPS detected! Nearest parking sorted to the top.", "success");
+      },
+      (err) => {
+        setIsLocating(false);
+        // Fallback default city coords for demo
+        setUserCoords({ lat: 19.076, lng: 72.8777 });
+        setSelectedFilter("NEARBY");
+        showToast("📍 Using City Center GPS location to sort nearest parking.", "success");
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  };
 
   const loadDashboard = async () => {
     try {
@@ -116,28 +189,44 @@ export default function CustomerDashboard() {
 
   const latestActiveBooking = activeBookings[0];
 
-  // Filtering
-  const filteredParking = parkingLocations.filter((parking) => {
-    const query = search.toLowerCase();
-    const matchesQuery =
-      parking.name?.toLowerCase().includes(query) ||
-      parking.location?.toLowerCase().includes(query) ||
-      parking.address?.toLowerCase().includes(query);
+  // Filtering & Sorting
+  const filteredParking = parkingLocations
+    .filter((parking) => {
+      const query = search.toLowerCase();
+      const matchesQuery =
+        parking.name?.toLowerCase().includes(query) ||
+        parking.location?.toLowerCase().includes(query) ||
+        parking.address?.toLowerCase().includes(query);
 
-    if (!matchesQuery) return false;
+      if (!matchesQuery) return false;
 
-    if (selectedFilter === "EV") {
-      return (
-        parking.has_ev ||
-        parking.ev_charging ||
-        parking.name?.toLowerCase().includes("ev")
-      );
-    }
-    if (selectedFilter === "FREE") {
-      return parking.hourly_rate === 0;
-    }
-    return true;
-  });
+      if (selectedFilter === "EV") {
+        return (
+          parking.has_ev ||
+          parking.ev_charging ||
+          parking.name?.toLowerCase().includes("ev")
+        );
+      }
+      if (selectedFilter === "FREE") {
+        return (parking.hourly_rate ?? -1) === 0;
+      }
+      if (selectedFilter === "SECURITY") {
+        return parking.has_security_guard;
+      }
+      if (selectedFilter === "CCTV") {
+        return parking.has_cctv;
+      }
+      if (selectedFilter === "COVERED") {
+        return parking.has_covered_roof;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (selectedFilter === "NEARBY" && userCoords) {
+        return getNumericDistance(a) - getNumericDistance(b);
+      }
+      return 0;
+    });
 
   const getAvailableSlots = (parking) => {
     if (parking.available_slots !== undefined) return parking.available_slots;
@@ -161,187 +250,195 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
       <SaaSNavbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* HERO SECTION */}
-        <section className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 shadow-xl overflow-hidden border border-slate-800">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold backdrop-blur-md">
-                <FiZap className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Smart Instant Reservation Available</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Welcome back, <span className="text-indigo-400">{getUserName()}</span> 👋
-              </h1>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xl">
-                Explore real-time slot availability, reserve in seconds, and scan your digital QR pass for seamless hands-free entry.
-              </p>
+      {/* TOAST ALERT */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+              toast.type === "error"
+                ? "bg-rose-50/95 text-rose-800 border-rose-200"
+                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+            }`}
+          >
+            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* GOOGLE MAPS PREVIEW MODAL */}
+      {mapModalParking && (
+        <Modal
+          isOpen={Boolean(mapModalParking)}
+          onClose={() => setMapModalParking(null)}
+          title={`Google Maps &bull; ${mapModalParking.name}`}
+          size="lg"
+        >
+          <div className="space-y-4">
+            <div className="h-72 sm:h-96 w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 relative">
+              <iframe
+                title="Google Maps Location"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight="0"
+                marginWidth="0"
+                src={`https://maps.google.com/maps?q=${mapModalParking.latitude || 19.0760},${mapModalParking.longitude || 72.8777}&hl=en&z=15&output=embed`}
+                className="w-full h-full"
+              />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Button
-                variant="white"
-                size="lg"
-                icon={FiSearch}
-                onClick={() => {
-                  document.getElementById("facilities-grid")?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                Browse Lots
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="text-white hover:bg-white/10"
-                icon={FiCalendar}
-                onClick={() => navigate("/customer/my-bookings")}
-              >
-                My Passes
-              </Button>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">{mapModalParking.name}</h4>
+                <p className="text-xs text-slate-500 mt-0.5">{mapModalParking.address || mapModalParking.location || "City Location"}</p>
+                <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1 font-mono">
+                  <span>GPS: {mapModalParking.latitude || "19.0760"}, {mapModalParking.longitude || "72.8777"}</span>
+                  {userCoords && (
+                    <span className="text-indigo-600 font-bold">
+                      &bull; {calculateDistance(userCoords.lat, userCoords.lng, mapModalParking.latitude, mapModalParking.longitude)} from you
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  icon={FiNavigation}
+                  onClick={() =>
+                    window.open(
+                      `https://www.google.com/maps/dir/?api=1&destination=${mapModalParking.latitude || 19.0760},${mapModalParking.longitude || 72.8777}`,
+                      "_blank"
+                    )
+                  }
+                >
+                  Open in Google Maps
+                </Button>
+              </div>
             </div>
           </div>
-        </section>
+        </Modal>
+      )}
 
-        {/* ACTIVE PASS BANNER IF USER HAS ACTIVE BOOKING */}
-        {latestActiveBooking && (
-          <section className="rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-emerald-500/10 border border-emerald-300/80 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-emerald-600/20 shrink-0">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* COMPACT TOP HEADER & ACTIVE PASS BANNER */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Find & Reserve Parking
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Verified locations with real-time slot availability and digital QR gate passes.
+            </p>
+          </div>
+
+          {/* ACTIVE PASS QUICK LINK */}
+          {latestActiveBooking ? (
+            <button
+              onClick={() =>
+                navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
+                  state: { booking: latestActiveBooking },
+                })
+              }
+              className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/80 transition text-left shadow-xs group"
+            >
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                 <FiCheckCircle />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="success" size="sm" dot>
-                    Active Parking Pass
-                  </Badge>
-                  <span className="text-xs font-semibold text-slate-500">
-                    Booking #{latestActiveBooking.id}
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-extrabold text-emerald-900">
+                    Active Pass &bull; Slot {latestActiveBooking.slot_number || "A1"}
                   </span>
                 </div>
-                <h4 className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
-                  {latestActiveBooking.parking_name || "Reserved Facility"}
-                </h4>
-                <p className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5">
-                  <FiClock className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>
-                    Slot {latestActiveBooking.slot_number || "A-1"} &bull; Valid today
-                  </span>
-                </p>
+                <span className="text-[11px] text-emerald-700 font-medium group-hover:underline">
+                  Tap to open Digital QR Pass &rarr;
+                </span>
+              </div>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-xs">
+                {parkingLocations.length} Facilities Available
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* SEARCH & FILTERS BAR WITH GOOGLE MAPS GPS */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-xs space-y-3">
+          {/* SEARCH INPUT & GPS BUTTON */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+                <FiSearch className="text-indigo-600 w-4 h-4 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search parking by name, landmark, area, or address..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <FiX className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <Button
-                variant="success"
-                size="md"
-                className="w-full sm:w-auto"
-                onClick={() =>
-                  navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
-                    state: { booking: latestActiveBooking },
-                  })
-                }
+            {/* GPS FIND NEAREST BUTTON */}
+            <Button
+              variant={selectedFilter === "NEARBY" ? "primary" : "outline"}
+              size="md"
+              icon={FiCompass}
+              loading={isLocating}
+              onClick={handleLocateNearest}
+              className="whitespace-nowrap shrink-0"
+            >
+              {selectedFilter === "NEARBY" ? "📍 Nearest First" : "📍 Find Nearest (GPS)"}
+            </Button>
+          </div>
+
+          {/* FILTER PILLS */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+            {[
+              { id: "ALL", label: "All Facilities" },
+              { id: "NEARBY", label: "📍 Nearest to Me" },
+              { id: "FREE", label: "🆓 Free Parking" },
+              { id: "EV", label: "⚡ EV Charging" },
+              { id: "SECURITY", label: "🛡️ Security Guard" },
+              { id: "CCTV", label: "📹 24/7 CCTV" },
+              { id: "COVERED", label: "🏢 Covered" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  if (tab.id === "NEARBY" && !userCoords) {
+                    handleLocateNearest();
+                  } else {
+                    setSelectedFilter(tab.id);
+                  }
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  selectedFilter === tab.id
+                    ? "bg-indigo-600 text-white shadow-xs font-bold"
+                    : "bg-slate-100 hover:bg-slate-200/70 text-slate-600"
+                }`}
               >
-                View Digital QR Pass
-              </Button>
-            </div>
-          </section>
-        )}
-
-        {/* METRICS / STATS GRID */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <StatCard
-            title="Active Passes"
-            value={activeBookings.length}
-            subtitle="Ready to scan"
-            icon={FiCalendar}
-            iconColor="text-indigo-600 bg-indigo-50 border-indigo-100"
-            onClick={() => navigate("/customer/my-bookings")}
-          />
-          <StatCard
-            title="Registered Vehicles"
-            value={vehicles.length || 1}
-            subtitle="In your garage"
-            icon={FiTruck}
-            iconColor="text-blue-600 bg-blue-50 border-blue-100"
-            onClick={() => navigate("/customer/my-vehicles")}
-          />
-          <StatCard
-            title="Available Lots"
-            value={parkingLocations.length}
-            subtitle="Verified facilities"
-            icon={FiMapPin}
-            iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
-          />
-          <StatCard
-            title="Platform Status"
-            value="100%"
-            subtitle="Live synchronized"
-            icon={FiShield}
-            iconColor="text-purple-600 bg-purple-50 border-purple-100"
-          />
-        </section>
-
-        {/* SEARCH & FILTERS */}
-        <section
-          id="facilities-grid"
-          className="space-y-4 pt-4"
-        >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                Verified Parking Facilities
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Real-time capacity, instant rates, and guaranteed slot booking.
-              </p>
-            </div>
-
-            {/* FILTER PILLS */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {[
-                { id: "ALL", label: "All Facilities" },
-                { id: "EV", label: "⚡ EV Charging" },
-                { id: "FREE", label: "🆓 Free Parking" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setSelectedFilter(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedFilter === tab.id
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+                {tab.label}
+              </button>
+            ))}
           </div>
-
-          {/* SEARCH INPUT */}
-          <div className="relative">
-            <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white border border-slate-200 shadow-xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
-              <FiSearch className="text-indigo-600 w-5 h-5 shrink-0" />
-              <input
-                type="text"
-                placeholder="Search by facility name, landmark, area, or address..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="text-slate-400 hover:text-slate-600 p-1"
-                >
-                  <FiX />
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
+        </div>
 
         {/* FACILITIES GRID */}
         <section>
@@ -364,11 +461,19 @@ export default function CustomerDashboard() {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredParking.map((parking) => {
+              {filteredParking.map((parking, index) => {
                 const totalSlots = getTotalSlots(parking);
                 const availableSlots = getAvailableSlots(parking);
                 const occupancyRate = getOccupancyRate(parking);
                 const isAlmostFull = occupancyRate > 80;
+                const distanceStr = userCoords
+                  ? calculateDistance(
+                      userCoords.lat,
+                      userCoords.lng,
+                      parking.latitude,
+                      parking.longitude
+                    )
+                  : null;
 
                 return (
                   <Card
@@ -396,13 +501,20 @@ export default function CustomerDashboard() {
 
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                        <Badge
-                          variant={isAlmostFull ? "warning" : "available"}
-                          size="sm"
-                          dot
-                        >
-                          {availableSlots} Spots Available
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant={isAlmostFull ? "warning" : "available"}
+                            size="sm"
+                            dot
+                          >
+                            {availableSlots} Spots
+                          </Badge>
+                          {distanceStr && (
+                            <span className="px-2 py-0.5 rounded-md bg-indigo-600/90 backdrop-blur-md text-white text-[10px] font-bold shadow-xs">
+                              📍 {distanceStr}
+                            </span>
+                          )}
+                        </div>
 
                         <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold border backdrop-blur-md ${
                           (parking.hourly_rate ?? -1) === 0
@@ -417,9 +529,12 @@ export default function CustomerDashboard() {
                     {/* CARD CONTENT */}
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div>
-                        <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                          {parking.name || "ParkEase Central"}
-                        </h3>
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                            {parking.name || "ParkEase Central"}
+                          </h3>
+                        </div>
+
                         <p className="text-xs text-slate-500 flex items-start gap-1.5 mt-1 line-clamp-2">
                           <FiMapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                           <span>
@@ -485,19 +600,36 @@ export default function CustomerDashboard() {
                       </div>
 
                       {/* CARD ACTION BUTTONS */}
-                      <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/customer/parking/${parking.id}`)
-                          }
-                        >
-                          Facility Details
-                        </Button>
+                      <div className="pt-3 border-t border-slate-100 space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMapModalParking(parking)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-xs font-semibold border border-slate-200 transition"
+                          >
+                            <FiMapPin className="w-3.5 h-3.5" />
+                            <span>Google Map</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              window.open(
+                                `https://www.google.com/maps/dir/?api=1&destination=${parking.latitude || 19.0760},${parking.longitude || 72.8777}`,
+                                "_blank"
+                              )
+                            }
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 text-xs font-semibold border border-slate-200 transition"
+                          >
+                            <FiNavigation className="w-3.5 h-3.5" />
+                            <span>Directions</span>
+                          </button>
+                        </div>
+
                         <Button
                           variant="primary"
                           size="sm"
+                          fullWidth
                           iconRight={FiArrowRight}
                           onClick={() =>
                             navigate(`/customer/parking/${parking.id}/book`, {
@@ -505,7 +637,7 @@ export default function CustomerDashboard() {
                             })
                           }
                         >
-                          Book Slot
+                          Book Slot Now
                         </Button>
                       </div>
                     </div>

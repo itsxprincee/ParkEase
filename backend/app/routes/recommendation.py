@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 from app.models.parking import ParkingLocation, ParkingSlot
 import math
@@ -45,7 +46,7 @@ def recommend_parking(
 ):
     locations = (
         db.query(ParkingLocation)
-        .filter(ParkingLocation.verification_status == "APPROVED")
+        .filter(func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED")
         .all()
     )
 

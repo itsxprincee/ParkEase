@@ -197,14 +197,14 @@ export default function OwnerDashboard() {
           />
           <StatCard
             title="Total Managed Slots"
-            value={totalSlots || 48}
+            value={totalSlots || 0}
             subtitle="Across all locations"
             icon={FiLayers}
             iconColor="text-blue-600 bg-blue-50 border-blue-100"
           />
           <StatCard
             title="Est. Monthly Volume"
-            value={`₹${estimatedRevenue ? estimatedRevenue.toLocaleString() : "29,000"}`}
+            value={`₹${estimatedRevenue ? estimatedRevenue.toLocaleString() : "0"}`}
             subtitle="Revenue run-rate"
             icon={FiDollarSign}
             iconColor="text-purple-600 bg-purple-50 border-purple-100"

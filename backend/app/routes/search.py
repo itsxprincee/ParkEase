@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from database import get_db
 from app.models.parking import ParkingLocation, ParkingSlot
@@ -17,7 +18,7 @@ def search_parking(
     db: Session = Depends(get_db)
 ):
     query = db.query(ParkingLocation).filter(
-        ParkingLocation.verification_status == "APPROVED"
+        func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
     )
 
     if q.strip():

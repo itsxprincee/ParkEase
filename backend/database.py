@@ -180,6 +180,42 @@ try:
                 else:
                     print(f"SUCCESS: parking_locations.{col_name} EXISTS")
 
+        # -------------------------------------------------
+        # ENSURE CASCADE DELETION ON FOREIGN KEYS
+        # -------------------------------------------------
+        try:
+            fk_checks = [
+                ("parking_slots", "parking_id", "parking_locations", "id"),
+                ("bookings", "parking_location_id", "parking_locations", "id"),
+                ("reviews", "parking_id", "parking_locations", "id"),
+            ]
+            for table, col, ref_table, ref_col in fk_checks:
+                fk_rows = connection.execute(
+                    text(
+                        """
+                        SELECT CONSTRAINT_NAME, DELETE_RULE
+                        FROM information_schema.REFERENTIAL_CONSTRAINTS
+                        WHERE CONSTRAINT_SCHEMA = :database_name
+                        AND TABLE_NAME = :table_name
+                        AND REFERENCED_TABLE_NAME = :ref_table_name
+                        """
+                    ),
+                    {
+                        "database_name": DB_NAME,
+                        "table_name": table,
+                        "ref_table_name": ref_table,
+                    },
+                ).fetchall()
+                for fk in fk_rows:
+                    if fk.DELETE_RULE != "CASCADE":
+                        print(f"Auto-migrating: Setting ON DELETE CASCADE on `{table}`.`{fk.CONSTRAINT_NAME}`...")
+                        connection.execute(text(f"ALTER TABLE `{table}` DROP FOREIGN KEY `{fk.CONSTRAINT_NAME}`"))
+                        connection.execute(text(f"ALTER TABLE `{table}` ADD CONSTRAINT `{fk.CONSTRAINT_NAME}` FOREIGN KEY (`{col}`) REFERENCES `{ref_table}`(`{ref_col}`) ON DELETE CASCADE"))
+                        connection.commit()
+                        print(f"SUCCESS: `{table}`.`{fk.CONSTRAINT_NAME}` updated to ON DELETE CASCADE")
+        except Exception as fk_err:
+            print("FK Cascade Migration note:", fk_err)
+
         print("=" * 55 + "\n")
 
 except Exception as error:

@@ -2,10 +2,13 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel, Field
 
 from database import get_db
 from app.models.parking import ParkingLocation, ParkingSlot
+from app.models.booking import Booking
+from app.models.review import Review
 from app.models.user import User
 from app.utils.auth import get_current_user, owner_required
 
@@ -248,7 +251,7 @@ def get_all_parking(
     locations = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .order_by(
             ParkingLocation.id.desc()
@@ -311,6 +314,8 @@ def get_all_parking(
                 "has_covered_roof": location.has_covered_roof,
                 "is_24_7": location.is_24_7,
                 "has_valet": location.has_valet,
+                "image": location.image,
+                "image_url": location.image,
                 "created_slots": total_created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -335,7 +340,7 @@ def get_approved_parking(
     locations = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .order_by(
             ParkingLocation.id.desc()
@@ -373,6 +378,8 @@ def get_approved_parking(
                 "is_24_7": location.is_24_7,
                 "has_valet": location.has_valet,
                 "available_slots": available_slots,
+                "image": location.image,
+                "image_url": location.image,
                 "verification_status": location.verification_status
             }
         )
@@ -396,7 +403,7 @@ def get_customer_parking_details(
         db.query(ParkingLocation)
         .filter(
             ParkingLocation.id == parking_id,
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .first()
     )
@@ -454,7 +461,7 @@ def get_customer_parking_slots(
         db.query(ParkingLocation)
         .filter(
             ParkingLocation.id == parking_id,
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .first()
     )
@@ -1191,6 +1198,14 @@ def delete_parking(
         db
     )
 
+    # Clean up dependent child records
+    booking_ids = [b.id for b in db.query(Booking.id).filter(Booking.parking_location_id == parking.id).all()]
+    if booking_ids:
+        db.query(Review).filter(Review.booking_id.in_(booking_ids)).delete(synchronize_session=False)
+    db.query(Review).filter(Review.parking_id == parking.id).delete(synchronize_session=False)
+    db.query(Booking).filter(Booking.parking_location_id == parking.id).delete(synchronize_session=False)
+    db.query(ParkingSlot).filter(ParkingSlot.parking_id == parking.id).delete(synchronize_session=False)
+
     db.delete(parking)
     db.commit()
 
@@ -1217,7 +1232,7 @@ def get_parking(
         db.query(ParkingLocation)
         .filter(
             ParkingLocation.id == parking_id,
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .first()
     )

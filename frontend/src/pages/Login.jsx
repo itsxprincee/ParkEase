@@ -386,6 +386,59 @@ export default function Login() {
                     Sign In to Account
                   </Button>
                 </form>
+
+                {/* DEMO QUICK-FILL SHORTCUTS */}
+                <div className="pt-4 border-t border-slate-100 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Quick Portal Switcher
+                    </span>
+                    <span className="text-[10px] text-indigo-600 font-semibold">1-Click Auto-Fill</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignInEmail("driver@parkease.com");
+                        setSignInPassword("password123");
+                      }}
+                      className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-left transition-all group"
+                    >
+                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-indigo-600 block">
+                        🚗 Driver
+                      </span>
+                      <span className="text-[9px] text-slate-400 block truncate">Customer Portal</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignInEmail("owner@parkease.com");
+                        setSignInPassword("password123");
+                      }}
+                      className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-left transition-all group"
+                    >
+                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-indigo-600 block">
+                        🏢 Owner
+                      </span>
+                      <span className="text-[9px] text-slate-400 block truncate">Manage Lots</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignInEmail("admin@parkease.com");
+                        setSignInPassword("password123");
+                      }}
+                      className="p-2 rounded-xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-left transition-all group"
+                    >
+                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-purple-600 block">
+                        ⚡ Admin
+                      </span>
+                      <span className="text-[9px] text-slate-400 block truncate">Verify & Approvals</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

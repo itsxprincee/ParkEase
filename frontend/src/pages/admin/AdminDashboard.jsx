@@ -196,28 +196,28 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Pending Reviews"
-            value={stats.pending || parkingList.length}
+            value={stats.pending ?? parkingList.filter((i) => (i.verification_status || "PENDING").toUpperCase() === "PENDING").length}
             subtitle="Requires immediate review"
             icon={FiClock}
             iconColor="text-amber-600 bg-amber-50 border-amber-100"
           />
           <StatCard
             title="Approved Facilities"
-            value={stats.approved || 18}
+            value={stats.approved ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "APPROVED").length}
             subtitle="Live across platform"
             icon={FiCheckCircle}
             iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
           />
           <StatCard
             title="Rejected Submissions"
-            value={stats.rejected || 0}
+            value={stats.rejected ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "REJECTED").length}
             subtitle="Denied compliance"
             icon={FiXCircle}
             iconColor="text-rose-600 bg-rose-50 border-rose-100"
           />
           <StatCard
             title="Total Applications"
-            value={stats.total || 18}
+            value={stats.total ?? parkingList.length}
             subtitle="All recorded facilities"
             icon={FiShield}
             iconColor="text-indigo-600 bg-indigo-50 border-indigo-100"

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel
 
 from database import get_db
@@ -81,7 +82,7 @@ def get_pending_parking(
     locations = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "PENDING"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "PENDING"
         )
         .order_by(
             ParkingLocation.verification_submitted_at.asc()
@@ -300,7 +301,7 @@ def verification_stats(
     pending = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "PENDING"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "PENDING"
         )
         .count()
     )
@@ -308,7 +309,7 @@ def verification_stats(
     approved = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "APPROVED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
         )
         .count()
     )
@@ -316,7 +317,7 @@ def verification_stats(
     rejected = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.verification_status == "REJECTED"
+            func.upper(func.trim(ParkingLocation.verification_status)) == "REJECTED"
         )
         .count()
     )

@@ -90,7 +90,9 @@ export default function OwnerDashboard() {
 
   // Aggregated KPI Stats
   const totalLots = parkingList.length;
-  const approvedLots = parkingList.filter((p) => p.is_approved || p.status === "approved").length;
+  const approvedLots = parkingList.filter(
+    (p) => (p.verification_status || p.status || "").toUpperCase() === "APPROVED" || Boolean(p.is_approved)
+  ).length;
   const totalSlots = parkingList.reduce((acc, curr) => acc + (Number(curr.total_slots) || 0), 0);
   const estimatedRevenue = approvedLots * 14500;
 
@@ -103,9 +105,9 @@ export default function OwnerDashboard() {
 
     if (!matchesSearch) return false;
 
-    const isApproved = item.is_approved || item.status === "approved";
-    if (statusFilter === "APPROVED") return isApproved;
-    if (statusFilter === "PENDING") return !isApproved;
+    const status = (item.verification_status || item.status || "PENDING").toUpperCase();
+    if (statusFilter === "APPROVED") return status === "APPROVED" || Boolean(item.is_approved);
+    if (statusFilter === "PENDING") return status === "PENDING" && !item.is_approved;
 
     return true;
   });
@@ -268,7 +270,9 @@ export default function OwnerDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredList.map((p) => {
-                const isApproved = p.is_approved || p.status === "approved";
+                const status = (p.verification_status || p.status || "PENDING").toUpperCase();
+                const isApproved = status === "APPROVED" || Boolean(p.is_approved);
+                const isRejected = status === "REJECTED";
                 const total = p.total_slots || 20;
 
                 return (
@@ -297,15 +301,23 @@ export default function OwnerDashboard() {
 
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
                         <Badge
-                          variant={isApproved ? "success" : "warning"}
+                          variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
                           size="sm"
                           dot
                         >
-                          {isApproved ? "Live & Approved" : "Pending Admin Review"}
+                          {isApproved
+                            ? "Live & Approved"
+                            : isRejected
+                            ? "Rejected by Admin"
+                            : "Pending Admin Review"}
                         </Badge>
 
-                        <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-extrabold border border-white/20">
-                          ₹50/hr
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold border backdrop-blur-md ${
+                          (p.hourly_rate ?? -1) === 0
+                            ? "bg-emerald-600 text-white border-emerald-500"
+                            : "bg-black/60 text-white border-white/20"
+                        }`}>
+                          {(p.hourly_rate ?? -1) === 0 ? "🆓 FREE" : `₹${p.hourly_rate ?? 50}/hr`}
                         </span>
                       </div>
                     </div>

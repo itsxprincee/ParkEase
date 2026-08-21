@@ -27,7 +27,7 @@ export default function OwnerParkingDetails() {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await API.get(`/parking/${id}`);
+        const res = await API.get(`/parking/owner/${id}`);
         setParking(res.data);
       } catch (e) {
         console.error("Load owner parking details error:", e);
@@ -37,6 +37,10 @@ export default function OwnerParkingDetails() {
     };
     load();
   }, [id]);
+
+  const status = (parking?.verification_status || parking?.status || "PENDING").toUpperCase();
+  const isApproved = status === "APPROVED" || Boolean(parking?.is_approved);
+  const isRejected = status === "REJECTED";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
@@ -83,11 +87,15 @@ export default function OwnerParkingDetails() {
             <div className="flex items-start justify-between">
               <div>
                 <Badge
-                  variant={parking.is_approved ? "success" : "warning"}
+                  variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
                   size="sm"
                   dot
                 >
-                  {parking.is_approved ? "Verified & Live" : "Pending Verification"}
+                  {isApproved
+                    ? "Verified & Live"
+                    : isRejected
+                    ? "Rejected by Admin"
+                    : "Pending Verification"}
                 </Badge>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1.5">
                   {parking.name}
@@ -96,11 +104,47 @@ export default function OwnerParkingDetails() {
                   <FiMapPin className="text-indigo-600 w-3.5 h-3.5" />
                   <span>{parking.address || parking.location || "City Location"}</span>
                 </p>
+
+                {/* AMENITIES */}
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {parking.has_cctv && (
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100">
+                      📹 24/7 CCTV
+                    </span>
+                  )}
+                  {parking.has_security_guard && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
+                      🛡️ Security Guard
+                    </span>
+                  )}
+                  {parking.has_ev && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-100">
+                      ⚡ EV Ready
+                    </span>
+                  )}
+                  {parking.has_covered_roof && (
+                    <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-semibold border border-purple-100">
+                      🏢 Covered
+                    </span>
+                  )}
+                  {parking.is_24_7 && (
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
+                      ⏰ 24/7
+                    </span>
+                  )}
+                  {parking.has_valet && (
+                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[11px] font-semibold border border-rose-100">
+                      🔑 Valet
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="text-right">
                 <span className="text-xs font-bold text-slate-400">Rate</span>
-                <p className="text-2xl font-black text-indigo-600">₹50/hr</p>
+                <p className="text-2xl font-black text-indigo-600">
+                  {(parking.hourly_rate ?? -1) === 0 ? "FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
+                </p>
               </div>
             </div>
 

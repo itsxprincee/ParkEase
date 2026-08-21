@@ -109,6 +109,16 @@ def ensure_parking_slots(parking: ParkingLocation, db: Session):
         db.commit()
 
 
+def parse_bool(val) -> bool:
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.lower() in ("true", "1", "yes", "on")
+    if isinstance(val, (int, float)):
+        return val == 1
+    return False
+
+
 # =========================================================
 # CREATE PARKING
 # =========================================================
@@ -135,6 +145,12 @@ async def create_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        has_ev = parse_bool(form.get("has_ev"))
+        has_cctv = parse_bool(form.get("has_cctv"))
+        has_security_guard = parse_bool(form.get("has_security_guard"))
+        has_covered_roof = parse_bool(form.get("has_covered_roof"))
+        is_24_7 = parse_bool(form.get("is_24_7"))
+        has_valet = parse_bool(form.get("has_valet"))
     else:
         try:
             body = await request.json()
@@ -152,6 +168,12 @@ async def create_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        has_ev = parse_bool(body.get("has_ev"))
+        has_cctv = parse_bool(body.get("has_cctv"))
+        has_security_guard = parse_bool(body.get("has_security_guard"))
+        has_covered_roof = parse_bool(body.get("has_covered_roof"))
+        is_24_7 = parse_bool(body.get("is_24_7"))
+        has_valet = parse_bool(body.get("has_valet"))
 
     if not name:
         raise HTTPException(status_code=400, detail="Parking name is required")
@@ -171,6 +193,12 @@ async def create_parking(
         longitude=longitude,
         total_slots=total_slots,
         hourly_rate=hourly_rate,
+        has_ev=has_ev,
+        has_cctv=has_cctv,
+        has_security_guard=has_security_guard,
+        has_covered_roof=has_covered_roof,
+        is_24_7=is_24_7,
+        has_valet=has_valet,
         verification_status="PENDING",
         verification_submitted_at=datetime.utcnow(),
         verified_at=None,
@@ -277,6 +305,12 @@ def get_all_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "has_ev": location.has_ev,
+                "has_cctv": location.has_cctv,
+                "has_security_guard": location.has_security_guard,
+                "has_covered_roof": location.has_covered_roof,
+                "is_24_7": location.is_24_7,
+                "has_valet": location.has_valet,
                 "created_slots": total_created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -332,6 +366,12 @@ def get_approved_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "has_ev": location.has_ev,
+                "has_cctv": location.has_cctv,
+                "has_security_guard": location.has_security_guard,
+                "has_covered_roof": location.has_covered_roof,
+                "is_24_7": location.is_24_7,
+                "has_valet": location.has_valet,
                 "available_slots": available_slots,
                 "verification_status": location.verification_status
             }
@@ -386,6 +426,12 @@ def get_customer_parking_details(
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
+        "has_ev": parking.has_ev,
+        "has_cctv": parking.has_cctv,
+        "has_security_guard": parking.has_security_guard,
+        "has_covered_roof": parking.has_covered_roof,
+        "is_24_7": parking.is_24_7,
+        "has_valet": parking.has_valet,
         "available_slots": available_slots,
         "verification_status": parking.verification_status
     }
@@ -535,6 +581,12 @@ def get_my_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "has_ev": location.has_ev,
+                "has_cctv": location.has_cctv,
+                "has_security_guard": location.has_security_guard,
+                "has_covered_roof": location.has_covered_roof,
+                "is_24_7": location.is_24_7,
+                "has_valet": location.has_valet,
                 "created_slots": created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -613,6 +665,12 @@ def get_owner_parking_details(
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
+        "has_ev": parking.has_ev,
+        "has_cctv": parking.has_cctv,
+        "has_security_guard": parking.has_security_guard,
+        "has_covered_roof": parking.has_covered_roof,
+        "is_24_7": parking.is_24_7,
+        "has_valet": parking.has_valet,
         "verification_status": parking.verification_status,
         "verification_submitted_at": (
             parking.verification_submitted_at
@@ -663,6 +721,18 @@ async def update_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        if "has_ev" in form:
+            parking.has_ev = parse_bool(form.get("has_ev"))
+        if "has_cctv" in form:
+            parking.has_cctv = parse_bool(form.get("has_cctv"))
+        if "has_security_guard" in form:
+            parking.has_security_guard = parse_bool(form.get("has_security_guard"))
+        if "has_covered_roof" in form:
+            parking.has_covered_roof = parse_bool(form.get("has_covered_roof"))
+        if "is_24_7" in form:
+            parking.is_24_7 = parse_bool(form.get("is_24_7"))
+        if "has_valet" in form:
+            parking.has_valet = parse_bool(form.get("has_valet"))
     else:
         try:
             body = await request.json()
@@ -680,6 +750,18 @@ async def update_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        if "has_ev" in body:
+            parking.has_ev = parse_bool(body.get("has_ev"))
+        if "has_cctv" in body:
+            parking.has_cctv = parse_bool(body.get("has_cctv"))
+        if "has_security_guard" in body:
+            parking.has_security_guard = parse_bool(body.get("has_security_guard"))
+        if "has_covered_roof" in body:
+            parking.has_covered_roof = parse_bool(body.get("has_covered_roof"))
+        if "is_24_7" in body:
+            parking.is_24_7 = parse_bool(body.get("is_24_7"))
+        if "has_valet" in body:
+            parking.has_valet = parse_bool(body.get("has_valet"))
 
     if not name:
         raise HTTPException(status_code=400, detail="Parking name is required")
@@ -1191,6 +1273,12 @@ def get_parking(
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
+        "has_ev": parking.has_ev,
+        "has_cctv": parking.has_cctv,
+        "has_security_guard": parking.has_security_guard,
+        "has_covered_roof": parking.has_covered_roof,
+        "is_24_7": parking.is_24_7,
+        "has_valet": parking.has_valet,
         "created_slots": total_slots_created,
         "available_slots": available_slots,
         "occupied_slots": occupied_slots,

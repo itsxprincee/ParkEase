@@ -429,6 +429,40 @@ export default function CustomerDashboard() {
                           </span>
                         </p>
 
+                        {/* AMENITY & SECURITY TAGS */}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                          {parking.has_cctv && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-100">
+                              📹 CCTV
+                            </span>
+                          )}
+                          {parking.has_security_guard && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-100">
+                              🛡️ Guard
+                            </span>
+                          )}
+                          {parking.has_ev && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-100">
+                              ⚡ EV Ready
+                            </span>
+                          )}
+                          {parking.has_covered_roof && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-100">
+                              🏢 Covered
+                            </span>
+                          )}
+                          {parking.is_24_7 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-100">
+                              ⏰ 24/7
+                            </span>
+                          )}
+                          {parking.has_valet && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-100">
+                              🔑 Valet
+                            </span>
+                          )}
+                        </div>
+
                         {/* OCCUPANCY PROGRESS */}
                         <div className="mt-4 space-y-1.5">
                           <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">

@@ -160,15 +160,25 @@ try:
 
         if parking_columns:
             parking_column_names = [c.COLUMN_NAME for c in parking_columns]
-            if "hourly_rate" not in parking_column_names:
-                print("Auto-migrating: Adding 'hourly_rate' column to 'parking_locations'...")
-                connection.execute(
-                    text("ALTER TABLE parking_locations ADD COLUMN hourly_rate FLOAT NOT NULL DEFAULT 0.0")
-                )
-                connection.commit()
-                print("SUCCESS: 'hourly_rate' column added to 'parking_locations'")
-            else:
-                print("SUCCESS: parking_locations.hourly_rate EXISTS")
+            expected_columns = {
+                "hourly_rate": "FLOAT NOT NULL DEFAULT 0.0",
+                "has_ev": "BOOLEAN NOT NULL DEFAULT 0",
+                "has_cctv": "BOOLEAN NOT NULL DEFAULT 0",
+                "has_security_guard": "BOOLEAN NOT NULL DEFAULT 0",
+                "has_covered_roof": "BOOLEAN NOT NULL DEFAULT 0",
+                "is_24_7": "BOOLEAN NOT NULL DEFAULT 0",
+                "has_valet": "BOOLEAN NOT NULL DEFAULT 0",
+            }
+            for col_name, col_def in expected_columns.items():
+                if col_name not in parking_column_names:
+                    print(f"Auto-migrating: Adding '{col_name}' column to 'parking_locations'...")
+                    connection.execute(
+                        text(f"ALTER TABLE parking_locations ADD COLUMN {col_name} {col_def}")
+                    )
+                    connection.commit()
+                    print(f"SUCCESS: '{col_name}' column added to 'parking_locations'")
+                else:
+                    print(f"SUCCESS: parking_locations.{col_name} EXISTS")
 
         print("=" * 55 + "\n")
 

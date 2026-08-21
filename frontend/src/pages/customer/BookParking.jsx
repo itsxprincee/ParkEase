@@ -324,6 +324,40 @@ export default function BookParking() {
                 {parking?.address || parking?.location || "Premium City Hub, Zone 1"}
               </span>
             </p>
+
+            {/* SECURITY & AMENITIES BADGES */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              {parking?.has_cctv && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-200">
+                  📹 24/7 CCTV
+                </span>
+              )}
+              {parking?.has_security_guard && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+                  🛡️ Security Guard
+                </span>
+              )}
+              {parking?.has_ev && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-200">
+                  ⚡ EV Charging
+                </span>
+              )}
+              {parking?.has_covered_roof && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 text-purple-700 text-[11px] font-semibold border border-purple-200">
+                  🏢 Covered Parking
+                </span>
+              )}
+              {parking?.is_24_7 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-200">
+                  ⏰ 24/7 Access
+                </span>
+              )}
+              {parking?.has_valet && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 text-[11px] font-semibold border border-rose-200">
+                  🔑 Valet Service
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

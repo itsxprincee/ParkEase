@@ -5,6 +5,7 @@ from sqlalchemy import (
     Integer,
     String,
     Float,
+    Boolean,
     DateTime,
     ForeignKey
 )
@@ -69,6 +70,46 @@ class ParkingLocation(Base):
         Float,
         nullable=False,
         default=0.0
+    )
+
+    # =====================================================
+    # AMENITIES & SECURITY FEATURES
+    # =====================================================
+
+    has_ev = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    has_cctv = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    has_security_guard = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    has_covered_roof = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    is_24_7 = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    has_valet = Column(
+        Boolean,
+        nullable=False,
+        default=False
     )
 
     # =====================================================

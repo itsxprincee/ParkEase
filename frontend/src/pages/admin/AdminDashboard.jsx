@@ -383,10 +383,59 @@ export default function AdminDashboard() {
                 <span className="font-bold text-slate-900">{inspectModal.item.total_slots || 20} Spots</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-500">Hourly Rate</span>
+                <span className="font-bold text-slate-900">
+                  {(inspectModal.item.hourly_rate ?? 0) === 0 ? "FREE (₹0/hr)" : `₹${inspectModal.item.hourly_rate}/hr`}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-500">GPS Coordinates</span>
                 <span className="font-mono font-bold text-slate-900">
                   {inspectModal.item.latitude}, {inspectModal.item.longitude}
                 </span>
+              </div>
+              <div className="pt-2 border-t border-slate-200/60">
+                <span className="text-slate-500 block mb-1.5 font-semibold">Declared Safety & Amenities</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {inspectModal.item.has_cctv && (
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">
+                      📹 24/7 CCTV
+                    </span>
+                  )}
+                  {inspectModal.item.has_security_guard && (
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                      🛡️ Security Guard
+                    </span>
+                  )}
+                  {inspectModal.item.has_ev && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200">
+                      ⚡ EV Charging
+                    </span>
+                  )}
+                  {inspectModal.item.has_covered_roof && (
+                    <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-200">
+                      🏢 Covered
+                    </span>
+                  )}
+                  {inspectModal.item.is_24_7 && (
+                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-200">
+                      ⏰ 24/7 Open
+                    </span>
+                  )}
+                  {inspectModal.item.has_valet && (
+                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">
+                      🔑 Valet
+                    </span>
+                  )}
+                  {!inspectModal.item.has_cctv &&
+                    !inspectModal.item.has_security_guard &&
+                    !inspectModal.item.has_ev &&
+                    !inspectModal.item.has_covered_roof &&
+                    !inspectModal.item.is_24_7 &&
+                    !inspectModal.item.has_valet && (
+                      <span className="text-[11px] text-slate-400 italic">No extra amenities listed</span>
+                    )}
+                </div>
               </div>
             </div>
 
@@ -403,25 +452,36 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
               <Button
-                variant="danger"
+                variant="outline"
                 size="md"
-                onClick={() => {
-                  setRejectModal({ open: true, item: inspectModal.item, reason: "" });
-                }}
+                onClick={() => setInspectModal({ open: false, item: null })}
               >
-                Reject Submission
+                Close
               </Button>
-              <Button
-                variant="success"
-                size="md"
-                icon={FiCheck}
-                loading={actionLoading === inspectModal.item.id}
-                onClick={() => handleApprove(inspectModal.item.id)}
-              >
-                Approve & Publish Live
-              </Button>
+              {(inspectModal.item.verification_status || "").toUpperCase() !== "REJECTED" && (
+                <Button
+                  variant="danger"
+                  size="md"
+                  onClick={() => {
+                    setRejectModal({ open: true, item: inspectModal.item, reason: "" });
+                  }}
+                >
+                  Reject Submission
+                </Button>
+              )}
+              {(inspectModal.item.verification_status || "").toUpperCase() !== "APPROVED" && (
+                <Button
+                  variant="success"
+                  size="md"
+                  icon={FiCheck}
+                  loading={actionLoading === inspectModal.item.id}
+                  onClick={() => handleApprove(inspectModal.item.id)}
+                >
+                  Approve & Publish Live
+                </Button>
+              )}
             </div>
           </div>
         )}

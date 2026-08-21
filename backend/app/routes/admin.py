@@ -43,6 +43,16 @@ def parking_response(location, owner):
         "longitude": location.longitude,
 
         "total_slots": location.total_slots,
+        "hourly_rate": getattr(location, "hourly_rate", 0.0),
+
+        "has_ev": getattr(location, "has_ev", False),
+        "has_cctv": getattr(location, "has_cctv", False),
+        "has_security_guard": getattr(location, "has_security_guard", False),
+        "has_covered_roof": getattr(location, "has_covered_roof", False),
+        "is_24_7": getattr(location, "is_24_7", False),
+        "has_valet": getattr(location, "has_valet", False),
+
+        "image_url": location.image if hasattr(location, "image") else None,
 
         "verification_status":
             location.verification_status,

@@ -331,13 +331,35 @@ export default function BookParking() {
               <p className="text-[11px] text-slate-400 font-semibold uppercase">
                 Rate
               </p>
-              <p className="text-2xl font-extrabold text-indigo-600">
-                ₹{HOURLY_RATE}
-                <span className="text-xs text-slate-400 font-normal">/hour</span>
-              </p>
+              {HOURLY_RATE === 0 ? (
+                <p className="text-2xl font-extrabold text-emerald-600">
+                  FREE
+                  <span className="text-xs text-slate-400 font-normal ml-1">parking</span>
+                </p>
+              ) : (
+                <p className="text-2xl font-extrabold text-indigo-600">
+                  ₹{HOURLY_RATE}
+                  <span className="text-xs text-slate-400 font-normal">/hour</span>
+                </p>
+              )}
             </div>
           </div>
         </div>
+
+        {/* FREE PARKING BANNER */}
+        {HOURLY_RATE === 0 && (
+          <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0">
+              🆓
+            </div>
+            <div>
+              <p className="text-sm font-bold text-emerald-800">Free Parking Available!</p>
+              <p className="text-[11px] text-emerald-700 mt-0.5">
+                This facility offers free parking. You only pay the ₹5 ParkEase platform fee per booking.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* BOOKING WORKFLOW GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -686,9 +708,13 @@ export default function BookParking() {
               <div className="space-y-2.5 text-xs text-slate-600">
                 <div className="flex items-center justify-between">
                   <span>
-                    Parking Rate ({selectedDurationHours}h × ₹{HOURLY_RATE})
+                    {HOURLY_RATE === 0
+                      ? `Free Parking (${selectedDurationHours}h)`
+                      : `Parking Rate (${selectedDurationHours}h × ₹${HOURLY_RATE})`}
                   </span>
-                  <span className="font-semibold text-slate-800">₹{subtotal}</span>
+                  <span className={`font-semibold ${HOURLY_RATE === 0 ? "text-emerald-600" : "text-slate-800"}`}>
+                    {HOURLY_RATE === 0 ? "FREE" : `₹${subtotal}`}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1">
@@ -708,6 +734,12 @@ export default function BookParking() {
                     ₹{grandTotal}
                   </span>
                 </div>
+
+                {HOURLY_RATE === 0 && (
+                  <p className="text-[11px] text-emerald-600 font-medium text-center pt-1">
+                    ✅ Free parking — only platform fee applies.
+                  </p>
+                )}
               </div>
 
               {/* CHECKOUT ACTION */}

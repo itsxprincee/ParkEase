@@ -62,6 +62,16 @@ class ParkingLocation(Base):
     )
 
     # =====================================================
+    # PRICING — Owner-defined hourly rate (0 = free parking)
+    # =====================================================
+
+    hourly_rate = Column(
+        Float,
+        nullable=False,
+        default=0.0
+    )
+
+    # =====================================================
     # PARKING IMAGE
     # =====================================================
 

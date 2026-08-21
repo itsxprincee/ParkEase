@@ -129,10 +129,11 @@ async def create_parking(
             latitude = float(form.get("latitude"))
             longitude = float(form.get("longitude"))
             total_slots = int(form.get("total_slots"))
+            hourly_rate = float(form.get("hourly_rate") or 0)
         except (ValueError, TypeError):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid numbers for latitude, longitude, or total_slots"
+                detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
     else:
         try:
@@ -145,10 +146,11 @@ async def create_parking(
             latitude = float(body.get("latitude"))
             longitude = float(body.get("longitude"))
             total_slots = int(body.get("total_slots"))
+            hourly_rate = float(body.get("hourly_rate") or 0)
         except (ValueError, TypeError):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid numbers for latitude, longitude, or total_slots"
+                detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
 
     if not name:
@@ -158,6 +160,9 @@ async def create_parking(
     if total_slots <= 0:
         raise HTTPException(status_code=400, detail="Total slots must be greater than 0")
 
+    if hourly_rate < 0:
+        raise HTTPException(status_code=400, detail="Hourly rate cannot be negative")
+
     parking = ParkingLocation(
         owner_id=owner.id,
         name=name,
@@ -165,6 +170,7 @@ async def create_parking(
         latitude=latitude,
         longitude=longitude,
         total_slots=total_slots,
+        hourly_rate=hourly_rate,
         verification_status="PENDING",
         verification_submitted_at=datetime.utcnow(),
         verified_at=None,
@@ -270,6 +276,7 @@ def get_all_parking(
                 "latitude": location.latitude,
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
+                "hourly_rate": location.hourly_rate,
                 "created_slots": total_created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -324,6 +331,7 @@ def get_approved_parking(
                 "latitude": location.latitude,
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
+                "hourly_rate": location.hourly_rate,
                 "available_slots": available_slots,
                 "verification_status": location.verification_status
             }
@@ -377,6 +385,7 @@ def get_customer_parking_details(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
+        "hourly_rate": parking.hourly_rate,
         "available_slots": available_slots,
         "verification_status": parking.verification_status
     }
@@ -525,6 +534,7 @@ def get_my_parking(
                 "latitude": location.latitude,
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
+                "hourly_rate": location.hourly_rate,
                 "created_slots": created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -602,6 +612,7 @@ def get_owner_parking_details(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
+        "hourly_rate": parking.hourly_rate,
         "verification_status": parking.verification_status,
         "verification_submitted_at": (
             parking.verification_submitted_at
@@ -646,10 +657,11 @@ async def update_parking(
             latitude = float(form.get("latitude"))
             longitude = float(form.get("longitude"))
             total_slots = int(form.get("total_slots"))
+            hourly_rate = float(form.get("hourly_rate") or parking.hourly_rate)
         except (ValueError, TypeError):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid numbers for latitude, longitude, or total_slots"
+                detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
     else:
         try:
@@ -662,10 +674,11 @@ async def update_parking(
             latitude = float(body.get("latitude"))
             longitude = float(body.get("longitude"))
             total_slots = int(body.get("total_slots"))
+            hourly_rate = float(body.get("hourly_rate") if body.get("hourly_rate") is not None else parking.hourly_rate)
         except (ValueError, TypeError):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid numbers for latitude, longitude, or total_slots"
+                detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
 
     if not name:
@@ -692,11 +705,15 @@ async def update_parking(
             )
         )
 
+    if hourly_rate < 0:
+        raise HTTPException(status_code=400, detail="Hourly rate cannot be negative")
+
     parking.name = name
     parking.address = address
     parking.latitude = latitude
     parking.longitude = longitude
     parking.total_slots = total_slots
+    parking.hourly_rate = hourly_rate
 
     if parking.verification_status == "REJECTED":
         parking.verification_status = "PENDING"

@@ -133,6 +133,9 @@ export default function CustomerDashboard() {
         parking.name?.toLowerCase().includes("ev")
       );
     }
+    if (selectedFilter === "FREE") {
+      return parking.hourly_rate === 0;
+    }
     return true;
   });
 
@@ -400,8 +403,12 @@ export default function CustomerDashboard() {
                           {availableSlots} Spots Available
                         </Badge>
 
-                        <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-extrabold border border-white/20">
-                          ₹50/hr
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold border backdrop-blur-md ${
+                          (parking.hourly_rate ?? -1) === 0
+                            ? "bg-emerald-600 text-white border-emerald-500"
+                            : "bg-black/60 text-white border-white/20"
+                        }`}>
+                          {(parking.hourly_rate ?? -1) === 0 ? "🆓 FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
                         </span>
                       </div>
                     </div>

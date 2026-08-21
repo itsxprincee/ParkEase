@@ -9,6 +9,8 @@ import {
   FiAlertCircle,
   FiCompass,
   FiSave,
+  FiInfo,
+  FiDollarSign,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -28,6 +30,7 @@ export default function EditParking() {
     latitude: "",
     longitude: "",
     total_slots: "",
+    hourly_rate: "50",
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -53,6 +56,7 @@ export default function EditParking() {
           latitude: data.latitude || "19.0760",
           longitude: data.longitude || "72.8777",
           total_slots: String(data.total_slots || 20),
+          hourly_rate: String(data.hourly_rate ?? 0),
         });
         if (data.image_url || data.image) {
           setImagePreview(data.image_url || data.image);
@@ -87,6 +91,7 @@ export default function EditParking() {
       submitData.append("latitude", formData.latitude);
       submitData.append("longitude", formData.longitude);
       submitData.append("total_slots", formData.total_slots);
+      submitData.append("hourly_rate", formData.hourly_rate || "0");
       if (imageFile) {
         submitData.append("image", imageFile);
       }
@@ -235,6 +240,67 @@ export default function EditParking() {
                     }
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
                   />
+                </div>
+              </div>
+
+              {/* PRICING */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Pricing
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Hourly Rate (₹)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, hourly_rate: "0" })}
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                        formData.hourly_rate === "0"
+                          ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-400 hover:text-emerald-700"
+                      }`}
+                    >
+                      🆓 Set as Free
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
+                    <FiDollarSign className="text-slate-400 w-4 h-4 shrink-0" />
+                    <input
+                      type="number"
+                      min="0"
+                      max="500"
+                      step="5"
+                      required
+                      value={formData.hourly_rate}
+                      onChange={(e) =>
+                        setFormData({ ...formData, hourly_rate: e.target.value })
+                      }
+                      className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none"
+                      placeholder="e.g. 50"
+                    />
+                    <span className="text-xs text-slate-400 font-medium shrink-0">/hour</span>
+                  </div>
+
+                  {/* Platform Fee Callout */}
+                  <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100">
+                    <FiInfo className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                    <div className="text-[11px] text-indigo-700 leading-relaxed">
+                      <p className="font-bold mb-0.5">Revenue Model</p>
+                      <p>
+                        You earn <strong>₹{formData.hourly_rate || 0}/hour</strong> × duration per booking.
+                        ParkEase adds a flat <strong>₹5 Platform Fee</strong> per booking — this is how the platform earns.
+                        {formData.hourly_rate === "0" && (
+                          <span className="block mt-1 text-emerald-700 font-semibold">
+                            ✅ Free parking — customers pay ₹5 platform fee only.
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 

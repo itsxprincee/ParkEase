@@ -27,6 +27,7 @@ import Modal from "../../components/Modal";
 import { Card, StatCard } from "../../components/Card";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import ParkingMapView from "../../components/ParkingMapView";
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export default function CustomerDashboard() {
   const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("ALL"); // ALL, NEARBY, FREE, EV, SECURITY, CCTV, COVERED
+  const [viewMode, setViewMode] = useState("GRID"); // "GRID" | "MAP"
   const [loading, setLoading] = useState(true);
 
   // GPS & Google Maps State
@@ -325,7 +327,7 @@ export default function CustomerDashboard() {
       )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* COMPACT TOP HEADER & ACTIVE PASS BANNER */}
+        {/* COMPACT TOP HEADER & VIEW SWITCHER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -336,38 +338,69 @@ export default function CustomerDashboard() {
             </p>
           </div>
 
-          {/* ACTIVE PASS QUICK LINK */}
-          {latestActiveBooking ? (
-            <button
-              onClick={() =>
-                navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
-                  state: { booking: latestActiveBooking },
-                })
-              }
-              className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/80 transition text-left shadow-xs group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                <FiCheckCircle />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-extrabold text-emerald-900">
-                    Active Pass &bull; Slot {latestActiveBooking.slot_number || "A1"}
+          {/* VIEW SWITCHER & ACTIVE PASS */}
+          <div className="flex items-center gap-3">
+            {/* VIEW MODE TOGGLE */}
+            <div className="flex items-center bg-slate-200/80 p-1 rounded-2xl border border-slate-200 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setViewMode("GRID")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  viewMode === "GRID"
+                    ? "bg-white text-indigo-600 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <FiLayers className="w-3.5 h-3.5" />
+                <span>Cards</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode("MAP")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  viewMode === "MAP"
+                    ? "bg-indigo-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <FiMapPin className="w-3.5 h-3.5" />
+                <span>Live Map</span>
+              </button>
+            </div>
+
+            {latestActiveBooking ? (
+              <button
+                onClick={() =>
+                  navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
+                    state: { booking: latestActiveBooking },
+                  })
+                }
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100/80 transition text-left shadow-xs group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  <FiCheckCircle />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-extrabold text-emerald-900">
+                      Active Pass &bull; Slot {latestActiveBooking.slot_number || "A1"}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-emerald-700 font-medium group-hover:underline">
+                    Tap to open Digital QR Pass &rarr;
                   </span>
                 </div>
-                <span className="text-[11px] text-emerald-700 font-medium group-hover:underline">
-                  Tap to open Digital QR Pass &rarr;
+              </button>
+            ) : (
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-xs">
+                  {parkingLocations.length} Facilities Live
                 </span>
               </div>
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-600 shadow-xs">
-                {parkingLocations.length} Facilities Available
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* SEARCH & FILTERS BAR WITH GOOGLE MAPS GPS */}
@@ -395,24 +428,58 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            {/* GPS FIND NEAREST BUTTON */}
+            {/* MY CURRENT LOCATION BUTTON */}
             <Button
-              variant={selectedFilter === "NEARBY" ? "primary" : "outline"}
+              variant={userCoords ? "primary" : "outline"}
               size="md"
               icon={FiCompass}
               loading={isLocating}
               onClick={handleLocateNearest}
               className="whitespace-nowrap shrink-0"
             >
-              {selectedFilter === "NEARBY" ? "📍 Nearest First" : "📍 Find Nearest (GPS)"}
+              {isLocating
+                ? "Locating You..."
+                : userCoords
+                ? "🎯 My Location (Active)"
+                : "🎯 Use My Current Location"}
             </Button>
           </div>
+
+          {/* ACTIVE GPS LOCATION STATUS BANNER */}
+          {userCoords && (
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-ping" />
+                <span className="font-bold text-indigo-900">
+                  📍 Using Your Current GPS Position:
+                </span>
+                <span className="font-mono text-indigo-700 font-semibold">
+                  {userCoords.lat.toFixed(4)}, {userCoords.lng.toFixed(4)}
+                </span>
+                <span className="hidden sm:inline text-indigo-600 font-medium">
+                  &bull; Closest parking lots sorted first
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUserCoords(null);
+                  setSelectedFilter("ALL");
+                  showToast("GPS location reset.", "success");
+                }}
+                className="text-indigo-700 hover:text-indigo-900 font-bold hover:underline"
+              >
+                Reset Location
+              </button>
+            </div>
+          )}
 
           {/* FILTER PILLS */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
             {[
               { id: "ALL", label: "All Facilities" },
-              { id: "NEARBY", label: "📍 Nearest to Me" },
+              { id: "NEARBY", label: "🎯 Nearest to Me" },
               { id: "FREE", label: "🆓 Free Parking" },
               { id: "EV", label: "⚡ EV Charging" },
               { id: "SECURITY", label: "🛡️ Security Guard" },
@@ -440,7 +507,24 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* FACILITIES GRID */}
+        {/* INTERACTIVE MAP VIEW MODE */}
+        {viewMode === "MAP" && (
+          <section className="animate-in fade-in zoom-in-95 duration-200">
+            <ParkingMapView
+              parkingLocations={filteredParking}
+              userCoords={userCoords}
+              onLocateUser={handleLocateNearest}
+              isLocating={isLocating}
+              onBookParking={(p) =>
+                navigate(`/customer/parking/${p.id}/book`, { state: { parking: p } })
+              }
+              onViewDetails={(p) => navigate(`/customer/parking/${p.id}`)}
+            />
+          </section>
+        )}
+
+        {/* FACILITIES GRID VIEW MODE */}
+        {viewMode === "GRID" && (
         <section>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -647,6 +731,7 @@ export default function CustomerDashboard() {
             </div>
           )}
         </section>
+        )}
       </main>
     </div>
   );

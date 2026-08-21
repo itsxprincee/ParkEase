@@ -88,7 +88,7 @@ export default function AddParking() {
         submitData.append("image", imageFile);
       }
 
-      await API.post("/parking/add", submitData, {
+      await API.post("/parking/create", submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

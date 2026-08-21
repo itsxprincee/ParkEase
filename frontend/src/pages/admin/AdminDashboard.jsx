@@ -54,7 +54,7 @@ export default function AdminDashboard() {
       else setLoading(true);
 
       const [parkingRes, statsRes] = await Promise.allSettled([
-        API.get("/admin/parking/pending"),
+        API.get("/admin/parking"),
         API.get("/admin/verification-stats"),
       ]);
 
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   const handleApprove = async (id) => {
     try {
       setActionLoading(id);
-      await API.put(`/admin/parking/approve/${id}`);
+      await API.put(`/admin/parking/${id}/approve`);
       showToast("Parking facility verified and published live!", "success");
       setInspectModal({ open: false, item: null });
       loadData(true);
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
     if (!rejectModal.item) return;
     try {
       setActionLoading(rejectModal.item.id);
-      await API.put(`/admin/parking/reject/${rejectModal.item.id}`, {
+      await API.put(`/admin/parking/${rejectModal.item.id}/reject`, {
         reason: rejectModal.reason || "Documents incomplete.",
       });
       showToast("Facility marked as rejected.", "success");
@@ -135,9 +135,9 @@ export default function AdminDashboard() {
 
     if (!matchesSearch) return false;
 
-    const status = (item.status || "pending").toLowerCase();
-    if (activeTab === "pending") return status === "pending" || !item.is_approved;
-    if (activeTab === "approved") return status === "approved" || item.is_approved;
+    const status = (item.verification_status || item.status || "pending").toLowerCase();
+    if (activeTab === "pending") return status === "pending";
+    if (activeTab === "approved") return status === "approved";
     if (activeTab === "rejected") return status === "rejected";
 
     return true;
@@ -287,8 +287,18 @@ export default function AdminDashboard() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <Badge variant="warning" size="sm" dot>
-                            Pending Review
+                          <Badge
+                            variant={
+                              (item.verification_status || "").toUpperCase() === "APPROVED"
+                                ? "success"
+                                : (item.verification_status || "").toUpperCase() === "REJECTED"
+                                ? "danger"
+                                : "warning"
+                            }
+                            size="sm"
+                            dot
+                          >
+                            {(item.verification_status || "PENDING").toUpperCase()}
                           </Badge>
                           <span className="text-xs font-bold text-slate-400">
                             App #{item.id}
@@ -319,24 +329,28 @@ export default function AdminDashboard() {
                       >
                         Inspect Details
                       </Button>
-                      <Button
-                        variant="danger"
-                        size="md"
-                        onClick={() =>
-                          setRejectModal({ open: true, item, reason: "" })
-                        }
-                      >
-                        Reject
-                      </Button>
-                      <Button
-                        variant="success"
-                        size="md"
-                        icon={FiCheck}
-                        loading={actionLoading === item.id}
-                        onClick={() => handleApprove(item.id)}
-                      >
-                        Approve
-                      </Button>
+                      {(item.verification_status || "").toUpperCase() !== "REJECTED" && (
+                        <Button
+                          variant="danger"
+                          size="md"
+                          onClick={() =>
+                            setRejectModal({ open: true, item, reason: "" })
+                          }
+                        >
+                          Reject
+                        </Button>
+                      )}
+                      {(item.verification_status || "").toUpperCase() !== "APPROVED" && (
+                        <Button
+                          variant="success"
+                          size="md"
+                          icon={FiCheck}
+                          loading={actionLoading === item.id}
+                          onClick={() => handleApprove(item.id)}
+                        >
+                          Approve
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

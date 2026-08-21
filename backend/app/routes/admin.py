@@ -171,6 +171,7 @@ def get_all_parking(
 # =========================================================
 
 @router.put("/parking/{parking_id}/approve")
+@router.put("/parking/approve/{parking_id}")
 def approve_parking(
     parking_id: int,
     db: Session = Depends(get_db),
@@ -221,6 +222,7 @@ def approve_parking(
 # =========================================================
 
 @router.put("/parking/{parking_id}/reject")
+@router.put("/parking/reject/{parking_id}")
 def reject_parking(
     parking_id: int,
     request: RejectionRequest,

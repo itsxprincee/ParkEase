@@ -143,6 +143,33 @@ try:
                 "in the connected database."
             )
 
+        # -------------------------------------------------
+        # AUTO-MIGRATE PARKING_LOCATIONS TABLE
+        # -------------------------------------------------
+        parking_columns = connection.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = :database_name
+                AND TABLE_NAME = 'parking_locations'
+                """
+            ),
+            {"database_name": DB_NAME},
+        ).fetchall()
+
+        if parking_columns:
+            parking_column_names = [c.COLUMN_NAME for c in parking_columns]
+            if "hourly_rate" not in parking_column_names:
+                print("Auto-migrating: Adding 'hourly_rate' column to 'parking_locations'...")
+                connection.execute(
+                    text("ALTER TABLE parking_locations ADD COLUMN hourly_rate FLOAT NOT NULL DEFAULT 0.0")
+                )
+                connection.commit()
+                print("SUCCESS: 'hourly_rate' column added to 'parking_locations'")
+            else:
+                print("SUCCESS: parking_locations.hourly_rate EXISTS")
+
         print("=" * 55 + "\n")
 
 except Exception as error:

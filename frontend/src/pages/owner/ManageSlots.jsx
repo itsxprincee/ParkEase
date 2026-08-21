@@ -71,8 +71,8 @@ export default function ManageSlots() {
       else setLoading(true);
 
       const [pRes, sRes] = await Promise.allSettled([
-        API.get(`/parking/${id}`),
-        API.get(`/parking/${id}/slots`),
+        API.get(`/parking/owner/${id}`),
+        API.get(`/parking/owner/${id}/slots`),
       ]);
 
       if (pRes.status === "fulfilled") {
@@ -110,7 +110,7 @@ export default function ManageSlots() {
 
     try {
       setSaving(true);
-      await API.post(`/parking/${id}/slots`, singleSlotForm);
+      await API.post(`/parking/owner/${id}/slots`, singleSlotForm);
       showToast("Slot added successfully!", "success");
       setAddModalOpen(false);
       setSingleSlotForm({
@@ -136,7 +136,7 @@ export default function ManageSlots() {
       const promises = [];
       for (let i = 1; i <= count; i++) {
         promises.push(
-          API.post(`/parking/${id}/slots`, {
+          API.post(`/parking/owner/${id}/slots`, {
             slot_number: `${bulkForm.prefix}-${i}`,
             is_ev: bulkForm.is_ev,
             vehicle_type: bulkForm.vehicle_type,
@@ -160,7 +160,7 @@ export default function ManageSlots() {
     if (!editModal.slot) return;
     try {
       setSaving(true);
-      await API.put(`/parking/slots/${editModal.slot.id}`, editModal.slot);
+      await API.put(`/parking/owner/${id}/slots/${editModal.slot.id}`, editModal.slot);
       showToast("Slot updated successfully!", "success");
       setEditModal({ open: false, slot: null });
       loadData(true);
@@ -175,7 +175,7 @@ export default function ManageSlots() {
     if (!deleteModal.slot) return;
     try {
       setSaving(true);
-      await API.delete(`/parking/slots/${deleteModal.slot.id}`);
+      await API.delete(`/parking/owner/${id}/slots/${deleteModal.slot.id}`);
       showToast("Slot removed.", "success");
       setDeleteModal({ open: false, slot: null });
       loadData(true);

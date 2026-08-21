@@ -96,7 +96,7 @@ export default function EditParking() {
         submitData.append("image", imageFile);
       }
 
-      await API.put(`/parking/${id}`, submitData, {
+      await API.put(`/parking/owner/${id}`, submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

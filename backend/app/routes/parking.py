@@ -1190,6 +1190,7 @@ def get_parking(
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
+        "hourly_rate": parking.hourly_rate,
         "created_slots": total_slots_created,
         "available_slots": available_slots,
         "occupied_slots": occupied_slots,

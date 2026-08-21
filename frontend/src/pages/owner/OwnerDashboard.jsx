@@ -73,7 +73,7 @@ export default function OwnerDashboard() {
     if (!deleteModal.id) return;
     try {
       setDeleting(true);
-      await API.delete(`/parking/${deleteModal.id}`);
+      await API.delete(`/parking/owner/${deleteModal.id}`);
       showToast("Facility deleted successfully.", "success");
       setDeleteModal({ open: false, id: null, name: "" });
       loadOwnerData(true);

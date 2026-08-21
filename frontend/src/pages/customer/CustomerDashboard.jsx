@@ -303,6 +303,7 @@ export default function CustomerDashboard() {
               {[
                 { id: "ALL", label: "All Facilities" },
                 { id: "EV", label: "⚡ EV Charging" },
+                { id: "FREE", label: "🆓 Free Parking" },
               ].map((tab) => (
                 <button
                   key={tab.id}

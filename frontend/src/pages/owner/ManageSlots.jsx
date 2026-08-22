@@ -160,7 +160,13 @@ export default function ManageSlots() {
     if (!editModal.slot) return;
     try {
       setSaving(true);
-      await API.put(`/parking/owner/${id}/slots/${editModal.slot.id}`, editModal.slot);
+      const rawStatus = (editModal.slot.status || "AVAILABLE").toUpperCase();
+      await API.put(`/parking/owner/${id}/slots/${editModal.slot.id}`, {
+        slot_number: editModal.slot.slot_number.trim(),
+        status: rawStatus,
+        is_ev: Boolean(editModal.slot.is_ev),
+        vehicle_type: editModal.slot.vehicle_type || "Car",
+      });
       showToast("Slot updated successfully!", "success");
       setEditModal({ open: false, slot: null });
       loadData(true);
@@ -602,7 +608,7 @@ export default function ManageSlots() {
                 Slot Status
               </label>
               <select
-                value={editModal.slot.status || "available"}
+                value={(editModal.slot.status || "available").toLowerCase()}
                 onChange={(e) =>
                   setEditModal({
                     ...editModal,

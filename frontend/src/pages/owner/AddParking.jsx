@@ -26,6 +26,7 @@ import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
+import LocationPickerMap from "../../components/LocationPickerMap";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -283,26 +284,17 @@ export default function AddParking() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                    2. Geographic Coordinates
+                    2. Geographic Coordinates & Pin Location
                   </h3>
                   <p className="text-xs text-[#737373] mt-0.5">
-                    Ensures drivers can navigate straight to your entrance via turn-by-turn navigation.
+                    Drag the pin, search your landmark, or click anywhere on the map to set your exact entrance.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleGetLocation}
-                  disabled={isLocating}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0a0a0a] text-white text-xs font-bold hover:bg-[#262626] transition-colors shrink-0"
-                >
-                  <FiCrosshair className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
-                  <span>{isLocating ? "Detecting GPS..." : "Pin Current GPS"}</span>
-                </button>
               </div>
 
-              {/* City chips */}
+              {/* City presets */}
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] font-semibold text-[#737373]">Quick presets:</span>
+                <span className="text-[11px] font-semibold text-[#737373]">City Presets:</span>
                 {CITY_PRESETS.map((city) => (
                   <button
                     key={city.name}
@@ -313,7 +305,7 @@ export default function AddParking() {
                         latitude: city.lat,
                         longitude: city.lng,
                       }));
-                      showToast(`Coordinates set to ${city.name}`, "success");
+                      showToast(`Pinned to ${city.name}`, "success");
                     }}
                     className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#f0f0f0] text-[#545454] hover:bg-[#e0e0e0] hover:text-[#0a0a0a] transition-colors"
                   >
@@ -322,10 +314,23 @@ export default function AddParking() {
                 ))}
               </div>
 
+              {/* Interactive Map */}
+              <LocationPickerMap
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                onLocationChange={(lat, lng) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    latitude: lat,
+                    longitude: lng,
+                  }));
+                }}
+              />
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Latitude
+                    Exact Latitude (Decimal)
                   </label>
                   <input
                     type="text"
@@ -337,7 +342,7 @@ export default function AddParking() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Longitude
+                    Exact Longitude (Decimal)
                   </label>
                   <input
                     type="text"

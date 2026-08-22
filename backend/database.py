@@ -222,6 +222,36 @@ try:
                     print(f"SUCCESS: parking_locations.{col_name} EXISTS")
 
         # -------------------------------------------------
+        # AUTO-MIGRATE PARKING_SLOTS TABLE
+        # -------------------------------------------------
+        slot_columns = connection.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = :database_name
+                AND TABLE_NAME = 'parking_slots'
+                """
+            ),
+            {"database_name": DB_NAME},
+        ).fetchall()
+
+        if slot_columns:
+            slot_col_names = [c.COLUMN_NAME for c in slot_columns]
+            slot_expected = {
+                "is_ev": "BOOLEAN NOT NULL DEFAULT 0",
+                "vehicle_type": "VARCHAR(50) NULL DEFAULT 'Car'",
+            }
+            for col_name, col_def in slot_expected.items():
+                if col_name not in slot_col_names:
+                    print(f"Auto-migrating: Adding '{col_name}' column to 'parking_slots'...")
+                    connection.execute(
+                        text(f"ALTER TABLE parking_slots ADD COLUMN {col_name} {col_def}")
+                    )
+                    connection.commit()
+                    print(f"SUCCESS: '{col_name}' column added to 'parking_slots'")
+
+        # -------------------------------------------------
         # ENSURE CASCADE DELETION ON FOREIGN KEYS
         # -------------------------------------------------
         try:

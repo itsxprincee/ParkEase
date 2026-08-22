@@ -45,6 +45,9 @@ class SlotCreate(BaseModel):
         min_length=1,
         max_length=50
     )
+    status: str | None = "AVAILABLE"
+    is_ev: bool | None = False
+    vehicle_type: str | None = "Car"
 
 
 class SlotUpdate(BaseModel):
@@ -53,6 +56,9 @@ class SlotUpdate(BaseModel):
         min_length=1,
         max_length=50
     )
+    status: str | None = None
+    is_ev: bool | None = None
+    vehicle_type: str | None = None
 
 
 class SlotStatusUpdate(BaseModel):
@@ -908,7 +914,9 @@ def get_parking_slots(
                 "id": slot.id,
                 "parking_id": slot.parking_id,
                 "slot_number": slot.slot_number,
-                "status": slot.status
+                "status": slot.status,
+                "is_ev": getattr(slot, "is_ev", False),
+                "vehicle_type": getattr(slot, "vehicle_type", "Car")
             }
             for slot in slots
         ]
@@ -973,10 +981,16 @@ def create_parking_slot(
             detail="A slot with this number already exists"
         )
 
+    status_val = (data.status or "AVAILABLE").upper().strip()
+    if status_val not in ["AVAILABLE", "OCCUPIED", "MAINTENANCE"]:
+        status_val = "AVAILABLE"
+
     slot = ParkingSlot(
         parking_id=parking.id,
         slot_number=slot_number,
-        status="AVAILABLE"
+        status=status_val,
+        is_ev=bool(data.is_ev),
+        vehicle_type=data.vehicle_type or "Car"
     )
 
     db.add(slot)
@@ -989,13 +1003,15 @@ def create_parking_slot(
             "id": slot.id,
             "parking_id": slot.parking_id,
             "slot_number": slot.slot_number,
-            "status": slot.status
+            "status": slot.status,
+            "is_ev": slot.is_ev,
+            "vehicle_type": slot.vehicle_type
         }
     }
 
 
 # =========================================================
-# OWNER - UPDATE SLOT NUMBER
+# OWNER - UPDATE SLOT
 # =========================================================
 
 @router.put("/owner/{parking_id}/slots/{slot_id}")
@@ -1054,6 +1070,17 @@ def update_parking_slot(
 
     slot.slot_number = slot_number
 
+    if data.status:
+        st = data.status.upper().strip()
+        if st in ["AVAILABLE", "OCCUPIED", "MAINTENANCE"]:
+            slot.status = st
+
+    if data.is_ev is not None:
+        slot.is_ev = bool(data.is_ev)
+
+    if data.vehicle_type is not None:
+        slot.vehicle_type = data.vehicle_type
+
     db.commit()
     db.refresh(slot)
 
@@ -1063,7 +1090,9 @@ def update_parking_slot(
             "id": slot.id,
             "parking_id": slot.parking_id,
             "slot_number": slot.slot_number,
-            "status": slot.status
+            "status": slot.status,
+            "is_ev": slot.is_ev,
+            "vehicle_type": slot.vehicle_type
         }
     }
 

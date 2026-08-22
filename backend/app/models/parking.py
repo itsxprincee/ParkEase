@@ -201,6 +201,18 @@ class ParkingSlot(Base):
         default="AVAILABLE"
     )
 
+    is_ev = Column(
+        Boolean,
+        nullable=False,
+        default=False
+    )
+
+    vehicle_type = Column(
+        String(50),
+        nullable=True,
+        default="Car"
+    )
+
     # =====================================================
     # PARKING LOCATION RELATIONSHIP
     # =====================================================

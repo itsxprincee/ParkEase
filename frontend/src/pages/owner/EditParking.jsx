@@ -24,6 +24,7 @@ import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import { Card } from "../../components/Card";
 import { CardSkeleton } from "../../components/Skeleton";
+import LocationPickerMap from "../../components/LocationPickerMap";
 
 export default function EditParking() {
   const { id } = useParams();
@@ -225,19 +226,27 @@ export default function EditParking() {
 
               {/* CAPACITY & COORDINATES */}
               <div className="space-y-4 pt-4 border-t border-neutral-100">
-                <div className="flex items-center justify-between">
+                <div>
                   <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                    Capacity & Coordinates
+                    Capacity & Exact Coordinates
                   </h3>
-                  <button
-                    type="button"
-                    onClick={handleGetLocation}
-                    className="inline-flex items-center gap-1.5 text-xs font-black text-black hover:underline"
-                  >
-                    <FiCompass className="w-3.5 h-3.5" />
-                    <span>Use Device GPS</span>
-                  </button>
+                  <p className="text-xs text-[#737373] mt-0.5">
+                    Click anywhere on the map or drag the pin to calibrate your facility entrance.
+                  </p>
                 </div>
+
+                {/* Interactive Map */}
+                <LocationPickerMap
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  onLocationChange={(lat, lng) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      latitude: lat,
+                      longitude: lng,
+                    }));
+                  }}
+                />
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
@@ -247,7 +256,7 @@ export default function EditParking() {
                     <input
                       type="number"
                       min="1"
-                      max="500"
+                      max="1000"
                       required
                       value={formData.total_slots}
                       onChange={(e) =>
@@ -256,7 +265,7 @@ export default function EditParking() {
                           total_slots: e.target.value,
                         })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+                      className="pe-input text-xs font-bold"
                     />
                   </div>
 
@@ -271,7 +280,7 @@ export default function EditParking() {
                       onChange={(e) =>
                         setFormData({ ...formData, latitude: e.target.value })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+                      className="pe-input text-xs font-mono"
                     />
                   </div>
 
@@ -286,7 +295,7 @@ export default function EditParking() {
                       onChange={(e) =>
                         setFormData({ ...formData, longitude: e.target.value })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+                      className="pe-input text-xs font-mono"
                     />
                   </div>
                 </div>

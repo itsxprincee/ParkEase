@@ -56,9 +56,16 @@ print(f"Database Name : {DB_NAME}")
 print("=" * 55)
 
 
-# =========================================================
-# CREATE DATABASE ENGINE
-# =========================================================
+# Auto-create database if not exists
+try:
+    server_url = f"mysql+pymysql://{DB_USER}:{ENCODED_PASSWORD}@{DB_HOST}:{DB_PORT}/mysql"
+    server_engine = create_engine(server_url, pool_pre_ping=True)
+    with server_engine.connect() as conn:
+        conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"))
+        conn.commit()
+    server_engine.dispose()
+except Exception:
+    pass
 
 engine = create_engine(
     DATABASE_URL,
@@ -95,9 +102,8 @@ try:
         print("=" * 55)
 
         # -------------------------------------------------
-        # CHECK VEHICLES TABLE
+        # AUTO-MIGRATE VEHICLES TABLE
         # -------------------------------------------------
-
         vehicle_columns = connection.execute(
             text(
                 """
@@ -108,40 +114,75 @@ try:
                 ORDER BY ORDINAL_POSITION
                 """
             ),
-            {
-                "database_name": DB_NAME
-            },
+            {"database_name": DB_NAME},
         ).fetchall()
 
-        print("\n" + "=" * 55)
-        print("           VEHICLES TABLE COLUMNS")
-        print("=" * 55)
-
         if vehicle_columns:
-            for column in vehicle_columns:
-                print(f"- {column.COLUMN_NAME}")
+            column_names = [column.COLUMN_NAME for column in vehicle_columns]
+            
+            # If owner_id exists and has constraints, resolve it
+            if "owner_id" in column_names:
+                try:
+                    # Find and drop any FK constraint referencing owner_id
+                    fk_rows = connection.execute(
+                        text(
+                            """
+                            SELECT CONSTRAINT_NAME
+                            FROM information_schema.KEY_COLUMN_USAGE
+                            WHERE TABLE_SCHEMA = :database_name
+                            AND TABLE_NAME = 'vehicles'
+                            AND COLUMN_NAME = 'owner_id'
+                            AND REFERENCED_TABLE_NAME IS NOT NULL
+                            """
+                        ),
+                        {"database_name": DB_NAME},
+                    ).fetchall()
+                    for fk in fk_rows:
+                        print(f"Auto-migrating: Dropping legacy FK `{fk.CONSTRAINT_NAME}` on vehicles.owner_id...")
+                        connection.execute(text(f"ALTER TABLE `vehicles` DROP FOREIGN KEY `{fk.CONSTRAINT_NAME}`"))
+                        connection.commit()
+                except Exception as e:
+                    print("Note on dropping legacy vehicles FK:", e)
 
-            column_names = [
-                column.COLUMN_NAME
-                for column in vehicle_columns
-            ]
+                if "user_id" not in column_names:
+                    print("Auto-migrating: Renaming `owner_id` to `user_id` in `vehicles` table...")
+                    connection.execute(text("ALTER TABLE `vehicles` CHANGE COLUMN `owner_id` `user_id` INT NOT NULL"))
+                    connection.commit()
+                else:
+                    # Make owner_id nullable so inserts with user_id don't fail
+                    print("Auto-migrating: Making legacy `owner_id` nullable in `vehicles` table...")
+                    connection.execute(text("ALTER TABLE `vehicles` MODIFY COLUMN `owner_id` INT NULL DEFAULT NULL"))
+                    connection.commit()
 
-            print("=" * 55)
+            # Ensure user_id column exists
+            if "user_id" not in column_names and "owner_id" not in column_names:
+                print("Auto-migrating: Adding `user_id` to `vehicles` table...")
+                connection.execute(text("ALTER TABLE `vehicles` ADD COLUMN `user_id` INT NOT NULL"))
+                connection.commit()
 
-            if "user_id" in column_names:
-                print(
-                    "SUCCESS: vehicles.user_id EXISTS"
-                )
-            else:
-                print(
-                    "ERROR: vehicles.user_id DOES NOT EXIST"
-                )
+            # Ensure user_id FK constraint exists
+            try:
+                user_fk = connection.execute(
+                    text(
+                        """
+                        SELECT CONSTRAINT_NAME
+                        FROM information_schema.KEY_COLUMN_USAGE
+                        WHERE TABLE_SCHEMA = :database_name
+                        AND TABLE_NAME = 'vehicles'
+                        AND COLUMN_NAME = 'user_id'
+                        AND REFERENCED_TABLE_NAME = 'users'
+                        """
+                    ),
+                    {"database_name": DB_NAME},
+                ).fetchall()
+                if not user_fk:
+                    print("Auto-migrating: Adding FK on `vehicles.user_id` referencing `users(id)`...")
+                    connection.execute(text("ALTER TABLE `vehicles` ADD CONSTRAINT `fk_vehicles_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE"))
+                    connection.commit()
+            except Exception as e:
+                print("Note on vehicles.user_id FK constraint:", e)
 
-        else:
-            print(
-                "ERROR: vehicles table was not found "
-                "in the connected database."
-            )
+            print("SUCCESS: vehicles table schema aligned with user_id.")
 
         # -------------------------------------------------
         # AUTO-MIGRATE PARKING_LOCATIONS TABLE

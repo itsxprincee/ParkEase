@@ -32,6 +32,8 @@ router = APIRouter(
 # =========================================================
 
 @router.post("/add")
+@router.post("/")
+@router.post("")
 def add_review(
     data: dict,
     db: Session = Depends(get_db),

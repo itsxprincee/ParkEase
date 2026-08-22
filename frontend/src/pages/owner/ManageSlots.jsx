@@ -213,20 +213,14 @@ export default function ManageSlots() {
   const evCount = slots.filter((s) => s.is_ev).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
-              toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+            {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
@@ -237,7 +231,7 @@ export default function ManageSlots() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#e0e0e0] text-xs font-semibold text-[#0a0a0a] hover:border-[#0a0a0a] transition"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Dashboard</span>
@@ -304,7 +298,7 @@ export default function ManageSlots() {
 
         {/* SEARCH & FILTERS */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
+          <div className="flex items-center gap-1 bg-[#e8e8e8] p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
             {[
               { id: "ALL", label: `All (${slots.length})` },
               { id: "AVAILABLE", label: "Available" },
@@ -447,7 +441,7 @@ export default function ManageSlots() {
                   slot_number: e.target.value.toUpperCase(),
                 })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+              className="pe-input text-sm font-bold"
             />
           </div>
 
@@ -460,7 +454,7 @@ export default function ManageSlots() {
               onChange={(e) =>
                 setSingleSlotForm({ ...singleSlotForm, status: e.target.value })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-medium focus:outline-none focus:border-indigo-500"
+              className="pe-input text-sm"
             >
               <option value="available">Available</option>
               <option value="occupied">Occupied</option>

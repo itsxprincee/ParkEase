@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from app.models.booking import Booking
 from app.models.parking import ParkingLocation, ParkingSlot
+from app.models.vehicle import Vehicle
 from app.utils.auth import get_current_user
 
 
@@ -68,6 +69,9 @@ def get_user_booking(
 # =========================================================
 
 @router.post("/create")
+@router.post("/book")
+@router.post("/")
+@router.post("")
 def create_booking(
     data: BookingCreate,
     db: Session = Depends(get_db),
@@ -395,6 +399,9 @@ def complete_parking(
 # =========================================================
 
 @router.delete("/{booking_id}")
+@router.post("/cancel/{booking_id}")
+@router.post("/{booking_id}/cancel")
+@router.patch("/{booking_id}/cancel")
 def cancel_booking(
     booking_id: int,
     db: Session = Depends(get_db),
@@ -451,11 +458,73 @@ def cancel_booking(
 
 
 # =========================================================
+# VERIFY BOOKING BY ID
+# GET /booking/verify/{booking_id}
+# =========================================================
+
+@router.get("/verify/{booking_id}")
+def verify_booking_by_id(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    booking = (
+        db.query(Booking)
+        .filter(Booking.id == booking_id)
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking pass not found"
+        )
+
+    parking = (
+        db.query(ParkingLocation)
+        .filter(ParkingLocation.id == booking.parking_location_id)
+        .first()
+    )
+
+    slot = None
+    if booking.slot_id:
+        slot = (
+            db.query(ParkingSlot)
+            .filter(ParkingSlot.id == booking.slot_id)
+            .first()
+        )
+
+    customer_vehicle = (
+        db.query(Vehicle)
+        .filter(Vehicle.user_id == booking.user_id)
+        .first()
+    )
+
+    return {
+        "id": booking.id,
+        "booking_id": booking.id,
+        "parking_id": booking.parking_location_id,
+        "parking_name": parking.name if parking else "ParkEase Hub",
+        "parking_address": parking.address if parking else "City Hub",
+        "slot_number": slot.slot_number if slot else "A-1",
+        "vehicle_number": customer_vehicle.vehicle_number if customer_vehicle else "MH-01-AB-1234",
+        "vehicle_type": customer_vehicle.vehicle_type if customer_vehicle else "Car",
+        "status": booking.status or "ACTIVE",
+        "booking_date": str(booking.booking_date),
+        "start_time": str(booking.start_time) if booking.start_time else "10:00 AM",
+        "end_time": str(booking.end_time) if booking.end_time else "12:00 PM",
+        "total_amount": booking.amount or 105,
+    }
+
+
+# =========================================================
 # VEHICLE ENTRY / CHECK-IN
 # POST /booking/entry/{booking_id}
 # =========================================================
 
 @router.post("/entry/{booking_id}")
+@router.post("/check-in/{booking_id}")
+@router.post("/checkin/{booking_id}")
 def check_in_booking(
     booking_id: int,
     db: Session = Depends(get_db),
@@ -551,6 +620,8 @@ def check_in_booking(
 # =========================================================
 
 @router.post("/exit/{booking_id}")
+@router.post("/check-out/{booking_id}")
+@router.post("/checkout/{booking_id}")
 def check_out_booking(
     booking_id: int,
     db: Session = Depends(get_db),

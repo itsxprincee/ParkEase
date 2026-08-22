@@ -49,6 +49,8 @@ def get_my_vehicles(
 # =========================================================
 
 @router.post("/add")
+@router.post("/")
+@router.post("")
 def add_vehicle(
     data: dict,
     db: Session = Depends(get_db),

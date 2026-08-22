@@ -138,20 +138,13 @@ export default function EditParking() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f6f6f6] text-black flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
 
-      {/* TOAST ALERT */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold ${
-              toast.type === "error"
-                ? "bg-rose-50 text-rose-800 border-rose-200"
-                : "bg-emerald-50 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+            {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>

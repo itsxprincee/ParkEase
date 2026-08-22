@@ -1,247 +1,449 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+
+/* =====================================================
+   PARKEASE DESIGN SYSTEM v2.0
+   Uber-level UI — Premium, Dark, Minimal
+   ===================================================== */
 
 @layer base {
   :root {
-    --uber-black: #000000;
-    --uber-white: #ffffff;
-    --uber-gray-50: #f6f6f6;
-    --uber-gray-100: #eeeeee;
-    --uber-gray-200: #e2e2e2;
-    --uber-gray-600: #545454;
-    --uber-gray-900: #0f0f0f;
-    --uber-green: #05944f;
-    --uber-blue: #276ef1;
-    --bg-page: #ffffff;
+    /* Brand */
+    --pe-black: #0a0a0a;
+    --pe-white: #ffffff;
+    --pe-accent: #276ef1;
+    --pe-green: #05944f;
+    --pe-amber: #f5a623;
+    --pe-red: #e11900;
+
+    /* Neutrals */
+    --pe-gray-50: #f7f7f7;
+    --pe-gray-100: #efefef;
+    --pe-gray-200: #e0e0e0;
+    --pe-gray-300: #c8c8c8;
+    --pe-gray-400: #a0a0a0;
+    --pe-gray-500: #737373;
+    --pe-gray-600: #545454;
+    --pe-gray-700: #3a3a3a;
+    --pe-gray-800: #242424;
+    --pe-gray-900: #141414;
+
+    /* Surface */
+    --pe-surface: #ffffff;
+    --pe-surface-subtle: #f7f7f7;
+    --pe-border: #e0e0e0;
+    --pe-border-strong: #c8c8c8;
+
+    /* Typography */
+    --pe-text-primary: #0a0a0a;
+    --pe-text-secondary: #545454;
+    --pe-text-tertiary: #a0a0a0;
+
+    /* Shadows */
+    --pe-shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --pe-shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+    --pe-shadow-lg: 0 16px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
+    --pe-shadow-xl: 0 24px 64px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.1);
+
+    /* Radii */
+    --pe-radius-sm: 8px;
+    --pe-radius-md: 12px;
+    --pe-radius-lg: 16px;
+    --pe-radius-xl: 20px;
+    --pe-radius-2xl: 24px;
+    --pe-radius-full: 9999px;
+
+    /* Transitions */
+    --pe-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --pe-transition-spring: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   * {
-    border-color: #e2e2e2;
+    box-sizing: border-box;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    border-color: var(--pe-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    font-family: "Uber Move Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #000000;
-    background-color: #f6f6f6;
-    letter-spacing: -0.01em;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--pe-text-primary);
+    background-color: var(--pe-gray-50);
+    letter-spacing: -0.011em;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Uber Move", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
     font-weight: 800;
   }
+
+  input, textarea, select {
+    font-family: 'Inter', sans-serif;
+  }
 }
 
-/* Uber Design System Classes */
-.uber-card {
-  background: #ffffff;
-  border: 1px solid #e2e2e2;
-  border-radius: 1rem;
-  transition: all 0.15s ease-in-out;
-}
+/* =====================================================
+   ANIMATIONS
+   ===================================================== */
 
-.uber-card:hover {
-  border-color: #000000;
-}
-
-.uber-card-selected {
-  background: #ffffff;
-  border: 2px solid #000000;
-}
-
-.uber-btn-black {
-  background-color: #000000;
-  color: #ffffff;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  transition: background-color 0.15s ease;
-}
-
-.uber-btn-black:hover {
-  background-color: #262626;
-}
-
-.uber-btn-gray {
-  background-color: #eeeeee;
-  color: #000000;
-  font-weight: 700;
-  border-radius: 0.75rem;
-  transition: background-color 0.15s ease;
-}
-
-.uber-btn-gray:hover {
-  background-color: #e2e2e2;
-}
-
-.uber-input {
-  background-color: #f6f6f6;
-  border: 2px solid transparent;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #000000;
-  transition: all 0.15s ease;
-}
-
-.uber-input:focus {
-  background-color: #ffffff;
-  border-color: #000000;
-  outline: none;
-}
-
-.uber-badge-green {
-  background-color: #e6f4ea;
-  color: #05944f;
-  font-weight: 700;
-}
-
-.uber-badge-black {
-  background-color: #000000;
-  color: #ffffff;
-  font-weight: 700;
-}
-
-/* Shimmer Loading Animation */
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes springIn {
+  0% { opacity: 0; transform: scale(0.88) translateY(20px); }
+  60% { transform: scale(1.02) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 148, 79, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(5, 148, 79, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 148, 79, 0); }
+}
+
+@keyframes scanLaser {
+  0% { top: 5%; opacity: 0.8; }
+  50% { top: 90%; opacity: 1; }
+  100% { top: 5%; opacity: 0.8; }
+}
+
+@keyframes dotPing {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* =====================================================
+   UTILITY CLASSES
+   ===================================================== */
+
+/* Animations */
 .animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Smooth custom scrollbars */
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-spring-in {
+  animation: springIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-dot-ping {
+  animation: dotPing 1.5s ease-in-out infinite;
+}
+
+/* Cards */
+.pe-card {
+  background: var(--pe-surface);
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius-xl);
+  box-shadow: var(--pe-shadow-sm);
+  transition: var(--pe-transition);
+}
+
+.pe-card-hover:hover {
+  border-color: var(--pe-gray-400);
+  box-shadow: var(--pe-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Glass effect */
+.pe-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.pe-glass-dark {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Buttons */
+.pe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  border-radius: var(--pe-radius-md);
+  transition: var(--pe-transition);
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  user-select: none;
+  letter-spacing: -0.01em;
+}
+
+.pe-btn:active {
+  transform: scale(0.97);
+}
+
+.pe-btn-primary {
+  background: var(--pe-black);
+  color: var(--pe-white);
+}
+
+.pe-btn-primary:hover {
+  background: var(--pe-gray-800);
+}
+
+.pe-btn-ghost {
+  background: var(--pe-gray-100);
+  color: var(--pe-gray-700);
+}
+
+.pe-btn-ghost:hover {
+  background: var(--pe-gray-200);
+}
+
+/* Inputs */
+.pe-input {
+  width: 100%;
+  background: var(--pe-surface);
+  border: 1.5px solid var(--pe-border);
+  border-radius: var(--pe-radius-md);
+  padding: 0.75rem 1rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--pe-text-primary);
+  transition: var(--pe-transition);
+  outline: none;
+}
+
+.pe-input:focus {
+  border-color: var(--pe-black);
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.06);
+}
+
+.pe-input::placeholder {
+  color: var(--pe-text-tertiary);
+  font-weight: 400;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+  background: var(--pe-gray-300);
+  border-radius: var(--pe-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--pe-gray-400);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+/* QR Scanner */
+.scan-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #276ef1, #05944f, #276ef1, transparent);
+  box-shadow: 0 0 12px rgba(39, 110, 241, 0.8);
+  animation: scanLaser 2s infinite ease-in-out;
+  z-index: 30;
 }
 
-/* Ticket Perforations & Cuts */
+/* Pulse ring for GPS / active indicators */
+.pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+
+/* Ticket / QR print */
 .ticket-cut-l {
   position: relative;
 }
+
 .ticket-cut-l::before {
   content: "";
   position: absolute;
-  left: -12px;
+  left: -14px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  background-color: #f8fafc;
+  width: 28px;
+  height: 28px;
+  background-color: var(--pe-gray-50);
   border-radius: 50%;
-  border-right: 1px solid #e2e8f0;
-  z-index: 10;
-}
-.ticket-cut-r::after {
-  content: "";
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  background-color: #f8fafc;
-  border-radius: 50%;
-  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid var(--pe-border);
   z-index: 10;
 }
 
-/* Digital IND License Plate */
+.ticket-cut-r::after {
+  content: "";
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background-color: var(--pe-gray-50);
+  border-radius: 50%;
+  border-left: 1px solid var(--pe-border);
+  z-index: 10;
+}
+
+/* Indian License Plate */
 .license-plate {
   display: inline-flex;
   align-items: center;
   background: #ffffff;
-  border: 2px solid #0f172a;
-  border-radius: 8px;
-  padding: 2px 10px 2px 4px;
-  font-family: monospace;
+  border: 2px solid #1a1a1a;
+  border-radius: 6px;
+  padding: 3px 10px 3px 4px;
+  font-family: 'Courier New', monospace;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #0f172a;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  letter-spacing: 0.12em;
+  color: #1a1a1a;
+  font-size: 0.875rem;
 }
 
 .license-plate-ind {
   background: #003893;
   color: #ffffff;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 8px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 7px;
   font-weight: 900;
   margin-right: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1;
+  line-height: 1.1;
+  letter-spacing: 0.05em;
 }
 
-/* QR Scanning Laser Line */
-@keyframes scanLaser {
-  0% {
-    top: 5%;
-    opacity: 0.8;
-  }
-  50% {
-    top: 90%;
-    opacity: 1;
-  }
-  100% {
-    top: 5%;
-    opacity: 0.8;
-  }
+/* Gradient text */
+.pe-gradient-text {
+  background: linear-gradient(135deg, #276ef1, #05944f);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.scan-laser-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #6366f1, #38bdf8, #6366f1, transparent);
-  box-shadow: 0 0 15px #6366f1;
-  animation: scanLaser 2.2s infinite ease-in-out;
-  z-index: 30;
+/* Status dots */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
-/* Print optimizations for receipts */
+.status-dot-green { background-color: #05944f; }
+.status-dot-amber { background-color: #f5a623; }
+.status-dot-red { background-color: #e11900; }
+.status-dot-gray { background-color: #a0a0a0; }
+
+/* Print */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #printable-receipt, #printable-receipt * {
-    visibility: visible;
-  }
+  body * { visibility: hidden; }
+  #printable-receipt, #printable-receipt * { visibility: visible; }
   #printable-receipt {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
   }
+}
+
+/* Parking grid slot colors */
+.slot-available {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.slot-occupied {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.slot-maintenance {
+  background: #fefce8;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.slot-ev {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.slot-selected {
+  background: #0a0a0a;
+  border-color: #0a0a0a;
+  color: #ffffff;
 }

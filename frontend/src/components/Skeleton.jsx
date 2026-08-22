@@ -1,38 +1,46 @@
 import React from "react";
 
-export function Skeleton({ className = "", rounded = "rounded-xl" }) {
+export function Skeleton({ className = "", height = "h-4", rounded = "rounded-lg" }) {
   return (
     <div
-      className={`bg-slate-200/80 animate-pulse ${rounded} ${className}`}
+      className={`animate-shimmer ${height} ${rounded} ${className}`}
+      style={{
+        background: "linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)",
+        backgroundSize: "200% 100%",
+      }}
     />
   );
 }
 
-export function CardSkeleton() {
+export function CardSkeleton({ lines = 3 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-6 space-y-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-6 w-1/3" />
-        <Skeleton className="h-6 w-16 rounded-full" />
+    <div className="bg-white rounded-2xl border border-[#e0e0e0] p-5 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="flex items-center gap-3">
+        <Skeleton height="h-11" className="w-11 rounded-xl shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton height="h-4" className="w-2/3" />
+          <Skeleton height="h-3" className="w-1/2" />
+        </div>
       </div>
-      <Skeleton className="h-4 w-2/3" />
-      <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-        <Skeleton className="h-8 w-24" />
-        <Skeleton className="h-9 w-28 rounded-xl" />
-      </div>
+      {Array.from({ length: lines - 1 }).map((_, i) => (
+        <Skeleton key={i} height="h-3" className={i === lines - 2 ? "w-3/4" : "w-full"} />
+      ))}
     </div>
   );
 }
 
-export function TableRowSkeleton({ cols = 4 }) {
+export function StatCardSkeleton() {
   return (
-    <tr className="border-b border-slate-100 animate-pulse">
-      {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="py-4 px-4">
-          <Skeleton className="h-4 w-full max-w-[120px]" />
-        </td>
-      ))}
-    </tr>
+    <div className="bg-white rounded-2xl border border-[#e0e0e0] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2.5 flex-1">
+          <Skeleton height="h-3" className="w-24" />
+          <Skeleton height="h-8" className="w-16" />
+          <Skeleton height="h-3" className="w-20" />
+        </div>
+        <Skeleton height="h-11" className="w-11 rounded-xl shrink-0" />
+      </div>
+    </div>
   );
 }
 

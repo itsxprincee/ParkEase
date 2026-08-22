@@ -13,6 +13,7 @@ router = APIRouter(
 
 
 @router.get("/")
+@router.get("")
 def dashboard(
     db: Session = Depends(get_db),
     user = Depends(admin_required)

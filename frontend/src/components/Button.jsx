@@ -1,11 +1,37 @@
 import React from "react";
 
+const sizeMap = {
+  sm: "px-3 py-1.5 text-xs gap-1.5",
+  md: "px-4 py-2.5 text-sm gap-2",
+  lg: "px-5 py-3 text-sm gap-2.5",
+  xl: "px-7 py-3.5 text-base gap-3",
+};
+
+const variantMap = {
+  primary:
+    "bg-[#0a0a0a] text-white hover:bg-[#242424] focus:ring-2 focus:ring-black/20 shadow-sm",
+  secondary:
+    "bg-[#f0f0f0] text-[#0a0a0a] hover:bg-[#e0e0e0] focus:ring-2 focus:ring-black/10 border border-[#e0e0e0]",
+  outline:
+    "bg-white text-[#0a0a0a] border border-[#e0e0e0] hover:border-[#0a0a0a] hover:bg-[#f7f7f7] focus:ring-2 focus:ring-black/10",
+  danger:
+    "bg-[#e11900] text-white hover:bg-[#c51500] focus:ring-2 focus:ring-red-400/30 shadow-sm",
+  success:
+    "bg-[#05944f] text-white hover:bg-[#047340] focus:ring-2 focus:ring-green-400/30 shadow-sm",
+  ghost:
+    "bg-transparent text-[#545454] hover:bg-[#f0f0f0] hover:text-[#0a0a0a] focus:ring-2 focus:ring-black/10",
+  white:
+    "bg-white text-[#0a0a0a] border border-[#e0e0e0] hover:shadow-md focus:ring-2 focus:ring-black/10 shadow-sm",
+  accent:
+    "bg-[#276ef1] text-white hover:bg-[#1d5cd4] focus:ring-2 focus:ring-blue-400/30 shadow-sm",
+};
+
 export default function Button({
   children,
   onClick,
   type = "button",
-  variant = "primary", // primary, secondary, outline, danger, success, ghost, white
-  size = "md", // sm, md, lg, xl
+  variant = "primary",
+  size = "md",
   className = "",
   disabled = false,
   loading = false,
@@ -14,51 +40,29 @@ export default function Button({
   fullWidth = false,
   ...props
 }) {
-  const baseStyles =
-    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none active:scale-[0.98]";
-
-  const sizeStyles = {
-    sm: "px-3 py-1.5 text-xs gap-1.5",
-    md: "px-4 py-2.5 text-sm gap-2 shadow-xs",
-    lg: "px-5 py-3 text-sm font-semibold gap-2.5 shadow-sm",
-    xl: "px-6 py-3.5 text-base font-bold gap-3 shadow-md",
-  };
-
-  const variantStyles = {
-    primary:
-      "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20 hover:shadow-indigo-500/30 focus:ring-indigo-500 border border-indigo-600 hover:border-indigo-700",
-    secondary:
-      "bg-slate-100 hover:bg-slate-200 text-slate-800 focus:ring-slate-400 border border-slate-200",
-    outline:
-      "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 focus:ring-indigo-500 shadow-xs",
-    danger:
-      "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20 focus:ring-rose-500 border border-rose-600",
-    success:
-      "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20 focus:ring-emerald-500 border border-emerald-600",
-    ghost:
-      "bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900 focus:ring-slate-400",
-    white:
-      "bg-white hover:bg-slate-50 text-indigo-600 font-semibold shadow-md hover:shadow-lg focus:ring-white border border-slate-100",
-  };
-
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`
-        ${baseStyles}
-        ${sizeStyles[size] || sizeStyles.md}
-        ${variantStyles[variant] || variantStyles.primary}
-        ${fullWidth ? "w-full" : ""}
-        ${className}
-      `}
+      className={[
+        "inline-flex items-center justify-center font-semibold rounded-xl",
+        "transition-all duration-150 cursor-pointer select-none",
+        "focus:outline-none active:scale-[0.97]",
+        "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        sizeMap[size] ?? sizeMap.md,
+        variantMap[variant] ?? variantMap.primary,
+        fullWidth ? "w-full" : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...props}
     >
       {loading ? (
         <>
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+            className="animate-spin h-4 w-4 text-current shrink-0"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -77,7 +81,7 @@ export default function Button({
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             />
           </svg>
-          <span>Loading...</span>
+          <span>Loading…</span>
         </>
       ) : (
         <>

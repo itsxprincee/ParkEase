@@ -12,7 +12,11 @@ from app.models.booking import Booking
 from app.models.review import Review
 
 # Create Database Tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as db_err:
+    print(f"\n[WARNING] Could not connect to MySQL server: {db_err}")
+    print("[TIP] Make sure your MySQL Server (or XAMPP MySQL) is started.\n")
 
 # =========================================================
 # CREATE FASTAPI APPLICATION
@@ -31,9 +35,14 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

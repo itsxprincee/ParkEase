@@ -4,7 +4,6 @@ export function Card({
   children,
   className = "",
   hover = false,
-  glass = false,
   padding = "p-6",
   onClick = null,
   ...props
@@ -12,13 +11,19 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`
-        rounded-2xl border transition-all duration-200
-        ${glass ? "glass-panel" : "bg-white border-slate-200/90 shadow-card"}
-        ${hover ? "hover:border-indigo-300 hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer" : ""}
-        ${padding}
-        ${className}
-      `}
+      className={[
+        "bg-white rounded-2xl border border-[#e0e0e0]",
+        "shadow-[0_1px_3px_rgba(0,0,0,0.08)]",
+        "transition-all duration-200",
+        hover
+          ? "hover:border-[#a0a0a0] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 cursor-pointer"
+          : "",
+        onClick ? "cursor-pointer" : "",
+        padding,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...props}
     >
       {children}
@@ -31,8 +36,9 @@ export function StatCard({
   value,
   subtitle = "",
   icon: Icon = null,
-  trend = null, // { value: "+12%", positive: true }
-  iconColor = "text-indigo-600 bg-indigo-50 border-indigo-100",
+  trend = null,
+  iconBg = "bg-[#f0f0f0]",
+  iconColor = "text-[#0a0a0a]",
   className = "",
   onClick = null,
 }) {
@@ -42,42 +48,40 @@ export function StatCard({
       onClick={onClick}
       className={`relative overflow-hidden ${className}`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold text-slate-500 tracking-wide uppercase">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-[#737373] uppercase tracking-wide leading-none">
             {title}
           </p>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+          <p className="text-2xl sm:text-3xl font-black text-[#0a0a0a] mt-2 tracking-tight leading-none">
             {value}
-          </h3>
+          </p>
           {subtitle && (
-            <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>
+            <p className="text-xs text-[#a0a0a0] mt-1.5 font-medium">{subtitle}</p>
           )}
         </div>
 
         {Icon && (
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${iconColor}`}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}
           >
-            <Icon className="w-6 h-6 shrink-0" />
+            <Icon className={`w-5 h-5 shrink-0 ${iconColor}`} />
           </div>
         )}
       </div>
 
       {trend && (
-        <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center gap-2">
+        <div className="mt-4 pt-3 border-t border-[#f0f0f0] flex items-center gap-2">
           <span
             className={`inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-md ${
               trend.positive
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-rose-50 text-rose-700"
+                ? "bg-[#f0fdf4] text-[#166534]"
+                : "bg-[#fef2f2] text-[#991b1b]"
             }`}
           >
             {trend.value}
           </span>
-          <span className="text-[11px] text-slate-400 font-medium">
-            vs last period
-          </span>
+          <span className="text-[11px] text-[#a0a0a0] font-medium">vs last period</span>
         </div>
       )}
     </Card>

@@ -310,7 +310,7 @@ export default function ParkingMapView({
 
       {/* SELECTED PARKING BOTTOM PREVIEW CARD ON MAP */}
       {selectedParking && (
-        <div className="absolute bottom-4 left-4 right-4 z-[400] max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="absolute bottom-4 left-4 right-4 z-[400] max-w-lg mx-auto animate-slide-up">
           <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center font-black text-2xl shrink-0">

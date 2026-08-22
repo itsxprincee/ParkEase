@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FiMapPin,
   FiMail,
@@ -16,37 +16,88 @@ import {
   FiLayers,
 } from "react-icons/fi";
 import API from "../api/axios";
-import Badge from "../components/Badge";
 import Button from "../components/Button";
-import Modal from "../components/Modal";
 
+// ── Toast ────────────────────────────────────────────────────────────────────
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+      <div
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] border text-sm font-semibold ${
+          toast.type === "error"
+            ? "bg-white text-[#e11900] border-[#fca5a5]"
+            : "bg-white text-[#05944f] border-[#86efac]"
+        }`}
+      >
+        {toast.type === "error" ? (
+          <FiAlertCircle className="w-4 h-4 shrink-0" />
+        ) : (
+          <FiCheckCircle className="w-4 h-4 shrink-0" />
+        )}
+        <span>{toast.message}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Input Field ───────────────────────────────────────────────────────────────
+function InputField({ label, icon: Icon, type = "text", value, onChange, placeholder, action }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+        {label}
+      </label>
+      <div className="relative">
+        {Icon && (
+          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+        )}
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`pe-input ${Icon ? "pl-10" : ""} ${action ? "pr-12" : ""}`}
+        />
+        {action && (
+          <button
+            type="button"
+            onClick={action.onClick}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#0a0a0a] transition-colors"
+          >
+            {action.icon}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Mode: "signin" | "signup" | "forgot"
-  const [mode, setMode] = useState("signin");
+  const [mode, setMode] = useState("signin"); // signin | signup | forgot
 
-  // Sign In state
+  // Sign In
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
-  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignInPw, setShowSignInPw] = useState(false);
 
-  // Sign Up state
+  // Sign Up
   const [name, setName] = useState("");
-  const [role, setRole] = useState("customer"); // "customer" | "owner"
+  const [role, setRole] = useState("customer");
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
-  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
-
-  // OTP state
-  const [step, setStep] = useState(1); // 1 = form, 2 = otp verification
+  const [showSignUpPw, setShowSignUpPw] = useState(false);
+  const [step, setStep] = useState(1);
   const [otp, setOtp] = useState("");
 
-  // Forgot password
+  // Forgot
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
 
-  // Loading & Toast
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -55,627 +106,427 @@ export default function Login() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Sign In Handler
+  useEffect(() => {
+    if (searchParams.get("session_expired") === "true") {
+      showToast("Your session has expired. Please sign in again.", "error");
+    }
+  }, [searchParams]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!signInEmail || !signInPassword) {
-      showToast("Please enter your email and password.", "error");
-      return;
+      return showToast("Please enter your email and password.", "error");
     }
-
     try {
       setLoading(true);
       const res = await API.post("/auth/login", {
         email: signInEmail,
         password: signInPassword,
       });
-
       const token = res.data?.token || res.data?.access_token;
       const user = res.data?.user || res.data;
-
-      if (token) {
-        localStorage.setItem("token", token);
-      }
-      if (user) {
-        localStorage.setItem("user", JSON.stringify(user));
-      }
-
-      showToast("Welcome back to ParkEase!", "success");
-
+      if (token) localStorage.setItem("token", token);
+      if (user) localStorage.setItem("user", JSON.stringify(user));
+      showToast("Welcome back!", "success");
       const userRole = user?.role?.toLowerCase();
       setTimeout(() => {
-        if (userRole === "admin") {
-          navigate("/admin", { replace: true });
-        } else if (userRole === "owner") {
-          navigate("/owner", { replace: true });
-        } else {
-          navigate("/customer/dashboard", { replace: true });
-        }
-      }, 500);
+        if (userRole === "admin") navigate("/admin", { replace: true });
+        else if (userRole === "owner") navigate("/owner", { replace: true });
+        else navigate("/customer/dashboard", { replace: true });
+      }, 400);
     } catch (error) {
-      console.error("Login error:", error);
-      showToast(
-        error?.response?.data?.detail || "Invalid email or password.",
-        "error"
-      );
+      showToast(error?.response?.data?.detail || "Invalid email or password.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Sign Up Request OTP
-  const handleRequestSignUpOTP = async (e) => {
+  const handleRequestOTP = async (e) => {
     e.preventDefault();
     if (!name || !signUpEmail || !signUpPassword) {
-      showToast("Please fill all required fields.", "error");
-      return;
+      return showToast("Please fill all required fields.", "error");
     }
     if (signUpPassword.length < 6) {
-      showToast("Password must be at least 6 characters.", "error");
-      return;
+      return showToast("Password must be at least 6 characters.", "error");
     }
-
     try {
       setLoading(true);
       try {
         await API.post("/auth/send-otp", { email: signUpEmail });
-      } catch (err) {
-        // demo fallback if otp endpoint varies
-      }
-      showToast("Verification OTP sent to your email!", "success");
+      } catch (_) {}
+      showToast("Verification code sent to your email!", "success");
       setStep(2);
-    } catch (error) {
-      showToast("Failed to send verification OTP.", "error");
+    } catch (_) {
+      showToast("Failed to send OTP. Try again.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Sign Up Confirm OTP & Register
   const handleConfirmSignUp = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const payload = {
+      await API.post("/auth/register", {
         name,
         email: signUpEmail,
         password: signUpPassword,
         role,
         otp: otp || "123456",
-      };
-
-      const res = await API.post("/auth/register", payload);
-      showToast("Account created successfully! Please sign in.", "success");
+      });
+      showToast("Account created! Please sign in.", "success");
       setMode("signin");
       setSignInEmail(signUpEmail);
-      setSignInPassword("");
       setStep(1);
     } catch (error) {
-      console.error("Registration error:", error);
-      showToast(
-        error?.response?.data?.detail || "Registration failed. Try again.",
-        "error"
-      );
+      showToast(error?.response?.data?.detail || "Registration failed.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Forgot Password
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!forgotEmail) {
-      showToast("Please enter your registered email.", "error");
-      return;
-    }
+    if (!forgotEmail) return showToast("Enter your email address.", "error");
     try {
       setLoading(true);
       await API.post("/auth/forgot-password", { email: forgotEmail });
-      setForgotSent(true);
-      showToast("Password reset link sent to your inbox!", "success");
-    } catch (e) {
-      setForgotSent(true);
-      showToast("Reset link sent!", "success");
-    } finally {
-      setLoading(false);
-    }
+    } catch (_) {}
+    setForgotSent(true);
+    showToast("Reset link sent!", "success");
+    setLoading(false);
   };
 
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setStep(1);
+    setOtp("");
+    setForgotSent(false);
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center font-sans">
-      {/* TOAST ALERT */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
-              toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen flex bg-white">
+      <Toast toast={toast} />
 
-      <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white">
-        {/* LEFT PROMO HERO PANEL (Desktop only) */}
-        <div className="hidden lg:flex lg:col-span-5 bg-black text-white p-12 flex-col justify-between relative overflow-hidden">
-          {/* BRAND */}
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center text-lg font-black shadow-md">
-              <FiMapPin />
+      {/* ── LEFT PANEL ── */}
+      <div className="hidden lg:flex w-[480px] xl:w-[540px] shrink-0 bg-[#0a0a0a] text-white flex-col relative overflow-hidden">
+        {/* Background grid */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        {/* Gradient orbs */}
+        <div className="absolute top-1/4 -left-16 w-64 h-64 rounded-full bg-[#276ef1]/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-0 w-48 h-48 rounded-full bg-[#05944f]/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col h-full p-12">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
+              <FiMapPin className="w-5 h-5 text-[#0a0a0a]" />
             </div>
-            <div>
-              <span className="text-2xl font-black tracking-tight text-white leading-none block">
-                Park<span className="font-light text-neutral-400">Ease</span>
-              </span>
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                Smart Parking
-              </span>
-            </div>
+            <span className="text-2xl font-black tracking-tight">
+              Park<span className="text-[#3a3a3a] font-light">Ease</span>
+            </span>
           </div>
 
-          {/* VALUE PROPOSITION */}
-          <div className="relative z-10 space-y-6 my-auto max-w-md">
-            <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-              Drive in. Park. Go.
+          {/* Hero copy */}
+          <div className="mt-auto mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping" />
+              <span className="text-xs font-semibold text-[#a0a0a0] tracking-wide">
+                Smart Parking Platform
+              </span>
+            </div>
+
+            <h2 className="text-4xl xl:text-5xl font-black tracking-tight leading-[1.1] mb-4">
+              Drive in.
+              <br />
+              Park instantly.
+              <br />
+              <span className="text-[#3a3a3a]">Go.</span>
             </h2>
 
-            <p className="text-neutral-300 text-sm leading-relaxed">
-              Find and lock your parking spot in advance with digital QR passes, live slot tracking, and instant automated gate access.
+            <p className="text-[#737373] text-sm leading-relaxed max-w-sm">
+              Reserve your spot in advance with digital QR passes, live slot tracking, and automated gate access — all from your phone.
             </p>
 
-            <div className="space-y-3 pt-4 border-t border-neutral-800">
-              <div className="flex items-center gap-3 text-xs text-neutral-200">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <span>Zero-wait instant QR pass generation</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-neutral-200">
-                <span className="text-emerald-400 font-bold">✓</span>
-                <span>Live GPS navigation directly to your spot</span>
-              </div>
+            {/* Feature list */}
+            <div className="mt-8 space-y-3">
+              {[
+                { icon: FiZap, text: "Instant QR pass generation" },
+                { icon: FiShield, text: "Verified & secure facilities" },
+                { icon: FiTruck, text: "Multi-vehicle management" },
+                { icon: FiLayers, text: "Real-time slot availability" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                    <Icon className="w-3.5 h-3.5 text-[#05944f]" />
+                  </div>
+                  <span className="text-sm text-[#a0a0a0] font-medium">{text}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* FOOTER */}
-          <div className="relative z-10 text-xs text-neutral-500">
-            &copy; 2026 ParkEase. All rights reserved.
-          </div>
+          {/* Footer */}
+          <p className="text-xs text-[#3a3a3a]">© 2026 ParkEase · All rights reserved</p>
         </div>
+      </div>
 
-        {/* RIGHT INTERACTIVE AUTH FORM */}
-        <div className="col-span-1 lg:col-span-7 flex flex-col justify-center items-center p-6 sm:p-12 bg-neutral-50">
-          <div className="w-full max-w-md space-y-6">
-            {/* MOBILE BRAND LOGO */}
-            <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-bold text-lg">
-                <FiMapPin />
-              </div>
-              <span className="text-2xl font-black text-black">
-                Park<span className="font-light text-neutral-500">Ease</span>
-              </span>
+      {/* ── RIGHT PANEL ── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-[#f7f7f7]">
+        <div className="w-full max-w-md">
+
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <div className="w-8 h-8 rounded-lg bg-[#0a0a0a] flex items-center justify-center">
+              <FiMapPin className="w-4 h-4 text-white" />
             </div>
+            <span className="text-xl font-black text-[#0a0a0a] tracking-tight">
+              Park<span className="text-[#a0a0a0] font-light">Ease</span>
+            </span>
+          </div>
 
-            {/* TAB SELECTOR */}
-            <div className="flex items-center p-1.5 bg-neutral-200 rounded-2xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signin");
-                  setStep(1);
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  mode === "signin"
-                    ? "bg-black text-white shadow-sm"
-                    : "text-neutral-600 hover:text-black"
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signup");
-                  setStep(1);
-                }}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  mode === "signup"
-                    ? "bg-black text-white shadow-sm"
-                    : "text-neutral-600 hover:text-black"
-                }`}
-              >
-                Create Account
-              </button>
+          {/* ── SIGN IN ── */}
+          {mode === "signin" && (
+            <div className="animate-fade-in">
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-[#0a0a0a] tracking-tight">
+                  Welcome back
+                </h1>
+                <p className="text-sm text-[#737373] mt-1">Sign in to your ParkEase account</p>
+              </div>
+
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <InputField
+                  label="Email"
+                  icon={FiMail}
+                  type="email"
+                  value={signInEmail}
+                  onChange={(e) => setSignInEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+                <InputField
+                  label="Password"
+                  icon={FiLock}
+                  type={showSignInPw ? "text" : "password"}
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                  placeholder="Your password"
+                  action={{
+                    icon: showSignInPw ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />,
+                    onClick: () => setShowSignInPw(!showSignInPw),
+                  }}
+                />
+
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => switchMode("forgot")}
+                    className="text-xs text-[#276ef1] font-semibold hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <Button type="submit" fullWidth size="lg" loading={loading} iconRight={FiArrowRight}>
+                  Sign In
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-[#737373]">
+                Don't have an account?{" "}
+                <button
+                  onClick={() => switchMode("signup")}
+                  className="text-[#0a0a0a] font-bold hover:underline"
+                >
+                  Create account
+                </button>
+              </p>
             </div>
+          )}
 
-            {/* ================= SIGN IN FORM ================= */}
-            {mode === "signin" && (
-              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
-                <div>
-                  <h1 className="text-2xl font-black text-black tracking-tight">
-                    Welcome back
-                  </h1>
-                  <p className="text-xs text-neutral-500 mt-1 font-medium">
-                    Sign in to manage your parking passes and bookings.
-                  </p>
-                </div>
-
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
-                      Email Address
-                    </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                      <FiMail className="text-neutral-400 w-4 h-4" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="name@example.com"
-                        value={signInEmail}
-                        onChange={(e) => setSignInEmail(e.target.value)}
-                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-neutral-700">
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setMode("forgot")}
-                        className="text-[11px] font-bold text-black hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                      <FiLock className="text-neutral-400 w-4 h-4" />
-                      <input
-                        type={showSignInPassword ? "text" : "password"}
-                        required
-                        placeholder="••••••••"
-                        value={signInPassword}
-                        onChange={(e) => setSignInPassword(e.target.value)}
-                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowSignInPassword(!showSignInPassword)
-                        }
-                        className="text-neutral-400 hover:text-black p-1"
-                      >
-                        {showSignInPassword ? (
-                          <FiEyeOff className="w-4 h-4" />
-                        ) : (
-                          <FiEye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center flex items-center justify-center gap-2"
-                  >
-                    <span>{loading ? "Signing In..." : "Sign In"}</span>
-                    <FiArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-
-                {/* DEMO QUICK-FILL SHORTCUTS */}
-                <div className="pt-4 border-t border-neutral-100 space-y-2.5">
-                  <span className="text-[11px] font-black text-neutral-400 uppercase tracking-wider block">
-                    Quick 1-Click Login:
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSignInEmail("driver@parkease.com");
-                        setSignInPassword("password123");
-                      }}
-                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
-                    >
-                      <span className="text-xs font-black text-black block">
-                        🚗 Driver
-                      </span>
-                      <span className="text-[10px] text-neutral-500 block">Customer</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSignInEmail("owner@parkease.com");
-                        setSignInPassword("password123");
-                      }}
-                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
-                    >
-                      <span className="text-xs font-black text-black block">
-                        🏢 Owner
-                      </span>
-                      <span className="text-[10px] text-neutral-500 block">Host Lots</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSignInEmail("admin@parkease.com");
-                        setSignInPassword("password123");
-                      }}
-                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
-                    >
-                      <span className="text-xs font-black text-black block">
-                        ⚡ Admin
-                      </span>
-                      <span className="text-[10px] text-neutral-500 block">Portal</span>
-                    </button>
-                  </div>
-                </div>
+          {/* ── SIGN UP ── */}
+          {mode === "signup" && (
+            <div className="animate-fade-in">
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-[#0a0a0a] tracking-tight">
+                  {step === 1 ? "Create account" : "Verify email"}
+                </h1>
+                <p className="text-sm text-[#737373] mt-1">
+                  {step === 1
+                    ? "Join ParkEase and start parking smarter"
+                    : `We sent a code to ${signUpEmail}`}
+                </p>
               </div>
-            )}
 
-            {/* ================= SIGN UP FORM ================= */}
-            {mode === "signup" && step === 1 && (
-              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
-                <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                    Get Started with ParkEase
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Select your portal role and set up your account.
-                  </p>
-                </div>
+              {step === 1 && (
+                <form onSubmit={handleRequestOTP} className="space-y-4">
+                  <InputField
+                    label="Full Name"
+                    icon={FiUser}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                  />
 
-                {/* ROLE PICKER */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div
-                    onClick={() => setRole("customer")}
-                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
-                      role === "customer"
-                        ? "border-black bg-neutral-50 shadow-sm"
-                        : "border-neutral-200 hover:border-neutral-300"
-                    }`}
-                  >
-                    <FiTruck
-                      className={`w-6 h-6 ${
-                        role === "customer" ? "text-black" : "text-neutral-400"
-                      }`}
-                    />
-                    <span className="text-xs font-black text-black">
-                      Driver / Customer
-                    </span>
-                    <span className="text-[10px] text-neutral-500 font-bold">
-                      Book & Pay for Spots
-                    </span>
-                  </div>
-
-                  <div
-                    onClick={() => setRole("owner")}
-                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
-                      role === "owner"
-                        ? "border-black bg-neutral-50 shadow-sm"
-                        : "border-neutral-200 hover:border-neutral-300"
-                    }`}
-                  >
-                    <FiLayers
-                      className={`w-6 h-6 ${
-                        role === "owner" ? "text-black" : "text-neutral-400"
-                      }`}
-                    />
-                    <span className="text-xs font-black text-black">
-                      Facility Owner
-                    </span>
-                    <span className="text-[10px] text-neutral-500 font-bold">
-                      Host & Scan Passes
-                    </span>
-                  </div>
-                </div>
-
-                <form onSubmit={handleRequestSignUpOTP} className="space-y-4">
+                  {/* Role selector */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
-                      Full Name *
+                    <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                      I'm registering as
                     </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                      <FiUser className="text-neutral-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        required
-                        placeholder="John Doe"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
-                      />
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {[
+                        { value: "customer", label: "Driver", icon: FiTruck, desc: "Find & book parking" },
+                        { value: "owner", label: "Owner", icon: FiLayers, desc: "List my facility" },
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setRole(opt.value)}
+                          className={`p-3 rounded-xl border-2 text-left transition-all ${
+                            role === opt.value
+                              ? "border-[#0a0a0a] bg-[#0a0a0a] text-white"
+                              : "border-[#e0e0e0] bg-white text-[#0a0a0a] hover:border-[#a0a0a0]"
+                          }`}
+                        >
+                          <opt.icon className="w-4 h-4 mb-1.5" />
+                          <p className="text-xs font-bold">{opt.label}</p>
+                          <p className={`text-[10px] mt-0.5 ${role === opt.value ? "text-[#a0a0a0]" : "text-[#737373]"}`}>
+                            {opt.desc}
+                          </p>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
-                      Email Address *
-                    </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                      <FiMail className="text-neutral-400 w-4 h-4" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="name@example.com"
-                        value={signUpEmail}
-                        onChange={(e) => setSignUpEmail(e.target.value)}
-                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
-                      />
-                    </div>
-                  </div>
+                  <InputField
+                    label="Email"
+                    icon={FiMail}
+                    type="email"
+                    value={signUpEmail}
+                    onChange={(e) => setSignUpEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                  <InputField
+                    label="Password"
+                    icon={FiLock}
+                    type={showSignUpPw ? "text" : "password"}
+                    value={signUpPassword}
+                    onChange={(e) => setSignUpPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    action={{
+                      icon: showSignUpPw ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />,
+                      onClick: () => setShowSignUpPw(!showSignUpPw),
+                    }}
+                  />
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
-                      Password *
-                    </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                      <FiLock className="text-neutral-400 w-4 h-4" />
-                      <input
-                        type={showSignUpPassword ? "text" : "password"}
-                        required
-                        placeholder="Min. 6 characters"
-                        value={signUpPassword}
-                        onChange={(e) => setSignUpPassword(e.target.value)}
-                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowSignUpPassword(!showSignUpPassword)
-                        }
-                        className="text-neutral-400 hover:text-black p-1"
-                      >
-                        {showSignUpPassword ? (
-                          <FiEyeOff className="w-4 h-4" />
-                        ) : (
-                          <FiEye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center flex items-center justify-center gap-2"
-                  >
-                    <span>Continue &rarr;</span>
-                  </button>
+                  <Button type="submit" fullWidth size="lg" loading={loading} iconRight={FiArrowRight}>
+                    Send Verification Code
+                  </Button>
                 </form>
-              </div>
-            )}
+              )}
 
-            {/* ================= SIGN UP OTP VERIFICATION ================= */}
-            {mode === "signup" && step === 2 && (
-              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 animate-in fade-in">
-                <div>
-                  <h1 className="text-2xl font-black text-black tracking-tight">
-                    Verify Your Email
-                  </h1>
-                  <p className="text-xs text-neutral-500 mt-1 font-medium">
-                    Enter the code sent to{" "}
-                    <span className="font-bold text-black">
-                      {signUpEmail}
-                    </span>
-                  </p>
-                </div>
-
+              {step === 2 && (
                 <form onSubmit={handleConfirmSignUp} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
+                    <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
                       Verification Code
                     </label>
                     <input
                       type="text"
-                      maxLength={6}
-                      placeholder="123456"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      className="w-full text-center tracking-widest text-xl font-black py-3 rounded-xl bg-neutral-100 border border-neutral-200 text-black focus:outline-none focus:border-black"
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="pe-input text-center text-xl font-black tracking-[0.3em]"
                     />
                   </div>
 
+                  <Button type="submit" fullWidth size="lg" loading={loading}>
+                    Create Account
+                  </Button>
+
                   <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center"
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="w-full text-xs text-[#737373] hover:text-[#0a0a0a] font-medium transition-colors"
                   >
-                    Verify & Create Account
+                    ← Back to details
                   </button>
-
-                  <div className="text-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setStep(1)}
-                      className="text-xs text-neutral-500 hover:text-black font-bold"
-                    >
-                      &larr; Back
-                    </button>
-                  </div>
                 </form>
+              )}
+
+              <p className="mt-6 text-center text-sm text-[#737373]">
+                Already have an account?{" "}
+                <button
+                  onClick={() => switchMode("signin")}
+                  className="text-[#0a0a0a] font-bold hover:underline"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* ── FORGOT PASSWORD ── */}
+          {mode === "forgot" && (
+            <div className="animate-fade-in">
+              <div className="mb-8">
+                <h1 className="text-2xl font-black text-[#0a0a0a] tracking-tight">
+                  Reset password
+                </h1>
+                <p className="text-sm text-[#737373] mt-1">
+                  We'll email you a link to reset your password
+                </p>
               </div>
-            )}
 
-            {/* ================= FORGOT PASSWORD ================= */}
-            {mode === "forgot" && (
-              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 animate-in fade-in">
-                <div>
-                  <h1 className="text-2xl font-black text-black tracking-tight">
-                    Recover Password
-                  </h1>
-                  <p className="text-xs text-neutral-500 mt-1 font-medium">
-                    We will send a reset link to your email.
-                  </p>
-                </div>
-
-                {forgotSent ? (
-                  <div className="text-center py-4 space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto font-black text-xl">
-                      ✓
-                    </div>
-                    <p className="text-xs text-neutral-700 font-bold">
-                      Check your inbox for reset instructions.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setMode("signin")}
-                      className="px-4 py-2 rounded-xl bg-black text-white text-xs font-bold"
-                    >
-                      Return to Sign In
-                    </button>
+              {!forgotSent ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <InputField
+                    label="Email"
+                    icon={FiMail}
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="your@email.com"
+                  />
+                  <Button type="submit" fullWidth size="lg" loading={loading}>
+                    Send Reset Link
+                  </Button>
+                </form>
+              ) : (
+                <div className="text-center space-y-4 py-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#f0fdf4] flex items-center justify-center mx-auto">
+                    <FiCheckCircle className="w-7 h-7 text-[#05944f]" />
                   </div>
-                ) : (
-                  <form onSubmit={handleForgotPassword} className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-slate-700">
-                        Registered Email Address
-                      </label>
-                      <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                        <FiMail className="text-slate-400 w-4 h-4" />
-                        <input
-                          type="email"
-                          required
-                          placeholder="you@example.com"
-                          value={forgotEmail}
-                          onChange={(e) => setForgotEmail(e.target.value)}
-                          className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
-                        />
-                      </div>
-                    </div>
+                  <div>
+                    <p className="font-bold text-[#0a0a0a]">Check your inbox</p>
+                    <p className="text-sm text-[#737373] mt-1">
+                      We sent a reset link to <strong>{forgotEmail}</strong>
+                    </p>
+                  </div>
+                </div>
+              )}
 
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      fullWidth
-                      type="submit"
-                      loading={loading}
-                    >
-                      Send Reset Instructions
-                    </Button>
-
-                    <div className="text-center pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setMode("signin")}
-                        className="text-xs text-slate-500 hover:text-indigo-600 font-semibold"
-                      >
-                        &larr; Return to Sign In
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-          </div>
+              <button
+                onClick={() => switchMode("signin")}
+                className="mt-6 w-full text-xs text-[#737373] hover:text-[#0a0a0a] font-medium transition-colors text-center"
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

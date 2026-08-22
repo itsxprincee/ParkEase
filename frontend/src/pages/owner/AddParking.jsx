@@ -122,20 +122,13 @@ export default function AddParking() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
 
-      {/* TOAST ALERT */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
-              toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+            {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
@@ -153,12 +146,12 @@ export default function AddParking() {
           </button>
         </div>
 
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="border-b border-neutral-100 pb-4">
-            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
-              Register New Parking Facility
+        <div className="bg-white rounded-2xl border border-[#e0e0e0] p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)] space-y-6">
+          <div className="border-b border-[#f0f0f0] pb-4">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
+              Register New Facility
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
+            <p className="text-sm text-[#737373] mt-1">
               Provide location coordinates, slot capacity, and an image to publish your facility on ParkEase.
             </p>
           </div>
@@ -313,12 +306,12 @@ export default function AddParking() {
             </div>
 
             {/* SECURITY & AMENITIES */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="space-y-4 pt-4 border-t border-[#f0f0f0]">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#a0a0a0]">
                   4. Security & Facility Amenities
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#737373] mt-0.5">
                   Select all safety measures and conveniences available at your parking location.
                 </p>
               </div>
@@ -381,30 +374,24 @@ export default function AddParking() {
                       }
                       className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 select-none ${
                         active
-                          ? "bg-indigo-50/50 border-indigo-500 shadow-xs"
-                          : "bg-white border-slate-200 hover:border-slate-300"
+                          ? "bg-[#f0f4ff] border-[#276ef1]"
+                          : "bg-white border-[#e0e0e0] hover:border-[#a0a0a0]"
                       }`}
                     >
                       <div
                         className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                           active
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
+                            ? "bg-[#0a0a0a] text-white border-[#0a0a0a]"
                             : item.color
                         }`}
                       >
                         {active ? <FiCheck className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-xs font-bold ${
-                              active ? "text-indigo-950" : "text-slate-800"
-                            }`}
-                          >
-                            {item.label}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                        <span className={`text-xs font-bold ${active ? "text-[#0a0a0a]" : "text-[#0a0a0a]"}`}>
+                          {item.label}
+                        </span>
+                        <p className="text-[11px] text-[#737373] line-clamp-1 mt-0.5">
                           {item.desc}
                         </p>
                       </div>
@@ -415,14 +402,14 @@ export default function AddParking() {
             </div>
 
             {/* IMAGE UPLOAD */}
-            <div className="space-y-3 pt-4 border-t border-slate-100">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <div className="space-y-3 pt-4 border-t border-[#f0f0f0]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#a0a0a0]">
                 5. Facility Photo
               </h3>
 
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-indigo-400 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-50/50"
+                className="border-2 border-dashed border-[#d0d0d0] hover:border-[#0a0a0a] rounded-2xl p-6 text-center cursor-pointer transition-colors bg-[#f7f7f7]"
               >
                 <input
                   ref={fileInputRef}

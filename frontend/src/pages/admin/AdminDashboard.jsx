@@ -18,27 +18,31 @@ import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
-import { Card, StatCard } from "../../components/Card";
+import { StatCard } from "../../components/Card";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
 
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+        {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
+        {toast.message}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [parkingList, setParkingList] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-  });
-
+  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-
-  const [activeTab, setActiveTab] = useState("pending"); // pending, approved, rejected, all
+  const [activeTab, setActiveTab] = useState("pending");
   const [search, setSearch] = useState("");
-
   const [inspectModal, setInspectModal] = useState({ open: false, item: null });
   const [rejectModal, setRejectModal] = useState({ open: false, item: null, reason: "" });
   const [toast, setToast] = useState(null);
@@ -52,52 +56,31 @@ export default function AdminDashboard() {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
-
       const [parkingRes, statsRes] = await Promise.allSettled([
         API.get("/admin/parking"),
         API.get("/admin/verification-stats"),
       ]);
-
-      if (parkingRes.status === "fulfilled") {
-        setParkingList(parkingRes.value.data || []);
-      }
-
-      if (statsRes.status === "fulfilled") {
-        setStats(
-          statsRes.value.data || {
-            total: 12,
-            pending: 3,
-            approved: 9,
-            rejected: 0,
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Admin data load error:", error);
-      showToast("Unable to load admin verification data.", "error");
+      if (parkingRes.status === "fulfilled") setParkingList(parkingRes.value.data || []);
+      if (statsRes.status === "fulfilled") setStats(statsRes.value.data || { total: 0, pending: 0, approved: 0, rejected: 0 });
+    } catch (_) {
+      showToast("Unable to load verification data.", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const handleApprove = async (id) => {
     try {
       setActionLoading(id);
       await API.put(`/admin/parking/${id}/approve`);
-      showToast("Parking facility verified and published live!", "success");
+      showToast("Facility approved and published live!", "success");
       setInspectModal({ open: false, item: null });
       loadData(true);
     } catch (error) {
-      console.error("Approve error:", error);
-      showToast(
-        error?.response?.data?.detail || "Failed to approve facility.",
-        "error"
-      );
+      showToast(error?.response?.data?.detail || "Failed to approve.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -110,16 +93,12 @@ export default function AdminDashboard() {
       await API.put(`/admin/parking/${rejectModal.item.id}/reject`, {
         reason: rejectModal.reason || "Documents incomplete.",
       });
-      showToast("Facility marked as rejected.", "success");
+      showToast("Facility rejected.", "success");
       setRejectModal({ open: false, item: null, reason: "" });
       setInspectModal({ open: false, item: null });
       loadData(true);
     } catch (error) {
-      console.error("Reject error:", error);
-      showToast(
-        error?.response?.data?.detail || "Failed to reject facility.",
-        "error"
-      );
+      showToast(error?.response?.data?.detail || "Failed to reject.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -132,354 +111,254 @@ export default function AdminDashboard() {
       item.address?.toLowerCase().includes(q) ||
       item.owner_name?.toLowerCase().includes(q) ||
       item.owner_email?.toLowerCase().includes(q);
-
     if (!matchesSearch) return false;
-
     const status = (item.verification_status || item.status || "pending").toLowerCase();
     if (activeTab === "pending") return status === "pending";
     if (activeTab === "approved") return status === "approved";
     if (activeTab === "rejected") return status === "rejected";
-
     return true;
   });
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
-      <SaaSNavbar />
+  const AMENITY_TAGS = [
+    { key: "has_cctv", label: "📹 CCTV", bg: "bg-[#eff6ff] text-[#1e40af] border-[#93c5fd]" },
+    { key: "has_security_guard", label: "🛡️ Security", bg: "bg-[#f0fdf4] text-[#166534] border-[#86efac]" },
+    { key: "has_ev", label: "⚡ EV Charging", bg: "bg-[#fffbeb] text-[#92400e] border-[#fde68a]" },
+    { key: "has_covered_roof", label: "🏢 Covered", bg: "bg-[#faf5ff] text-[#6b21a8] border-[#d8b4fe]" },
+    { key: "is_24_7", label: "⏰ 24/7", bg: "bg-[#f0f4ff] text-[#276ef1] border-[#93c5fd]" },
+    { key: "has_valet", label: "🔑 Valet", bg: "bg-[#fef2f2] text-[#991b1b] border-[#fca5a5]" },
+  ];
 
-      {/* TOAST ALERT */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
-              toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
+  return (
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+      <SaaSNavbar />
+      <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* COMMAND HEADER */}
+
+        {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="purple" size="sm">
-                Super Admin
-              </Badge>
-              <span className="text-xs text-slate-400 font-medium">Compliance & Verification</span>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="purple" dot>Super Admin</Badge>
+              <span className="text-xs text-[#a0a0a0] font-medium">Facility Verification</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              Facility Verification Command Center
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
+              Verification Command Center
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Review owner submissions, inspect facility details, and grant live booking permissions.
+            <p className="text-sm text-[#737373] mt-1">
+              Review owner submissions and grant live booking permissions.
             </p>
           </div>
-
           <Button
             variant="outline"
-            size="md"
             icon={FiRefreshCw}
             loading={refreshing}
             onClick={() => loadData(true)}
           >
-            Sync Verification Queue
+            Sync Queue
           </Button>
         </div>
 
-        {/* METRICS */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* STAT CARDS */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Pending Reviews"
+            title="Pending"
             value={stats.pending ?? parkingList.filter((i) => (i.verification_status || "PENDING").toUpperCase() === "PENDING").length}
-            subtitle="Requires immediate review"
+            subtitle="Needs review"
             icon={FiClock}
-            iconColor="text-amber-600 bg-amber-50 border-amber-100"
+            iconBg="bg-[#fffbeb]"
+            iconColor="text-[#f5a623]"
           />
           <StatCard
-            title="Approved Facilities"
+            title="Approved"
             value={stats.approved ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "APPROVED").length}
-            subtitle="Live across platform"
+            subtitle="Live on platform"
             icon={FiCheckCircle}
-            iconColor="text-emerald-600 bg-emerald-50 border-emerald-100"
+            iconBg="bg-[#f0fdf4]"
+            iconColor="text-[#05944f]"
           />
           <StatCard
-            title="Rejected Submissions"
+            title="Rejected"
             value={stats.rejected ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "REJECTED").length}
             subtitle="Denied compliance"
             icon={FiXCircle}
-            iconColor="text-rose-600 bg-rose-50 border-rose-100"
+            iconBg="bg-[#fef2f2]"
+            iconColor="text-[#e11900]"
           />
           <StatCard
-            title="Total Applications"
+            title="Total"
             value={stats.total ?? parkingList.length}
-            subtitle="All recorded facilities"
+            subtitle="All applications"
             icon={FiShield}
-            iconColor="text-indigo-600 bg-indigo-50 border-indigo-100"
+            iconBg="bg-[#f0f4ff]"
+            iconColor="text-[#276ef1]"
           />
         </div>
 
-        {/* SEARCH & FILTER BAR */}
-        <div className="space-y-4 pt-2">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
-              {[
-                { id: "pending", label: "Pending Verification" },
-                { id: "approved", label: "Approved" },
-                { id: "all", label: "All Submissions" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                    activeTab === tab.id
-                      ? "bg-white text-indigo-600 shadow-xs font-bold"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="w-full sm:w-72">
-              <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus-within:border-indigo-500 transition">
-                <FiSearch className="text-slate-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search submission or owner..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
-                />
-              </div>
-            </div>
+        {/* SEARCH & TABS */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-1 bg-[#e8e8e8] p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
+            {[
+              { id: "pending", label: "Pending" },
+              { id: "approved", label: "Approved" },
+              { id: "rejected", label: "Rejected" },
+              { id: "all", label: "All" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${activeTab === tab.id ? "bg-white text-[#0a0a0a] shadow-sm" : "text-[#737373] hover:text-[#0a0a0a]"}`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          {/* TABLE / CARD GRID */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <CardSkeleton />
-              <CardSkeleton />
-            </div>
-          ) : filteredList.length === 0 ? (
-            <EmptyState
-              icon={FiShield}
-              title="Verification queue is clear"
-              description="No pending parking facility approvals in this section."
+          <div className="relative w-full sm:w-64">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search facility or owner..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pe-input pl-9 text-sm"
             />
-          ) : (
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
-              <div className="divide-y divide-slate-100">
-                {filteredList.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/60 transition"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xl shrink-0 border border-indigo-100">
-                        <FiLayers />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              (item.verification_status || "").toUpperCase() === "APPROVED"
-                                ? "success"
-                                : (item.verification_status || "").toUpperCase() === "REJECTED"
-                                ? "danger"
-                                : "warning"
-                            }
-                            size="sm"
-                            dot
-                          >
-                            {(item.verification_status || "PENDING").toUpperCase()}
-                          </Badge>
-                          <span className="text-xs font-bold text-slate-400">
-                            App #{item.id}
-                          </span>
-                        </div>
-                        <h3 className="text-base font-extrabold text-slate-900">
-                          {item.name}
-                        </h3>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                          <FiMapPin className="text-indigo-600 w-3.5 h-3.5" />
-                          <span>{item.address || item.location || "City Hub"}</span>
-                        </p>
-                        <p className="text-[11px] text-slate-400 flex items-center gap-1">
-                          <FiUser className="w-3 h-3" />
-                          <span>
-                            Owner: {item.owner_name || item.owner_email || "Partner"} &bull; Capacity: {item.total_slots || 20} slots
-                          </span>
-                        </p>
-                      </div>
-                    </div>
+          </div>
+        </div>
 
-                    <div className="flex items-center gap-2.5 self-end md:self-center">
-                      <Button
-                        variant="outline"
-                        size="md"
-                        icon={FiEye}
-                        onClick={() => setInspectModal({ open: true, item })}
-                      >
-                        Inspect Details
-                      </Button>
-                      {(item.verification_status || "").toUpperCase() !== "REJECTED" && (
-                        <Button
-                          variant="danger"
-                          size="md"
-                          onClick={() =>
-                            setRejectModal({ open: true, item, reason: "" })
-                          }
-                        >
-                          Reject
-                        </Button>
-                      )}
-                      {(item.verification_status || "").toUpperCase() !== "APPROVED" && (
-                        <Button
-                          variant="success"
-                          size="md"
-                          icon={FiCheck}
-                          loading={actionLoading === item.id}
-                          onClick={() => handleApprove(item.id)}
-                        >
-                          Approve
-                        </Button>
-                      )}
+        {/* FACILITY LIST */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardSkeleton /><CardSkeleton />
+          </div>
+        ) : filteredList.length === 0 ? (
+          <EmptyState icon={FiShield} title="Verification queue is clear" description="No facilities in this category." />
+        ) : (
+          <div className="bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden divide-y divide-[#f0f0f0]">
+            {filteredList.map((item) => {
+              const statusRaw = (item.verification_status || item.status || "pending").toUpperCase();
+              const badgeVariant = statusRaw === "APPROVED" ? "success" : statusRaw === "REJECTED" ? "danger" : "warning";
+
+              return (
+                <div
+                  key={item.id}
+                  className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#fafafa] transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#f0f4ff] flex items-center justify-center shrink-0">
+                      <FiLayers className="w-5 h-5 text-[#276ef1]" />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={badgeVariant} size="sm" dot>
+                          {statusRaw}
+                        </Badge>
+                        <span className="text-[11px] font-bold text-[#a0a0a0]">App #{item.id}</span>
+                      </div>
+                      <h3 className="text-base font-bold text-[#0a0a0a]">{item.name}</h3>
+                      <p className="text-xs text-[#737373] flex items-center gap-1">
+                        <FiMapPin className="w-3 h-3 shrink-0 text-[#276ef1]" />
+                        {item.address || item.location || "City Hub"}
+                      </p>
+                      <p className="text-[11px] text-[#a0a0a0] flex items-center gap-1">
+                        <FiUser className="w-3 h-3 shrink-0" />
+                        {item.owner_name || item.owner_email || "Partner"} · {item.total_slots || 20} slots
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+
+                  <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                    <Button variant="outline" size="md" icon={FiEye} onClick={() => setInspectModal({ open: true, item })}>
+                      Inspect
+                    </Button>
+                    {statusRaw !== "REJECTED" && (
+                      <Button variant="danger" size="md" onClick={() => setRejectModal({ open: true, item, reason: "" })}>
+                        Reject
+                      </Button>
+                    )}
+                    {statusRaw !== "APPROVED" && (
+                      <Button
+                        variant="success"
+                        size="md"
+                        icon={FiCheck}
+                        loading={actionLoading === item.id}
+                        onClick={() => handleApprove(item.id)}
+                      >
+                        Approve
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       {/* INSPECT MODAL */}
       <Modal
         isOpen={inspectModal.open}
         onClose={() => setInspectModal({ open: false, item: null })}
-        title="Facility Inspection Sheet"
+        title="Facility Inspection"
         maxWidth="max-w-xl"
       >
         {inspectModal.item && (
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Facility Name</span>
-                <span className="font-bold text-slate-900">{inspectModal.item.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Address</span>
-                <span className="font-bold text-slate-900">{inspectModal.item.address}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Total Slot Capacity</span>
-                <span className="font-bold text-slate-900">{inspectModal.item.total_slots || 20} Spots</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Hourly Rate</span>
-                <span className="font-bold text-slate-900">
-                  {(inspectModal.item.hourly_rate ?? 0) === 0 ? "FREE (₹0/hr)" : `₹${inspectModal.item.hourly_rate}/hr`}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">GPS Coordinates</span>
-                <span className="font-mono font-bold text-slate-900">
-                  {inspectModal.item.latitude}, {inspectModal.item.longitude}
-                </span>
-              </div>
-              <div className="pt-2 border-t border-slate-200/60">
-                <span className="text-slate-500 block mb-1.5 font-semibold">Declared Safety & Amenities</span>
+          <div className="space-y-5">
+            <div className="p-4 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0] space-y-3">
+              {[
+                { label: "Name", value: inspectModal.item.name },
+                { label: "Address", value: inspectModal.item.address },
+                { label: "Total Slots", value: `${inspectModal.item.total_slots || 20} spots` },
+                { label: "Hourly Rate", value: (inspectModal.item.hourly_rate ?? 0) === 0 ? "FREE" : `₹${inspectModal.item.hourly_rate}/hr` },
+                { label: "GPS", value: `${inspectModal.item.latitude}, ${inspectModal.item.longitude}`, mono: true },
+              ].map(({ label, value, mono }) => (
+                <div key={label} className="flex justify-between text-sm">
+                  <span className="text-[#737373]">{label}</span>
+                  <span className={`font-semibold text-[#0a0a0a] ${mono ? "font-mono text-xs" : ""}`}>{value}</span>
+                </div>
+              ))}
+
+              <div className="pt-3 border-t border-[#e0e0e0]">
+                <p className="text-xs font-semibold text-[#737373] mb-2">Amenities</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {inspectModal.item.has_cctv && (
-                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-200">
-                      📹 24/7 CCTV
+                  {AMENITY_TAGS.filter((t) => inspectModal.item[t.key]).map((t) => (
+                    <span key={t.key} className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${t.bg}`}>
+                      {t.label}
                     </span>
+                  ))}
+                  {!AMENITY_TAGS.some((t) => inspectModal.item[t.key]) && (
+                    <span className="text-xs text-[#a0a0a0] italic">No amenities listed</span>
                   )}
-                  {inspectModal.item.has_security_guard && (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
-                      🛡️ Security Guard
-                    </span>
-                  )}
-                  {inspectModal.item.has_ev && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-200">
-                      ⚡ EV Charging
-                    </span>
-                  )}
-                  {inspectModal.item.has_covered_roof && (
-                    <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-200">
-                      🏢 Covered
-                    </span>
-                  )}
-                  {inspectModal.item.is_24_7 && (
-                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-200">
-                      ⏰ 24/7 Open
-                    </span>
-                  )}
-                  {inspectModal.item.has_valet && (
-                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">
-                      🔑 Valet
-                    </span>
-                  )}
-                  {!inspectModal.item.has_cctv &&
-                    !inspectModal.item.has_security_guard &&
-                    !inspectModal.item.has_ev &&
-                    !inspectModal.item.has_covered_roof &&
-                    !inspectModal.item.is_24_7 &&
-                    !inspectModal.item.has_valet && (
-                      <span className="text-[11px] text-slate-400 italic">No extra amenities listed</span>
-                    )}
                 </div>
               </div>
             </div>
 
             {inspectModal.item.image_url && (
               <div>
-                <span className="text-xs font-semibold text-slate-700 block mb-1">
-                  Uploaded Facility Photo
-                </span>
+                <p className="text-xs font-semibold text-[#737373] mb-2">Facility Photo</p>
                 <img
                   src={inspectModal.item.image_url}
                   alt="Facility"
-                  className="w-full h-44 rounded-2xl object-cover border border-slate-200"
+                  className="w-full h-44 rounded-xl object-cover border border-[#e0e0e0]"
                 />
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-              <Button
-                variant="outline"
-                size="md"
-                onClick={() => setInspectModal({ open: false, item: null })}
-              >
-                Close
-              </Button>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0f0f0]">
+              <Button variant="outline" onClick={() => setInspectModal({ open: false, item: null })}>Close</Button>
               {(inspectModal.item.verification_status || "").toUpperCase() !== "REJECTED" && (
-                <Button
-                  variant="danger"
-                  size="md"
-                  onClick={() => {
-                    setRejectModal({ open: true, item: inspectModal.item, reason: "" });
-                  }}
-                >
-                  Reject Submission
+                <Button variant="danger" onClick={() => setRejectModal({ open: true, item: inspectModal.item, reason: "" })}>
+                  Reject
                 </Button>
               )}
               {(inspectModal.item.verification_status || "").toUpperCase() !== "APPROVED" && (
                 <Button
                   variant="success"
-                  size="md"
                   icon={FiCheck}
                   loading={actionLoading === inspectModal.item.id}
                   onClick={() => handleApprove(inspectModal.item.id)}
                 >
-                  Approve & Publish Live
+                  Approve & Publish
                 </Button>
               )}
             </div>
@@ -487,39 +366,45 @@ export default function AdminDashboard() {
         )}
       </Modal>
 
-      {/* REJECT REASON MODAL */}
+      {/* REJECT MODAL */}
       <Modal
         isOpen={rejectModal.open}
         onClose={() => setRejectModal({ open: false, item: null, reason: "" })}
-        title="Reject Facility Application"
+        title="Reject Application"
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Please provide a feedback reason for the facility owner.
+          <p className="text-sm text-[#737373]">
+            Provide a reason so the owner can address the issue and resubmit.
           </p>
-
           <textarea
-            rows={3}
-            placeholder="e.g. Unclear entrance photos, inaccurate GPS coordinates, or incomplete documentation."
+            rows={4}
+            placeholder="e.g. Unclear facility photos, inaccurate GPS coordinates, or incomplete documentation."
             value={rejectModal.reason}
-            onChange={(e) =>
-              setRejectModal({ ...rejectModal, reason: e.target.value })
-            }
-            className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+            onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
+            className="pe-input resize-none text-sm"
           />
 
+          {/* Quick reject reasons */}
+          <div className="flex flex-wrap gap-2">
+            {["Unclear photos", "Wrong GPS location", "Incomplete docs", "Fake facility"].map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRejectModal({ ...rejectModal, reason: r })}
+                className="px-3 py-1 rounded-full text-xs font-semibold bg-[#f0f0f0] text-[#545454] hover:bg-[#e0e0e0] transition-colors"
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => setRejectModal({ open: false, item: null, reason: "" })}
-            >
+            <Button variant="outline" onClick={() => setRejectModal({ open: false, item: null, reason: "" })}>
               Cancel
             </Button>
             <Button
               variant="danger"
-              size="md"
               loading={actionLoading === rejectModal.item?.id}
               onClick={handleReject}
             >

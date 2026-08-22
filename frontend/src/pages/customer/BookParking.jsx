@@ -164,9 +164,10 @@ export default function BookParking() {
     try {
       setAddingVehicle(true);
       const response = await API.post("/vehicles/", newVehicle);
+      const addedVehicle = response.data?.vehicle || response.data;
       showToast("Vehicle registered successfully!", "success");
-      setVehicles((prev) => [...prev, response.data]);
-      setSelectedVehicle(response.data);
+      setVehicles((prev) => [...prev, addedVehicle]);
+      setSelectedVehicle(addedVehicle);
       setShowAddVehicleModal(false);
       setNewVehicle({ vehicle_number: "", vehicle_type: "Car", vehicle_name: "" });
     } catch (error) {
@@ -243,7 +244,7 @@ export default function BookParking() {
   // Loading Skeleton
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
         <SaaSNavbar />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <div className="flex items-center justify-between">
@@ -269,20 +270,14 @@ export default function BookParking() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
-              toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
+        <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+            {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
@@ -293,7 +288,7 @@ export default function BookParking() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#e0e0e0] text-xs font-semibold text-[#0a0a0a] hover:border-[#0a0a0a] transition"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>Back</span>

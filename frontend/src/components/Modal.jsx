@@ -1,71 +1,70 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { FiX } from "react-icons/fi";
 
 export default function Modal({
   isOpen,
   onClose,
   title,
-  subtitle,
   children,
   maxWidth = "max-w-lg",
-  showClose = true,
 }) {
+  const overlayRef = useRef(null);
+
+  // Lock body scroll when open
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     }
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
     };
+  }, [isOpen]);
+
+  // Escape to close
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      {/* Backdrop */}
+    <div
+      ref={overlayRef}
+      onClick={(e) => e.target === overlayRef.current && onClose()}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+    >
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
-      {/* Modal Box */}
-      <div
-        className={`relative w-full ${maxWidth} bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden transform transition-all z-10 animate-in zoom-in-95 duration-200`}
-        onClick={(e) => e.stopPropagation()}
+        className={`
+          relative w-full ${maxWidth} bg-white
+          rounded-t-3xl sm:rounded-2xl
+          shadow-[0_24px_64px_rgba(0,0,0,0.2)]
+          animate-spring-in
+          max-h-[90vh] overflow-y-auto
+        `}
       >
-        {(title || showClose) && (
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div>
-              {title && (
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">
-                  {title}
-                </h3>
-              )}
-              {subtitle && (
-                <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
-              )}
-            </div>
-            {showClose && (
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <FiX className="w-5 h-5" />
-              </button>
-            )}
+        {/* Header */}
+        {title && (
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0f0f0] sticky top-0 bg-white z-10 rounded-t-3xl sm:rounded-t-2xl">
+            <h3 className="text-base font-bold text-[#0a0a0a] tracking-tight">
+              {title}
+            </h3>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-[#f0f0f0] hover:bg-[#e0e0e0] flex items-center justify-center transition-colors"
+            >
+              <FiX className="w-4 h-4 text-[#545454]" />
+            </button>
           </div>
         )}
 
+        {/* Body */}
         <div className="p-6">{children}</div>
       </div>
     </div>

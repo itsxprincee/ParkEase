@@ -1,9 +1,15 @@
+import React from "react";
+
 function Input({
   type = "text",
   placeholder,
   value,
   onChange,
   name,
+  className = "",
+  disabled = false,
+  required = false,
+  ...props
 }) {
   return (
     <input
@@ -12,7 +18,10 @@ function Input({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      disabled={disabled}
+      required={required}
+      className={`pe-input ${className}`}
+      {...props}
     />
   );
 }

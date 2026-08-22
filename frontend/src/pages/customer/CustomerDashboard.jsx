@@ -3,45 +3,139 @@ import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
   FiMapPin,
-  FiCalendar,
   FiClock,
-  FiArrowRight,
-  FiTruck,
   FiCheckCircle,
   FiAlertCircle,
   FiZap,
   FiShield,
   FiNavigation,
-  FiFilter,
   FiX,
-  FiTrendingUp,
   FiLayers,
-  FiSliders,
-  FiCompass,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
-import Badge from "../../components/Badge";
-import Button from "../../components/Button";
 import Modal from "../../components/Modal";
-import { Card, StatCard } from "../../components/Card";
-import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
 import ParkingMapView from "../../components/ParkingMapView";
+import Button from "../../components/Button";
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
+      <div
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${
+          toast.type === "error"
+            ? "bg-white text-[#e11900] border-[#fca5a5]"
+            : "bg-white text-[#05944f] border-[#86efac]"
+        }`}
+      >
+        {toast.type === "error" ? (
+          <FiAlertCircle className="w-4 h-4 shrink-0" />
+        ) : (
+          <FiCheckCircle className="w-4 h-4 shrink-0" />
+        )}
+        {toast.message}
+      </div>
+    </div>
+  );
+}
+
+// ── Haversine helpers ─────────────────────────────────────────────────────────
+function calcDistance(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+  const R = 6371;
+  const dLat = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
+  const dLon = ((Number(lon2) - Number(lon1)) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((Number(lat1) * Math.PI) / 180) *
+      Math.cos((Number(lat2) * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
+}
+
+function numericDistance(userCoords, parking) {
+  if (!userCoords || !parking.latitude || !parking.longitude) return 999999;
+  const R = 6371;
+  const dLat = ((Number(parking.latitude) - Number(userCoords.lat)) * Math.PI) / 180;
+  const dLon = ((Number(parking.longitude) - Number(userCoords.lng)) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((Number(userCoords.lat) * Math.PI) / 180) *
+      Math.cos((Number(parking.latitude) * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── Parking List Card ─────────────────────────────────────────────────────────
+function ParkingListCard({ parking, userCoords, onClick }) {
+  const available = parking.available_slots ?? parking.available ?? parking.total_slots ?? 12;
+  const isFree = (parking.hourly_rate ?? -1) === 0;
+  const distance = userCoords
+    ? calcDistance(userCoords.lat, userCoords.lng, parking.latitude, parking.longitude)
+    : null;
+  const isLow = available <= 3 && available >= 0;
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left p-3.5 rounded-xl border border-[#e0e0e0] hover:border-[#0a0a0a] bg-white hover:bg-[#f7f7f7] transition-all duration-150 flex items-center justify-between group active:scale-[0.99]"
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-11 h-11 rounded-xl bg-[#f0f0f0] group-hover:bg-[#e8e8e8] flex items-center justify-center text-xl shrink-0 transition-colors">
+          {parking.has_ev ? "⚡" : "🅿️"}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-[#0a0a0a] truncate">
+            {parking.name || "ParkEase Facility"}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span
+              className={`text-[11px] font-semibold ${
+                isLow ? "text-[#e11900]" : "text-[#737373]"
+              }`}
+            >
+              {available} spots
+            </span>
+            {distance && (
+              <>
+                <span className="text-[#e0e0e0]">·</span>
+                <span className="text-[11px] text-[#737373] font-medium">{distance}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="shrink-0 text-right ml-2">
+        {isFree ? (
+          <span className="text-sm font-black text-[#05944f]">FREE</span>
+        ) : (
+          <div>
+            <span className="text-base font-black text-[#0a0a0a]">
+              ₹{parking.hourly_rate ?? 50}
+            </span>
+            <span className="text-[10px] text-[#a0a0a0] font-medium block">/hr</span>
+          </div>
+        )}
+      </div>
+    </button>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function CustomerDashboard() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [parkingLocations, setParkingLocations] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("ALL"); // ALL, NEARBY, FREE, EV, SECURITY, CCTV, COVERED
-  const [viewMode, setViewMode] = useState("GRID"); // "GRID" | "MAP"
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
   const [loading, setLoading] = useState(true);
-
-  // GPS & Google Maps State
   const [userCoords, setUserCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [mapModalParking, setMapModalParking] = useState(null);
@@ -56,460 +150,283 @@ export default function CustomerDashboard() {
     loadDashboard();
   }, []);
 
-  // Distance calculator using Haversine formula in KM
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-    const R = 6371; // Earth radius in km
-    const dLat = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
-    const dLon = ((Number(lon2) - Number(lon1)) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((Number(lat1) * Math.PI) / 180) *
-        Math.cos((Number(lat2) * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const dist = R * c;
-    return dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
-  };
-
-  const getNumericDistance = (parking) => {
-    if (!userCoords || !parking.latitude || !parking.longitude) return 999999;
-    const R = 6371;
-    const dLat = ((Number(parking.latitude) - Number(userCoords.lat)) * Math.PI) / 180;
-    const dLon = ((Number(parking.longitude) - Number(userCoords.lng)) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((Number(userCoords.lat) * Math.PI) / 180) *
-        Math.cos((Number(parking.latitude) * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
-
-  // Find Nearest via Browser GPS
-  const handleLocateNearest = () => {
-    if (!navigator.geolocation) {
-      showToast("Geolocation is not supported by your browser.", "error");
-      return;
-    }
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
-        setUserCoords(coords);
-        setSelectedFilter("NEARBY");
-        setIsLocating(false);
-        showToast("📍 Live GPS detected! Nearest parking sorted to the top.", "success");
-      },
-      (err) => {
-        setIsLocating(false);
-        // Fallback default city coords for demo
-        setUserCoords({ lat: 19.076, lng: 72.8777 });
-        setSelectedFilter("NEARBY");
-        showToast("📍 Using City Center GPS location to sort nearest parking.", "success");
-      },
-      { timeout: 8000, enableHighAccuracy: true }
-    );
-  };
-
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          console.error(e);
-        }
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try { setUser(JSON.parse(stored)); } catch (_) {}
       }
 
-      const [parkingRes, bookingRes, vehicleRes] = await Promise.allSettled([
+      const [parkingRes, bookingRes] = await Promise.allSettled([
         API.get("/parking/approved"),
         API.get("/booking/my-bookings"),
-        API.get("/vehicles/my"),
       ]);
 
       if (parkingRes.status === "fulfilled") {
-        const data = parkingRes.value.data;
-        if (Array.isArray(data)) {
-          setParkingLocations(data);
-        } else if (Array.isArray(data?.locations)) {
-          setParkingLocations(data.locations);
-        } else if (Array.isArray(data?.parking_locations)) {
-          setParkingLocations(data.parking_locations);
-        }
+        const d = parkingRes.value.data;
+        setParkingLocations(
+          Array.isArray(d) ? d : Array.isArray(d?.locations) ? d.locations : []
+        );
       }
-
       if (bookingRes.status === "fulfilled") {
-        const data = bookingRes.value.data;
-        if (Array.isArray(data)) {
-          setBookings(data);
-        } else if (Array.isArray(data?.bookings)) {
-          setBookings(data.bookings);
-        }
+        const d = bookingRes.value.data;
+        setBookings(Array.isArray(d) ? d : d?.bookings || []);
       }
-
-      if (vehicleRes.status === "fulfilled") {
-        const data = vehicleRes.value.data;
-        if (Array.isArray(data)) {
-          setVehicles(data);
-        }
-      }
-    } catch (error) {
-      console.error("Dashboard loading error:", error);
+    } catch (_) {
     } finally {
       setLoading(false);
     }
   };
 
-  const getUserName = () => {
-    if (!user) return "Driver";
-    return (
-      user.name ||
-      user.full_name ||
-      user.username ||
-      user.email?.split("@")[0] ||
-      "Driver"
+  const handleLocateNearest = () => {
+    if (!navigator.geolocation) {
+      return showToast("Geolocation not supported.", "error");
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserCoords(coords);
+        setSelectedFilter("NEARBY");
+        setIsLocating(false);
+        showToast("📍 GPS detected — nearest first!", "success");
+      },
+      () => {
+        setUserCoords({ lat: 19.076, lng: 72.8777 });
+        setSelectedFilter("NEARBY");
+        setIsLocating(false);
+        showToast("📍 Using city GPS for nearest sort.", "success");
+      },
+      { timeout: 8000, enableHighAccuracy: true }
     );
   };
 
-  // Active bookings
+  const getUserName = () => {
+    if (!user) return "Driver";
+    return user.name || user.full_name || user.username || user.email?.split("@")[0] || "Driver";
+  };
+
   const activeBookings = bookings.filter((b) => {
     const s = b.status?.toLowerCase();
-    return (
-      s === "active" ||
-      s === "booked" ||
-      s === "confirmed" ||
-      s === "upcoming"
-    );
+    return s === "active" || s === "booked" || s === "confirmed" || s === "upcoming";
   });
+  const latestActive = activeBookings[0];
 
-  const latestActiveBooking = activeBookings[0];
-
-  // Filtering & Sorting
   const filteredParking = parkingLocations
-    .filter((parking) => {
-      const query = search.toLowerCase();
-      const matchesQuery =
-        parking.name?.toLowerCase().includes(query) ||
-        parking.location?.toLowerCase().includes(query) ||
-        parking.address?.toLowerCase().includes(query);
-
-      if (!matchesQuery) return false;
-
-      if (selectedFilter === "EV") {
-        return (
-          parking.has_ev ||
-          parking.ev_charging ||
-          parking.name?.toLowerCase().includes("ev")
-        );
-      }
-      if (selectedFilter === "FREE") {
-        return (parking.hourly_rate ?? -1) === 0;
-      }
-      if (selectedFilter === "SECURITY") {
-        return parking.has_security_guard;
-      }
-      if (selectedFilter === "CCTV") {
-        return parking.has_cctv;
-      }
-      if (selectedFilter === "COVERED") {
-        return parking.has_covered_roof;
-      }
+    .filter((p) => {
+      const q = search.toLowerCase();
+      const matches =
+        p.name?.toLowerCase().includes(q) ||
+        p.location?.toLowerCase().includes(q) ||
+        p.address?.toLowerCase().includes(q);
+      if (!matches) return false;
+      if (selectedFilter === "EV") return p.has_ev || p.ev_charging;
+      if (selectedFilter === "FREE") return (p.hourly_rate ?? -1) === 0;
+      if (selectedFilter === "SECURITY") return p.has_security_guard;
+      if (selectedFilter === "CCTV") return p.has_cctv;
       return true;
     })
     .sort((a, b) => {
       if (selectedFilter === "NEARBY" && userCoords) {
-        return getNumericDistance(a) - getNumericDistance(b);
+        return numericDistance(userCoords, a) - numericDistance(userCoords, b);
       }
       return 0;
     });
 
-  const getAvailableSlots = (parking) => {
-    if (parking.available_slots !== undefined) return parking.available_slots;
-    if (parking.available !== undefined) return parking.available;
-    if (parking.total_slots !== undefined) return parking.total_slots;
-    return 12;
-  };
-
-  const getTotalSlots = (parking) => {
-    return parking.total_slots || parking.totalSlots || parking.slots || 20;
-  };
-
-  const getOccupancyRate = (parking) => {
-    const total = Number(getTotalSlots(parking)) || 1;
-    const avail = Number(getAvailableSlots(parking)) || 0;
-    const occupied = Math.max(0, total - avail);
-    return Math.min(100, Math.round((occupied / total) * 100));
-  };
+  const filters = [
+    { id: "ALL", label: "All" },
+    { id: "NEARBY", label: "📍 Near Me" },
+    { id: "FREE", label: "🆓 Free" },
+    { id: "EV", label: "⚡ EV" },
+    { id: "SECURITY", label: "🛡️ Guarded" },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
+      <Toast toast={toast} />
 
-      {/* TOAST ALERT */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
-          <div
-            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl border text-sm font-bold ${
-              toast.type === "error"
-                ? "bg-rose-50 text-rose-800 border-rose-200"
-                : "bg-emerald-50 text-emerald-800 border-emerald-200"
-            }`}
-          >
-            {toast.type === "error" ? <FiAlertCircle className="w-5 h-5" /> : <FiCheckCircle className="w-5 h-5" />}
-            <span>{toast.message}</span>
-          </div>
-        </div>
-      )}
-
-      {/* GOOGLE MAPS PREVIEW MODAL */}
+      {/* MAP MODAL */}
       {mapModalParking && (
         <Modal
           isOpen={Boolean(mapModalParking)}
           onClose={() => setMapModalParking(null)}
-          title={`Map Location &bull; ${mapModalParking.name}`}
-          size="lg"
+          title={mapModalParking.name}
+          maxWidth="max-w-2xl"
         >
           <div className="space-y-4">
-            <div className="h-80 w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 relative">
+            <div className="h-72 w-full rounded-xl overflow-hidden border border-[#e0e0e0]">
               <iframe
-                title="Map Location"
+                title="Map"
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 scrolling="no"
-                src={`https://maps.google.com/maps?q=${mapModalParking.latitude || 19.0760},${mapModalParking.longitude || 72.8777}&hl=en&z=15&output=embed`}
-                className="w-full h-full"
+                src={`https://maps.google.com/maps?q=${mapModalParking.latitude || 19.076},${mapModalParking.longitude || 72.8777}&hl=en&z=15&output=embed`}
               />
             </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900">{mapModalParking.name}</h4>
-                <p className="text-xs text-slate-500 mt-0.5">{mapModalParking.address || mapModalParking.location}</p>
-              </div>
-
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-[#737373]">
+                {mapModalParking.address || mapModalParking.location}
+              </p>
               <Button
-                variant="primary"
-                size="md"
                 icon={FiNavigation}
                 onClick={() =>
                   window.open(
-                    `https://www.google.com/maps/dir/?api=1&destination=${mapModalParking.latitude || 19.0760},${mapModalParking.longitude || 72.8777}`,
+                    `https://www.google.com/maps/dir/?api=1&destination=${mapModalParking.latitude},${mapModalParking.longitude}`,
                     "_blank"
                   )
                 }
               >
-                Open Google Maps Navigation
+                Navigate
               </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* TOP STATUS BAR */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* TOP BAR */}
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
-              Where to?
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
+              Where to, {getUserName().split(" ")[0]}?
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 font-medium mt-0.5">
-              Choose a parking facility, view live slots, and reserve your gate pass.
+            <p className="text-sm text-[#737373] font-medium mt-0.5">
+              {filteredParking.length} verified facilities near you
             </p>
           </div>
 
-          {latestActiveBooking && (
+          {latestActive && (
             <button
               onClick={() =>
-                navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
-                  state: { booking: latestActiveBooking },
+                navigate(`/customer/qr?booking=${latestActive.id}`, {
+                  state: { booking: latestActive },
                 })
               }
-              className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-black shadow-sm hover:bg-neutral-800 transition"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0a0a0a] text-white text-xs font-bold hover:bg-[#242424] transition-colors shadow-sm"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Active Pass (Slot {latestActiveBooking.slot_number}) &rarr;</span>
+              <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping shrink-0" />
+              Active Pass → Slot {latestActive.slot_number}
             </button>
           )}
         </div>
 
-        {/* UBER SPLIT SCREEN LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* LEFT: UBER RIDE / PARKING SELECTOR DRAWER */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-neutral-200 shadow-sm p-5 space-y-4 flex flex-col justify-between">
-            {/* UBER CONNECTED INPUTS (Current Location -> Destination) */}
-            <div className="bg-neutral-50 rounded-xl p-3.5 border border-neutral-200 relative space-y-3">
-              {/* CONNECTING LINE */}
-              <div className="absolute left-[26px] top-[30px] bottom-[30px] w-0.5 bg-neutral-300 pointer-events-none" />
+        {/* SPLIT LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-              {/* POINT A: CURRENT LOCATION */}
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-4 h-4 rounded-full bg-black flex items-center justify-center shrink-0">
+          {/* LEFT: BOOKING DRAWER */}
+          <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+
+            {/* Search + GPS inputs */}
+            <div className="p-4 border-b border-[#f0f0f0] space-y-3">
+              {/* GPS row */}
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                <div className="w-3 h-3 rounded-full bg-[#0a0a0a] shrink-0 flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 </div>
-                <div className="flex-1 flex items-center justify-between">
-                  <span className="text-xs font-bold text-black truncate">
-                    {userCoords ? "📍 Current GPS Location" : "Current Location"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleLocateNearest}
-                    className="text-[11px] font-black text-black hover:underline shrink-0 bg-white px-2 py-1 rounded-lg border border-neutral-200"
-                  >
-                    {isLocating ? "Locating..." : userCoords ? "✓ Active" : "Find GPS"}
-                  </button>
-                </div>
+                <span className="text-xs font-semibold text-[#0a0a0a] flex-1">
+                  {userCoords ? "📍 GPS Location Active" : "Current Location"}
+                </span>
+                <button
+                  onClick={handleLocateNearest}
+                  disabled={isLocating}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white border border-[#e0e0e0] text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+                >
+                  {isLocating ? "Locating…" : userCoords ? "✓ Active" : "Detect GPS"}
+                </button>
               </div>
 
-              {/* POINT B: SEARCH DESTINATION */}
-              <div className="flex items-center gap-3 relative z-10 pt-1">
-                <div className="w-4 h-4 rounded-sm bg-black shrink-0 flex items-center justify-center text-[10px] text-white font-black">
-                  ■
-                </div>
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Search parking or landmark..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-white px-3 py-2 rounded-lg border border-neutral-200 text-xs font-bold text-black focus:outline-none focus:border-black transition"
-                  />
-                  {search && (
-                    <button
-                      onClick={() => setSearch("")}
-                      className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-black"
-                    >
-                      <FiX className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
+              {/* Search */}
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search parking or area..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pe-input pl-9 pr-8 text-sm"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a0a0] hover:text-[#0a0a0a]"
+                  >
+                    <FiX className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* FILTER PILLS */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              {[
-                { id: "ALL", label: "All Spots" },
-                { id: "NEARBY", label: "📍 Nearest" },
-                { id: "FREE", label: "🆓 Free" },
-                { id: "EV", label: "⚡ EV Ready" },
-                { id: "SECURITY", label: "🛡️ Guarded" },
-              ].map((tab) => (
+            {/* Filter pills */}
+            <div className="px-4 py-2.5 border-b border-[#f0f0f0] flex items-center gap-1.5 overflow-x-auto">
+              {filters.map((f) => (
                 <button
-                  key={tab.id}
+                  key={f.id}
                   onClick={() => {
-                    if (tab.id === "NEARBY" && !userCoords) {
-                      handleLocateNearest();
-                    } else {
-                      setSelectedFilter(tab.id);
-                    }
+                    if (f.id === "NEARBY" && !userCoords) handleLocateNearest();
+                    else setSelectedFilter(f.id);
                   }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all ${
-                    selectedFilter === tab.id
-                      ? "bg-black text-white shadow-sm"
-                      : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
+                    selectedFilter === f.id
+                      ? "bg-[#0a0a0a] text-white shadow-sm"
+                      : "bg-[#f0f0f0] text-[#545454] hover:bg-[#e0e0e0]"
                   }`}
                 >
-                  {tab.label}
+                  {f.label}
                 </button>
               ))}
             </div>
 
-            {/* UBER PARKING TIERS LIST */}
-            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+            {/* Parking list */}
+            <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-340px)] min-h-[300px]">
               {loading ? (
-                <div className="space-y-2">
+                <>
                   <CardSkeleton />
                   <CardSkeleton />
-                </div>
+                  <CardSkeleton />
+                </>
               ) : filteredParking.length === 0 ? (
-                <div className="text-center py-8 text-neutral-400 space-y-2">
-                  <FiMapPin className="w-8 h-8 mx-auto text-neutral-300" />
-                  <p className="text-xs font-bold">No parking facilities match your search.</p>
+                <div className="text-center py-12">
+                  <FiMapPin className="w-8 h-8 mx-auto text-[#d0d0d0] mb-3" />
+                  <p className="text-sm font-semibold text-[#0a0a0a]">No parking found</p>
+                  <p className="text-xs text-[#737373] mt-1">Try adjusting your filters or search</p>
                   <button
-                    onClick={() => {
-                      setSearch("");
-                      setSelectedFilter("ALL");
-                    }}
-                    className="text-xs text-black font-black underline"
+                    onClick={() => { setSearch(""); setSelectedFilter("ALL"); }}
+                    className="mt-3 text-xs text-[#276ef1] font-semibold hover:underline"
                   >
-                    Reset Filters
+                    Reset filters
                   </button>
                 </div>
               ) : (
-                filteredParking.map((parking) => {
-                  const availableSlots = getAvailableSlots(parking);
-                  const isFree = (parking.hourly_rate ?? -1) === 0;
-                  const distanceStr = userCoords
-                    ? calculateDistance(
-                        userCoords.lat,
-                        userCoords.lng,
-                        parking.latitude,
-                        parking.longitude
-                      )
-                    : null;
-
-                  return (
-                    <div
-                      key={parking.id}
-                      onClick={() =>
-                        navigate(`/customer/parking/${parking.id}/book`, {
-                          state: { parking },
-                        })
-                      }
-                      className="p-3.5 rounded-xl border border-neutral-200 hover:border-black bg-white hover:bg-neutral-50 transition-all cursor-pointer flex items-center justify-between group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
-                          {parking.has_ev ? "⚡" : "🚗"}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-black text-black line-clamp-1">
-                              {parking.name || "ParkEase Facility"}
-                            </h3>
-                          </div>
-                          <p className="text-[11px] text-neutral-500 flex items-center gap-1 mt-0.5 line-clamp-1">
-                            <span>{availableSlots} spots available</span>
-                            {distanceStr && <span>• {distanceStr} away</span>}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        {isFree ? (
-                          <span className="text-sm font-black text-emerald-600">FREE</span>
-                        ) : (
-                          <div>
-                            <span className="text-base font-black text-black">
-                              ₹{parking.hourly_rate ?? 50}
-                            </span>
-                            <span className="text-[10px] text-neutral-400 font-bold block">/hr</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
+                filteredParking.map((p) => (
+                  <ParkingListCard
+                    key={p.id}
+                    parking={p}
+                    userCoords={userCoords}
+                    onClick={() =>
+                      navigate(`/customer/parking/${p.id}/book`, { state: { parking: p } })
+                    }
+                  />
+                ))
               )}
             </div>
 
-            {/* DIRECT CTA INFO */}
-            <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500 font-bold">
-              <span>{filteredParking.length} facilities verified</span>
-              <span>Instant Pass &rarr;</span>
+            {/* Footer stat */}
+            <div className="px-4 py-3 border-t border-[#f0f0f0] flex items-center justify-between">
+              <span className="text-xs text-[#a0a0a0] font-medium">
+                {filteredParking.length} facility{filteredParking.length !== 1 ? "ies" : ""} verified
+              </span>
+              <div className="flex items-center gap-1.5">
+                <FiShield className="w-3.5 h-3.5 text-[#05944f]" />
+                <span className="text-xs text-[#05944f] font-semibold">Instant QR Pass</span>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: FULL INTERACTIVE MAP */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden min-h-[560px]">
+          {/* RIGHT: MAP */}
+          <div className="lg:col-span-7 bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden min-h-[520px]">
             <ParkingMapView
               parkingLocations={filteredParking}
               userCoords={userCoords}

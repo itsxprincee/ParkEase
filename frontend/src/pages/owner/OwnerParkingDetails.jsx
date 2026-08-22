@@ -5,16 +5,13 @@ import {
   FiMapPin,
   FiLayers,
   FiEdit2,
-  FiCamera,
+  FiGrid,
   FiCheckCircle,
-  FiClock,
-  FiZap,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
-import { Card } from "../../components/Card";
 import { CardSkeleton } from "../../components/Skeleton";
 
 export default function OwnerParkingDetails() {
@@ -43,17 +40,17 @@ export default function OwnerParkingDetails() {
   const isRejected = status === "REJECTED";
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
       <SaaSNavbar />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Dashboard</span>
+            <span>Back to Hub</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -63,7 +60,7 @@ export default function OwnerParkingDetails() {
               icon={FiEdit2}
               onClick={() => navigate(`/owner/edit-parking/${id}`)}
             >
-              Edit Details
+              Edit Facility
             </Button>
             <Button
               variant="primary"
@@ -79,96 +76,128 @@ export default function OwnerParkingDetails() {
         {loading ? (
           <CardSkeleton />
         ) : !parking ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-slate-200">
-            <p className="text-xs text-slate-400">Facility not found</p>
+          <div className="text-center py-16 bg-white rounded-2xl border border-[#e0e0e0] space-y-2">
+            <p className="text-sm font-bold text-[#0a0a0a]">Facility not found</p>
+            <p className="text-xs text-[#737373]">The requested parking location does not exist or has been removed.</p>
           </div>
         ) : (
-          <Card className="space-y-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <Badge
-                  variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
-                  size="sm"
-                  dot
-                >
-                  {isApproved
-                    ? "Verified & Live"
-                    : isRejected
-                    ? "Rejected by Admin"
-                    : "Pending Verification"}
-                </Badge>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1.5">
-                  {parking.name}
-                </h1>
-                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
-                  <FiMapPin className="text-indigo-600 w-3.5 h-3.5" />
-                  <span>{parking.address || parking.location || "City Location"}</span>
-                </p>
+          <div className="bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            {/* Top Image or Hero */}
+            {parking.image_url || parking.image ? (
+              <div className="relative h-64 bg-[#0a0a0a] overflow-hidden">
+                <img
+                  src={parking.image_url || parking.image}
+                  alt={parking.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 left-4">
+                  <Badge
+                    variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
+                    size="sm"
+                    dot
+                  >
+                    {isApproved
+                      ? "Verified & Live"
+                      : isRejected
+                      ? "Rejected by Admin"
+                      : "Pending Verification"}
+                  </Badge>
+                </div>
+              </div>
+            ) : null}
 
-                {/* AMENITIES */}
-                <div className="flex flex-wrap gap-1.5 pt-2">
-                  {parking.has_cctv && (
-                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold border border-blue-100">
-                      📹 24/7 CCTV
-                    </span>
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="space-y-1.5">
+                  {!(parking.image_url || parking.image) && (
+                    <Badge
+                      variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
+                      size="sm"
+                      dot
+                    >
+                      {isApproved
+                        ? "Verified & Live"
+                        : isRejected
+                        ? "Rejected by Admin"
+                        : "Pending Verification"}
+                    </Badge>
                   )}
-                  {parking.has_security_guard && (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-100">
-                      🛡️ Security Guard
-                    </span>
-                  )}
-                  {parking.has_ev && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-100">
-                      ⚡ EV Ready
-                    </span>
-                  )}
-                  {parking.has_covered_roof && (
-                    <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-semibold border border-purple-100">
-                      🏢 Covered
-                    </span>
-                  )}
-                  {parking.is_24_7 && (
-                    <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
-                      ⏰ 24/7
-                    </span>
-                  )}
-                  {parking.has_valet && (
-                    <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[11px] font-semibold border border-rose-100">
-                      🔑 Valet
-                    </span>
-                  )}
+                  <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
+                    {parking.name}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-[#737373] flex items-center gap-1.5 font-medium">
+                    <FiMapPin className="text-[#276ef1] w-4 h-4 shrink-0" />
+                    <span>{parking.address || parking.location || "City Location"}</span>
+                  </p>
+
+                  {/* AMENITIES */}
+                  <div className="flex flex-wrap gap-1.5 pt-3">
+                    {parking.has_cctv && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#eff6ff] text-[#1e40af] text-[11px] font-semibold border border-[#bfdbfe]">
+                        📹 24/7 CCTV
+                      </span>
+                    )}
+                    {parking.has_security_guard && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#f0fdf4] text-[#166534] text-[11px] font-semibold border border-[#bbf7d0]">
+                        🛡️ Security Guard
+                      </span>
+                    )}
+                    {parking.has_ev && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#fffbeb] text-[#92400e] text-[11px] font-semibold border border-[#fde68a]">
+                        ⚡ EV Ready
+                      </span>
+                    )}
+                    {parking.has_covered_roof && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#faf5ff] text-[#6b21a8] text-[11px] font-semibold border border-[#e9d5ff]">
+                        🏢 Covered
+                      </span>
+                    )}
+                    {parking.is_24_7 && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#f0f4ff] text-[#1e3a8a] text-[11px] font-semibold border border-[#c7d2fe]">
+                        ⏰ 24/7 Open
+                      </span>
+                    )}
+                    {parking.has_valet && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#fef2f2] text-[#991b1b] text-[11px] font-semibold border border-[#fecaca]">
+                        🔑 Valet
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="sm:text-right p-4 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0] shrink-0">
+                  <span className="text-[11px] font-bold text-[#737373] uppercase tracking-wider block">
+                    Hourly Tariff
+                  </span>
+                  <p className="text-2xl font-black text-[#0a0a0a] mt-0.5">
+                    {(parking.hourly_rate ?? -1) === 0 ? "FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
+                  </p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="text-xs font-bold text-slate-400">Rate</span>
-                <p className="text-2xl font-black text-indigo-600">
-                  {(parking.hourly_rate ?? -1) === 0 ? "FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
-                </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[#f0f0f0] text-xs">
+                <div className="p-4 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                  <span className="text-[#737373] block font-semibold">Total Capacity</span>
+                  <span className="text-lg font-black text-[#0a0a0a] mt-1 block">
+                    {parking.total_slots || 20} Spots
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                  <span className="text-[#737373] block font-semibold">GPS Coordinates</span>
+                  <span className="text-xs font-mono font-bold text-[#0a0a0a] mt-1 block">
+                    {parking.latitude || "19.0760"}, {parking.longitude || "72.8777"}
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                  <span className="text-[#737373] block font-semibold">Gate Integration</span>
+                  <span className="text-base font-black text-[#05944f] mt-1 flex items-center gap-1.5">
+                    <FiCheckCircle className="w-4 h-4 shrink-0" />
+                    QR Scanner Active
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Total Capacity</span>
-                <span className="text-base font-extrabold text-slate-900 mt-1 block">
-                  {parking.total_slots || 20} Spots
-                </span>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-slate-400 block font-semibold">GPS Coordinates</span>
-                <span className="text-xs font-mono font-bold text-slate-800 mt-1 block">
-                  {parking.latitude || "19.0760"}, {parking.longitude || "72.8777"}
-                </span>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Gate Integration</span>
-                <span className="text-base font-extrabold text-emerald-600 mt-1 block">
-                  QR Scanner Enabled
-                </span>
-              </div>
-            </div>
-          </Card>
+          </div>
         )}
       </main>
     </div>

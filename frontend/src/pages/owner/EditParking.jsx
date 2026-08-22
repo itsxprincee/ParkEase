@@ -92,11 +92,27 @@ export default function EditParking() {
     loadData();
   }, [id]);
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser.", "error");
+      return;
+    }
+    showToast("Detecting current coordinates...", "success");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude.toFixed(6),
+          longitude: pos.coords.longitude.toFixed(6),
+        }));
+        showToast("GPS coordinates detected!", "success");
+      },
+      (err) => {
+        console.error("GPS error:", err);
+        showToast("Unable to retrieve location from device.", "error");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async (e) => {

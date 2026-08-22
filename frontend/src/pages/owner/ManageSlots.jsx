@@ -320,17 +320,17 @@ export default function ManageSlots() {
             ))}
           </div>
 
-          <div className="w-full sm:w-64">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200 focus-within:border-indigo-500 transition">
-              <FiSearch className="text-slate-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search slot (e.g. A-1)..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
-              />
+          <div className="relative w-full sm:w-64 flex items-center">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+              <FiSearch className="w-4 h-4" />
             </div>
+            <input
+              type="text"
+              placeholder="Search slot (e.g. A-1)..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pe-input pe-input-icon-left text-xs"
+            />
           </div>
         </div>
 

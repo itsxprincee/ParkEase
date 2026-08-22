@@ -404,18 +404,18 @@ export default function CustomerDashboard() {
         </div>
 
         {/* SEARCH & FILTERS BAR WITH GOOGLE MAPS GPS */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="apple-spotlight rounded-3xl p-3.5 sm:p-4 space-y-3.5">
           {/* SEARCH INPUT & GPS BUTTON */}
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+              <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
                 <FiSearch className="text-indigo-600 w-4 h-4 shrink-0" />
                 <input
                   type="text"
                   placeholder="Search parking by name, landmark, area, or address..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+                  className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 font-medium focus:outline-none"
                 />
                 {search && (
                   <button

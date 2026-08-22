@@ -308,7 +308,7 @@ export default function Login() {
 
             {/* ================= SIGN IN FORM ================= */}
             {mode === "signin" && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                     Welcome back
@@ -444,7 +444,7 @@ export default function Login() {
 
             {/* ================= SIGN UP FORM ================= */}
             {mode === "signup" && step === 1 && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                     Get Started with ParkEase
@@ -584,7 +584,7 @@ export default function Login() {
 
             {/* ================= SIGN UP OTP VERIFICATION ================= */}
             {mode === "signup" && step === 2 && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                     Verify Your Email
@@ -637,7 +637,7 @@ export default function Login() {
 
             {/* ================= FORGOT PASSWORD ================= */}
             {mode === "forgot" && (
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card space-y-6 animate-in fade-in">
+              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
                   <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
                     Recover Password

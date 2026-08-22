@@ -313,172 +313,138 @@ export default function CustomerDashboard() {
         </Modal>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* UBER HEADER */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* TOP STATUS BAR */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
-              Where are you parking?
+              Where to?
             </h1>
-            <p className="text-sm text-neutral-500 mt-1 font-medium">
-              Find verified spots, view real-time availability, and reserve instantly.
+            <p className="text-xs sm:text-sm text-neutral-500 font-medium mt-0.5">
+              Choose a parking facility, view live slots, and reserve your gate pass.
             </p>
           </div>
 
-          {/* VIEW SWITCHER */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center bg-neutral-100 p-1 rounded-2xl border border-neutral-200">
-              <button
-                type="button"
-                onClick={() => setViewMode("GRID")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  viewMode === "GRID"
-                    ? "bg-black text-white shadow-sm"
-                    : "text-neutral-600 hover:text-black"
-                }`}
-              >
-                <FiLayers className="w-4 h-4" />
-                <span>List</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setViewMode("MAP")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  viewMode === "MAP"
-                    ? "bg-black text-white shadow-sm"
-                    : "text-neutral-600 hover:text-black"
-                }`}
-              >
-                <FiMapPin className="w-4 h-4" />
-                <span>Map</span>
-              </button>
-            </div>
-
-            {latestActiveBooking && (
-              <button
-                onClick={() =>
-                  navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
-                    state: { booking: latestActiveBooking },
-                  })
-                }
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-white text-xs font-black shadow-md hover:bg-neutral-800 transition"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>Active Pass (Slot {latestActiveBooking.slot_number}) &rarr;</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* UBER SEARCH BAR */}
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                <FiSearch className="text-black w-5 h-5 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Enter location, landmark, or parking facility..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-transparent text-sm text-black placeholder-neutral-400 font-bold focus:outline-none"
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    className="text-neutral-400 hover:text-black"
-                  >
-                    <FiX className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* UBER GPS LOCATOR */}
+          {latestActiveBooking && (
             <button
-              type="button"
-              onClick={handleLocateNearest}
-              className={`px-5 py-3.5 rounded-xl text-sm font-black flex items-center justify-center gap-2 transition ${
-                userCoords
-                  ? "bg-black text-white shadow-md"
-                  : "bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-200"
-              }`}
+              onClick={() =>
+                navigate(`/customer/qr?booking=${latestActiveBooking.id}`, {
+                  state: { booking: latestActiveBooking },
+                })
+              }
+              className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-black text-white text-xs font-black shadow-sm hover:bg-neutral-800 transition"
             >
-              <FiCompass className="w-4 h-4" />
-              <span>{isLocating ? "Locating..." : userCoords ? "📍 Nearest (Active)" : "📍 Find Nearest"}</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>Active Pass (Slot {latestActiveBooking.slot_number}) &rarr;</span>
             </button>
-          </div>
-
-          {/* FILTER PILLS */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-1">
-            {[
-              { id: "ALL", label: "All Spots" },
-              { id: "NEARBY", label: "📍 Nearest" },
-              { id: "FREE", label: "🆓 Free" },
-              { id: "EV", label: "⚡ EV Ready" },
-              { id: "SECURITY", label: "🛡️ Guarded" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  if (tab.id === "NEARBY" && !userCoords) {
-                    handleLocateNearest();
-                  } else {
-                    setSelectedFilter(tab.id);
-                  }
-                }}
-                className={`px-4 py-2 rounded-full text-xs font-black whitespace-nowrap transition-all ${
-                  selectedFilter === tab.id
-                    ? "bg-black text-white shadow-sm"
-                    : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          )}
         </div>
 
-        {/* MAP VIEW */}
-        {viewMode === "MAP" && (
-          <section className="animate-in fade-in duration-200">
-            <ParkingMapView
-              parkingLocations={filteredParking}
-              userCoords={userCoords}
-              onLocateUser={handleLocateNearest}
-              isLocating={isLocating}
-              onBookParking={(p) =>
-                navigate(`/customer/parking/${p.id}/book`, { state: { parking: p } })
-              }
-              onViewDetails={(p) => navigate(`/customer/parking/${p.id}`)}
-            />
-          </section>
-        )}
+        {/* UBER SPLIT SCREEN LAYOUT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT: UBER RIDE / PARKING SELECTOR DRAWER */}
+          <div className="lg:col-span-5 bg-white rounded-2xl border border-neutral-200 shadow-sm p-5 space-y-4 flex flex-col justify-between">
+            {/* UBER CONNECTED INPUTS (Current Location -> Destination) */}
+            <div className="bg-neutral-50 rounded-xl p-3.5 border border-neutral-200 relative space-y-3">
+              {/* CONNECTING LINE */}
+              <div className="absolute left-[26px] top-[30px] bottom-[30px] w-0.5 bg-neutral-300 pointer-events-none" />
 
-        {/* UBER RIDE-STYLE PARKING CARDS */}
-        {viewMode === "GRID" && (
-          <section>
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <CardSkeleton />
-                <CardSkeleton />
-                <CardSkeleton />
+              {/* POINT A: CURRENT LOCATION */}
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-4 h-4 rounded-full bg-black flex items-center justify-center shrink-0">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                </div>
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-xs font-bold text-black truncate">
+                    {userCoords ? "📍 Current GPS Location" : "Current Location"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleLocateNearest}
+                    className="text-[11px] font-black text-black hover:underline shrink-0 bg-white px-2 py-1 rounded-lg border border-neutral-200"
+                  >
+                    {isLocating ? "Locating..." : userCoords ? "✓ Active" : "Find GPS"}
+                  </button>
+                </div>
               </div>
-            ) : filteredParking.length === 0 ? (
-              <EmptyState
-                icon={FiMapPin}
-                title="No parking spots found"
-                description="Try clearing your search query to see all available locations."
-                actionLabel="Clear Filters"
-                onAction={() => {
-                  setSearch("");
-                  setSelectedFilter("ALL");
-                }}
-              />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredParking.map((parking) => {
+
+              {/* POINT B: SEARCH DESTINATION */}
+              <div className="flex items-center gap-3 relative z-10 pt-1">
+                <div className="w-4 h-4 rounded-sm bg-black shrink-0 flex items-center justify-center text-[10px] text-white font-black">
+                  ■
+                </div>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search parking or landmark..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full bg-white px-3 py-2 rounded-lg border border-neutral-200 text-xs font-bold text-black focus:outline-none focus:border-black transition"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-2.5 top-2.5 text-neutral-400 hover:text-black"
+                    >
+                      <FiX className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* FILTER PILLS */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {[
+                { id: "ALL", label: "All Spots" },
+                { id: "NEARBY", label: "📍 Nearest" },
+                { id: "FREE", label: "🆓 Free" },
+                { id: "EV", label: "⚡ EV Ready" },
+                { id: "SECURITY", label: "🛡️ Guarded" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.id === "NEARBY" && !userCoords) {
+                      handleLocateNearest();
+                    } else {
+                      setSelectedFilter(tab.id);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all ${
+                    selectedFilter === tab.id
+                      ? "bg-black text-white shadow-sm"
+                      : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* UBER PARKING TIERS LIST */}
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              {loading ? (
+                <div className="space-y-2">
+                  <CardSkeleton />
+                  <CardSkeleton />
+                </div>
+              ) : filteredParking.length === 0 ? (
+                <div className="text-center py-8 text-neutral-400 space-y-2">
+                  <FiMapPin className="w-8 h-8 mx-auto text-neutral-300" />
+                  <p className="text-xs font-bold">No parking facilities match your search.</p>
+                  <button
+                    onClick={() => {
+                      setSearch("");
+                      setSelectedFilter("ALL");
+                    }}
+                    className="text-xs text-black font-black underline"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                filteredParking.map((parking) => {
                   const availableSlots = getAvailableSlots(parking);
                   const isFree = (parking.hourly_rate ?? -1) === 0;
                   const distanceStr = userCoords
@@ -493,83 +459,71 @@ export default function CustomerDashboard() {
                   return (
                     <div
                       key={parking.id}
-                      className="bg-white rounded-2xl border border-neutral-200 p-5 hover:border-black transition-all shadow-sm flex flex-col justify-between group"
+                      onClick={() =>
+                        navigate(`/customer/parking/${parking.id}/book`, {
+                          state: { parking },
+                        })
+                      }
+                      className="p-3.5 rounded-xl border border-neutral-200 hover:border-black bg-white hover:bg-neutral-50 transition-all cursor-pointer flex items-center justify-between group"
                     >
-                      {/* CARD TOP INFO */}
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
-                              {parking.has_ev ? "⚡" : "🚗"}
-                            </div>
-                            <div>
-                              <h3 className="text-base font-black text-black line-clamp-1">
-                                {parking.name || "ParkEase Facility"}
-                              </h3>
-                              <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5 line-clamp-1">
-                                <FiMapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                                <span>{parking.address || parking.location || "City Zone"}</span>
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="text-right shrink-0">
-                            {isFree ? (
-                              <span className="text-lg font-black text-emerald-600">FREE</span>
-                            ) : (
-                              <div className="flex flex-col items-end">
-                                <span className="text-xl font-black text-black">
-                                  ₹{parking.hourly_rate ?? 50}
-                                </span>
-                                <span className="text-[10px] text-neutral-400 font-bold uppercase">per hr</span>
-                              </div>
-                            )}
-                          </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
+                          {parking.has_ev ? "⚡" : "🚗"}
                         </div>
-
-                        {/* STATUS & DISTANCE */}
-                        <div className="flex items-center justify-between pt-1 text-xs">
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-black border border-emerald-200">
-                            🟢 {availableSlots} Spots Available
-                          </span>
-
-                          {distanceStr && (
-                            <span className="text-neutral-500 font-bold">
-                              📍 {distanceStr} away
-                            </span>
-                          )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-black text-black line-clamp-1">
+                              {parking.name || "ParkEase Facility"}
+                            </h3>
+                          </div>
+                          <p className="text-[11px] text-neutral-500 flex items-center gap-1 mt-0.5 line-clamp-1">
+                            <span>{availableSlots} spots available</span>
+                            {distanceStr && <span>• {distanceStr} away</span>}
+                          </p>
                         </div>
                       </div>
 
-                      {/* ACTIONS */}
-                      <div className="pt-4 mt-4 border-t border-neutral-100 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setMapModalParking(parking)}
-                          className="px-3.5 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
-                        >
-                          Map
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(`/customer/parking/${parking.id}/book`, {
-                              state: { parking },
-                            })
-                          }
-                          className="flex-1 py-2.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black text-center shadow-md transition active:scale-95"
-                        >
-                          Reserve Spot &rarr;
-                        </button>
+                      <div className="text-right shrink-0">
+                        {isFree ? (
+                          <span className="text-sm font-black text-emerald-600">FREE</span>
+                        ) : (
+                          <div>
+                            <span className="text-base font-black text-black">
+                              ₹{parking.hourly_rate ?? 50}
+                            </span>
+                            <span className="text-[10px] text-neutral-400 font-bold block">/hr</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            )}
-          </section>
-        )}
+                })
+              )}
+            </div>
+
+            {/* DIRECT CTA INFO */}
+            <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-500 font-bold">
+              <span>{filteredParking.length} facilities verified</span>
+              <span>Instant Pass &rarr;</span>
+            </div>
+          </div>
+
+          {/* RIGHT: FULL INTERACTIVE MAP */}
+          <div className="lg:col-span-7 bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden min-h-[560px]">
+            <ParkingMapView
+              parkingLocations={filteredParking}
+              userCoords={userCoords}
+              onLocateUser={handleLocateNearest}
+              isLocating={isLocating}
+              onBookParking={(p) =>
+                navigate(`/customer/parking/${p.id}/book`, { state: { parking: p } })
+              }
+              onViewDetails={(p) =>
+                navigate(`/customer/parking/${p.id}/book`, { state: { parking: p } })
+              }
+            />
+          </div>
+        </div>
       </main>
     </div>
   );

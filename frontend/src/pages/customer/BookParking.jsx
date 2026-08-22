@@ -658,12 +658,12 @@ export default function BookParking() {
       <Modal
         isOpen={showAddVehicleModal}
         onClose={() => setShowAddVehicleModal(false)}
-        title="Register Vehicle"
-        subtitle="Add your vehicle details for quick pass generation."
+        title="Add Vehicle"
+        subtitle="Add your vehicle details for instant gate pass generation."
       >
         <form onSubmit={handleAddVehicle} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-neutral-700">
               License Plate Number *
             </label>
             <input
@@ -674,27 +674,27 @@ export default function BookParking() {
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_number: e.target.value.toUpperCase() })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-neutral-700">
               Vehicle Nickname (Optional)
             </label>
             <input
               type="text"
-              placeholder="e.g. My Tesla / Daily Honda"
+              placeholder="e.g. My Tesla / Daily Car"
               value={newVehicle.vehicle_name}
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-neutral-700">
               Vehicle Type
             </label>
             <select
@@ -702,7 +702,7 @@ export default function BookParking() {
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })
               }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-medium focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-neutral-200 text-xs text-black font-bold focus:outline-none focus:border-black transition"
             >
               <option value="Car">Car (Sedan/SUV/Hatchback)</option>
               <option value="EV">Electric Vehicle (EV)</option>
@@ -711,22 +711,20 @@ export default function BookParking() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-3">
-            <Button
-              variant="outline"
-              size="md"
+            <button
               type="button"
               onClick={() => setShowAddVehicleModal(false)}
+              className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
             >
               Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
+            </button>
+            <button
               type="submit"
-              loading={addingVehicle}
+              disabled={addingVehicle}
+              className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition shadow-sm"
             >
-              Save Vehicle
-            </Button>
+              {addingVehicle ? "Saving..." : "Save Vehicle"}
+            </button>
           </div>
         </form>
       </Modal>
@@ -735,62 +733,62 @@ export default function BookParking() {
       <Modal
         isOpen={!!successModal}
         onClose={() => {}}
-        title="Reservation Confirmed! 🎉"
+        title="Reservation Confirmed"
         maxWidth="max-w-md"
         showClose={false}
       >
         <div className="text-center py-2 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100 shadow-xs">
-            <FiCheckCircle className="w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center mx-auto shadow-sm text-2xl font-bold">
+            ✓
           </div>
 
           <div>
-            <h4 className="text-lg font-extrabold text-slate-900">
-              Pass #{successModal?.id} Generated
+            <h4 className="text-xl font-black text-black">
+              Pass #{successModal?.id} Ready
             </h4>
-            <p className="text-xs text-slate-500 mt-1">
-              Your slot <span className="font-bold text-indigo-600">{successModal?.slot_number}</span> has been locked at {parking?.name || "the facility"}.
+            <p className="text-xs text-neutral-500 font-medium mt-1">
+              Your slot <span className="font-black text-black">{successModal?.slot_number}</span> has been confirmed.
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2 text-left">
+          <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs space-y-2 text-left">
             <div className="flex justify-between">
-              <span className="text-slate-500">Date</span>
-              <span className="font-bold text-slate-800">{successModal?.booking_date || bookingDate}</span>
+              <span className="text-neutral-500">Date</span>
+              <span className="font-bold text-black">{successModal?.booking_date || bookingDate}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Time Window</span>
-              <span className="font-bold text-slate-800">{successModal?.start_time} – {successModal?.end_time}</span>
+              <span className="text-neutral-500">Time Window</span>
+              <span className="font-bold text-black">{successModal?.start_time} – {successModal?.end_time}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Vehicle</span>
-              <span className="font-bold text-slate-800">{successModal?.vehicle_number || selectedVehicle?.vehicle_number}</span>
+              <span className="text-neutral-500">Vehicle</span>
+              <span className="font-bold text-black">{successModal?.vehicle_number || selectedVehicle?.vehicle_number}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Total Paid</span>
-              <span className="font-bold text-emerald-600">₹{grandTotal}</span>
+            <div className="flex justify-between pt-2 border-t border-neutral-200">
+              <span className="text-neutral-500">Total Paid</span>
+              <span className="font-black text-black text-sm">₹{grandTotal}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <Button
-              variant="outline"
-              size="md"
+            <button
+              type="button"
               onClick={() => navigate("/customer/my-bookings")}
+              className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
             >
-              All Passes
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
+              My Passes
+            </button>
+            <button
+              type="button"
               onClick={() =>
                 navigate(`/customer/qr?booking=${successModal?.id}`, {
                   state: { booking: successModal },
                 })
               }
+              className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black shadow-sm transition"
             >
-              View QR Ticket
-            </Button>
+              View QR Pass &rarr;
+            </button>
           </div>
         </div>
       </Modal>

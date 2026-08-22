@@ -258,39 +258,63 @@ export default function QRCode() {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                       Registered Vehicle
                     </span>
-                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
-                      {booking.vehicle_number || "MH-01-AB-1234"}
-                    </span>
+                    <div className="license-plate mt-1 text-xs">
+                      <span className="license-plate-ind">IND</span>
+                      <span>{booking.vehicle_number || "MH 01 AB 1234"}</span>
+                    </div>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Fare Paid
+                      Total Fare Paid
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-600 mt-0.5 block">
-                      ₹{booking.total_amount || 105}
+                    <span className="text-sm font-extrabold text-emerald-600 mt-1 block">
+                      ₹{booking.total_amount || 105}.00
                     </span>
                   </div>
                 </div>
 
                 {/* ACTION BUTTONS */}
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Button
-                    variant="outline"
-                    size="md"
-                    icon={FiDownload}
-                    onClick={handleDownloadQR}
+                <div className="space-y-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (booking.parking_latitude && booking.parking_longitude) {
+                        window.open(
+                          `https://www.google.com/maps/dir/?api=1&destination=${booking.parking_latitude},${booking.parking_longitude}`,
+                          "_blank"
+                        );
+                      } else {
+                        window.open(
+                          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.parking_name || booking.parking_address || "Parking")}`,
+                          "_blank"
+                        );
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition active:scale-95"
                   >
-                    Save Image
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    icon={FiPrinter}
-                    onClick={() => window.print()}
-                  >
-                    Print Ticket
-                  </Button>
+                    <FiNavigation className="w-4 h-4 text-indigo-600" />
+                    <span>Get Turn-by-Turn Directions in Google Maps</span>
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      size="md"
+                      icon={FiDownload}
+                      onClick={handleDownloadQR}
+                    >
+                      Save Image
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      icon={FiPrinter}
+                      onClick={() => window.print()}
+                    >
+                      Print Ticket
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

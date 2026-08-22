@@ -12,66 +12,69 @@
     --border-subtle: #e2e8f0;
     --text-main: #0f172a;
     --text-muted: #64748b;
-    --bg-page: #f8fafc;
+    --bg-page: #fbfcfd;
   }
 
   * {
     border-color: #e2e8f0;
-  }
-
-  body {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    color: #0f172a;
-    background-color: #f8fafc;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+    color: #0f172a;
+    background-color: #fbfcfd;
+    letter-spacing: -0.015em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.03em;
+  }
+}
+
+/* Modern Luxury Light Mode (Apple / Linear style) */
+.apple-card {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.1), 0 0 1px 1px rgba(99, 102, 241, 0.15);
+}
+
+.apple-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.apple-spotlight {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
 /* Glassmorphic and modern UI utilities */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(226, 232, 240, 0.9);
-}
-
-.glass-panel-dark {
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(51, 65, 85, 0.85);
 }
 
 .gradient-brand {
   background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #06b6d4 100%);
 }
 
-.gradient-mesh-hero {
-  background: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-              radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.12) 0px, transparent 50%),
-              radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
-              #0f172a;
-}
-
-.gradient-mesh-light {
-  background: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-              radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
-              #f8fafc;
-}
-
-.gradient-brand-subtle {
-  background: linear-gradient(135deg, #eef2ff 0%, #f0fdf4 100%);
-}
-
 .text-gradient {
   background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.text-gradient-gold {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -88,21 +91,13 @@
   box-shadow: 0 16px 32px -4px rgba(79, 70, 229, 0.12), 0 6px 12px -2px rgba(0, 0, 0, 0.04);
 }
 
-.shadow-glow-indigo {
-  box-shadow: 0 0 25px -3px rgba(99, 102, 241, 0.35);
-}
-
-.shadow-glow-emerald {
-  box-shadow: 0 0 25px -3px rgba(16, 185, 129, 0.35);
-}
-
 /* Interactive Card Hover Transition */
 .card-hover-effect {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .card-hover-effect:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 32px -4px rgba(79, 70, 229, 0.12), 0 6px 12px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 35px -10px rgba(99, 102, 241, 0.1), 0 0 1px 1px rgba(99, 102, 241, 0.15);
 }
 
 /* Shimmer Loading Animation */
@@ -142,6 +137,93 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Ticket Perforations & Cuts */
+.ticket-cut-l {
+  position: relative;
+}
+.ticket-cut-l::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background-color: #f8fafc;
+  border-radius: 50%;
+  border-right: 1px solid #e2e8f0;
+  z-index: 10;
+}
+.ticket-cut-r::after {
+  content: "";
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background-color: #f8fafc;
+  border-radius: 50%;
+  border-left: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+/* Digital IND License Plate */
+.license-plate {
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 8px;
+  padding: 2px 10px 2px 4px;
+  font-family: monospace;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.license-plate-ind {
+  background: #003893;
+  color: #ffffff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 900;
+  margin-right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+/* QR Scanning Laser Line */
+@keyframes scanLaser {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+.scan-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #6366f1, #38bdf8, #6366f1, transparent);
+  box-shadow: 0 0 15px #6366f1;
+  animation: scanLaser 2.2s infinite ease-in-out;
+  z-index: 30;
 }
 
 /* Print optimizations for receipts */

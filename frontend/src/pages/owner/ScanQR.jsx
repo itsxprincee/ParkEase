@@ -259,6 +259,27 @@ export default function ScanQR() {
               <div className="mt-4 relative bg-slate-900 rounded-2xl overflow-hidden min-h-[280px] flex items-center justify-center border-2 border-slate-800">
                 <div id="reader" className="w-full h-full" />
 
+                {scanning && (
+                  <>
+                    <div className="scan-laser-line" />
+                    <div className="absolute inset-6 pointer-events-none border-2 border-indigo-400/30 rounded-2xl flex flex-col justify-between p-3 z-20">
+                      <div className="flex justify-between">
+                        <span className="w-6 h-6 border-t-2 border-l-2 border-indigo-400 rounded-tl-lg" />
+                        <span className="w-6 h-6 border-t-2 border-r-2 border-indigo-400 rounded-tr-lg" />
+                      </div>
+                      <div className="text-center">
+                        <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-bold text-indigo-300 tracking-wider uppercase">
+                          Align QR Code inside frame
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="w-6 h-6 border-b-2 border-l-2 border-indigo-400 rounded-bl-lg" />
+                        <span className="w-6 h-6 border-b-2 border-r-2 border-indigo-400 rounded-br-lg" />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {!scanning && (
                   <div className="text-center p-6 space-y-3">
                     <FiCamera className="w-12 h-12 text-slate-500 mx-auto" />
@@ -347,6 +368,22 @@ export default function ScanQR() {
                   <span className="text-xl font-black text-indigo-600 bg-white px-3 py-1.5 rounded-xl border border-indigo-100">
                     Slot {verifiedBooking.slot_number || "A-1"}
                   </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Vehicle Plate</span>
+                    <div className="license-plate mt-1 text-[11px]">
+                      <span className="license-plate-ind">IND</span>
+                      <span>{verifiedBooking.vehicle_number || "MH-01-AB-1234"}</span>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Scheduled Time</span>
+                    <span className="font-bold text-slate-900 mt-1 block">
+                      {verifiedBooking.start_time || "10:00 AM"} - {verifiedBooking.end_time || "12:00 PM"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2.5 text-xs">

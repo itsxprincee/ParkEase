@@ -228,14 +228,15 @@ export default function MyVehicles() {
                   </div>
 
                   {/* LICENSE PLATE CHIP */}
-                  <div className="py-3 px-4 rounded-xl bg-slate-100 border-2 border-slate-300/80 flex items-center justify-between">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      IND
+                  <div className="py-2.5 px-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                    <div className="license-plate">
+                      <span className="license-plate-ind">IND</span>
+                      <span>{v.vehicle_number}</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Verified
                     </span>
-                    <span className="text-sm font-black tracking-wider text-slate-900 font-mono">
-                      {v.vehicle_number}
-                    </span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   </div>
 
                   {/* ACTIONS */}

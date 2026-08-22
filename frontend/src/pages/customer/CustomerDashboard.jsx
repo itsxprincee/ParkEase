@@ -560,32 +560,30 @@ export default function CustomerDashboard() {
                   : null;
 
                 return (
-                  <Card
+                  <div
                     key={parking.id}
-                    hover
-                    className="flex flex-col justify-between overflow-hidden group"
-                    padding="p-0"
+                    className="apple-card overflow-hidden flex flex-col justify-between group"
                   >
                     {/* CARD HEADER / COVER */}
-                    <div className="relative h-44 bg-gradient-to-tr from-slate-800 to-indigo-950 overflow-hidden">
+                    <div className="relative h-48 bg-slate-900 overflow-hidden">
                       {parking.image_url || parking.image ? (
                         <img
                           src={parking.image_url || parking.image}
                           alt={parking.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-900/60 p-4 text-center">
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 p-4 text-center">
                           <FiMapPin className="w-8 h-8 text-indigo-400 mb-1" />
-                          <span className="text-xs font-semibold text-slate-300">
-                            Verified Smart Lot
+                          <span className="text-xs font-bold text-slate-300">
+                            Verified Smart Facility
                           </span>
                         </div>
                       )}
 
                       {/* Top Badges */}
-                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
+                      <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none">
+                        <div className="flex items-center gap-1.5 pointer-events-auto">
                           <Badge
                             variant={isAlmostFull ? "warning" : "available"}
                             size="sm"
@@ -594,33 +592,31 @@ export default function CustomerDashboard() {
                             {availableSlots} Spots
                           </Badge>
                           {distanceStr && (
-                            <span className="px-2 py-0.5 rounded-md bg-indigo-600/90 backdrop-blur-md text-white text-[10px] font-bold shadow-xs">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 shadow-xs">
                               📍 {distanceStr}
                             </span>
                           )}
                         </div>
 
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold border backdrop-blur-md ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-black border backdrop-blur-md pointer-events-auto shadow-sm ${
                           (parking.hourly_rate ?? -1) === 0
                             ? "bg-emerald-600 text-white border-emerald-500"
-                            : "bg-black/60 text-white border-white/20"
+                            : "bg-slate-900/85 text-white border-white/20"
                         }`}>
-                          {(parking.hourly_rate ?? -1) === 0 ? "🆓 FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
+                          {(parking.hourly_rate ?? -1) === 0 ? "FREE" : `₹${parking.hourly_rate ?? 50}/hr`}
                         </span>
                       </div>
                     </div>
 
                     {/* CARD CONTENT */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
                       <div>
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                            {parking.name || "ParkEase Central"}
-                          </h3>
-                        </div>
+                        <h3 className="text-base font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                          {parking.name || "ParkEase Central"}
+                        </h3>
 
                         <p className="text-xs text-slate-500 flex items-start gap-1.5 mt-1 line-clamp-2">
-                          <FiMapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                          <FiMapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
                           <span>
                             {parking.address ||
                               parking.location ||
@@ -629,34 +625,34 @@ export default function CustomerDashboard() {
                         </p>
 
                         {/* AMENITY & SECURITY TAGS */}
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-3">
                           {parking.has_cctv && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100">
                               📹 CCTV
                             </span>
                           )}
                           {parking.has_security_guard && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
                               🛡️ Guard
                             </span>
                           )}
                           {parking.has_ev && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-semibold border border-amber-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-100">
                               ⚡ EV Ready
                             </span>
                           )}
                           {parking.has_covered_roof && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-semibold border border-purple-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-100">
                               🏢 Covered
                             </span>
                           )}
                           {parking.is_24_7 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-semibold border border-indigo-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-100">
                               ⏰ 24/7
                             </span>
                           )}
                           {parking.has_valet && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-100">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-100">
                               🔑 Valet
                             </span>
                           )}
@@ -664,9 +660,9 @@ export default function CustomerDashboard() {
 
                         {/* OCCUPANCY PROGRESS */}
                         <div className="mt-4 space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                            <span>Live Occupancy</span>
-                            <span className="font-bold">{occupancyRate}%</span>
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                            <span>Occupancy</span>
+                            <span className="font-extrabold text-slate-800">{occupancyRate}%</span>
                           </div>
                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div
@@ -676,7 +672,7 @@ export default function CustomerDashboard() {
                               style={{ width: `${occupancyRate}%` }}
                             />
                           </div>
-                          <div className="flex items-center justify-between text-[10px] text-slate-400">
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
                             <span>{availableSlots} spots free</span>
                             <span>{totalSlots} total capacity</span>
                           </div>
@@ -689,10 +685,10 @@ export default function CustomerDashboard() {
                           <button
                             type="button"
                             onClick={() => setMapModalParking(parking)}
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-xs font-semibold border border-slate-200 transition"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100/80 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-xs font-bold border border-slate-200 transition"
                           >
-                            <FiMapPin className="w-3.5 h-3.5" />
-                            <span>Google Map</span>
+                            <FiMapPin className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>Preview Map</span>
                           </button>
 
                           <button
@@ -703,16 +699,16 @@ export default function CustomerDashboard() {
                                 "_blank"
                               )
                             }
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 text-xs font-semibold border border-slate-200 transition"
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100/80 hover:bg-emerald-50 text-slate-700 hover:text-emerald-600 text-xs font-bold border border-slate-200 transition"
                           >
-                            <FiNavigation className="w-3.5 h-3.5" />
+                            <FiNavigation className="w-3.5 h-3.5 text-emerald-500" />
                             <span>Directions</span>
                           </button>
                         </div>
 
                         <Button
                           variant="primary"
-                          size="sm"
+                          size="md"
                           fullWidth
                           iconRight={FiArrowRight}
                           onClick={() =>
@@ -721,11 +717,11 @@ export default function CustomerDashboard() {
                             })
                           }
                         >
-                          Book Slot Now
+                          Book Slot Now &rarr;
                         </Button>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 );
               })}
             </div>

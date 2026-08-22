@@ -214,14 +214,16 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+          <div className="relative w-full sm:w-64 flex items-center">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+              <FiSearch className="w-4 h-4" />
+            </div>
             <input
               type="text"
-              placeholder="Search facility or owner..."
+              placeholder="Search facilities or owners..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pe-input pl-9 text-sm"
+              className="pe-input pe-input-icon-left text-xs"
             />
           </div>
         </div>

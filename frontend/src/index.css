@@ -265,13 +265,25 @@
   background: var(--pe-surface);
   border: 1.5px solid var(--pe-border);
   border-radius: var(--pe-radius-md);
-  padding: 0.75rem 1rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--pe-text-primary);
   transition: var(--pe-transition);
   outline: none;
+  box-sizing: border-box;
+}
+
+.pe-input-icon-left {
+  padding-left: 2.75rem !important;
+}
+
+.pe-input-icon-right {
+  padding-right: 3rem !important;
 }
 
 .pe-input:focus {

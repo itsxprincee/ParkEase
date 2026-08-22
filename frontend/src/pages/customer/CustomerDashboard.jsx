@@ -339,19 +339,21 @@ export default function CustomerDashboard() {
               </div>
 
               {/* Search */}
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+                  <FiSearch className="w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   placeholder="Search parking or area..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pe-input pl-9 pr-8 text-sm"
+                  className="pe-input pe-input-icon-left text-sm"
                 />
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a0a0a0] hover:text-[#0a0a0a]"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#0a0a0a] z-10"
                   >
                     <FiX className="w-3.5 h-3.5" />
                   </button>

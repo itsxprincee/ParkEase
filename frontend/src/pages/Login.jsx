@@ -48,22 +48,24 @@ function InputField({ label, icon: Icon, type = "text", value, onChange, placeho
       <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
         {label}
       </label>
-      <div className="relative">
+      <div className="relative flex items-center">
         {Icon && (
-          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none text-[#737373] z-10">
+            <Icon className="w-4 h-4" />
+          </div>
         )}
         <input
           type={type}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`pe-input ${Icon ? "pl-10" : ""} ${action ? "pr-12" : ""}`}
+          className={`pe-input ${Icon ? "pe-input-icon-left" : ""} ${action ? "pe-input-icon-right" : ""}`}
         />
         {action && (
           <button
             type="button"
             onClick={action.onClick}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#0a0a0a] transition-colors"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] hover:text-[#0a0a0a] transition-colors z-10"
           >
             {action.icon}
           </button>

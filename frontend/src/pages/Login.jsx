@@ -153,13 +153,15 @@ export default function Login() {
     }
     try {
       setLoading(true);
-      try {
-        await API.post("/auth/send-otp", { email: signUpEmail });
-      } catch (_) {}
-      showToast("Verification code sent to your email!", "success");
+      await API.post("/auth/send-otp", {
+        name,
+        email: signUpEmail,
+        role,
+      });
+      showToast("Verification code generated!", "success");
       setStep(2);
-    } catch (_) {
-      showToast("Failed to send OTP. Try again.", "error");
+    } catch (error) {
+      showToast(error?.response?.data?.detail || "Failed to send OTP. Try again.", "error");
     } finally {
       setLoading(false);
     }
@@ -169,17 +171,24 @@ export default function Login() {
     e.preventDefault();
     try {
       setLoading(true);
-      await API.post("/auth/register", {
+      const res = await API.post("/auth/register", {
         name,
         email: signUpEmail,
         password: signUpPassword,
         role,
         otp: otp || "123456",
       });
-      showToast("Account created! Please sign in.", "success");
-      setMode("signin");
-      setSignInEmail(signUpEmail);
-      setStep(1);
+      const token = res.data?.token || res.data?.access_token;
+      const user = res.data?.user || res.data;
+      if (token) localStorage.setItem("token", token);
+      if (user) localStorage.setItem("user", JSON.stringify(user));
+      showToast("Account created successfully!", "success");
+      const userRole = (user?.role || role).toLowerCase();
+      setTimeout(() => {
+        if (userRole === "admin") navigate("/admin", { replace: true });
+        else if (userRole === "owner") navigate("/owner", { replace: true });
+        else navigate("/customer/dashboard", { replace: true });
+      }, 400);
     } catch (error) {
       showToast(error?.response?.data?.detail || "Registration failed.", "error");
     } finally {
@@ -193,10 +202,13 @@ export default function Login() {
     try {
       setLoading(true);
       await API.post("/auth/forgot-password", { email: forgotEmail });
-    } catch (_) {}
-    setForgotSent(true);
-    showToast("Reset link sent!", "success");
-    setLoading(false);
+      setForgotSent(true);
+      showToast("Password reset link generated!", "success");
+    } catch (error) {
+      showToast(error?.response?.data?.detail || "Unable to send reset link.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const switchMode = (newMode) => {

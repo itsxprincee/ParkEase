@@ -107,6 +107,10 @@ def add_vehicle(
     return {
         "success": True,
         "message": "Vehicle added successfully",
+        "id": vehicle.id,
+        "vehicle_number": vehicle.vehicle_number,
+        "vehicle_type": vehicle.vehicle_type,
+        "vehicle_name": vehicle.vehicle_name,
         "vehicle": {
             "id": vehicle.id,
             "vehicle_number": vehicle.vehicle_number,

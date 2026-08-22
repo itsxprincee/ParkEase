@@ -288,6 +288,7 @@ def reject_parking(
 # =========================================================
 
 @router.get("/verification-stats")
+@router.get("/stats")
 def verification_stats(
     db: Session = Depends(get_db),
     admin=Depends(admin_required)

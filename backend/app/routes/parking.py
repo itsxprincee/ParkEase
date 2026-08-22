@@ -127,6 +127,8 @@ def parse_bool(val) -> bool:
 # =========================================================
 
 @router.post("/create")
+@router.post("/")
+@router.post("")
 async def create_parking(
     request: Request,
     db: Session = Depends(get_db),
@@ -459,17 +461,24 @@ def get_customer_parking_slots(
 
     parking = (
         db.query(ParkingLocation)
-        .filter(
-            ParkingLocation.id == parking_id,
-            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
-        )
+        .filter(ParkingLocation.id == parking_id)
         .first()
     )
 
     if not parking:
         raise HTTPException(
             status_code=404,
-            detail="Parking not found or not approved"
+            detail="Parking location not found"
+        )
+
+    is_owner = parking.owner_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+    is_approved = str(parking.verification_status or "").upper().strip() == "APPROVED"
+
+    if not (is_approved or is_owner or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="Parking not approved yet"
         )
 
     # Auto-generate slots if not created yet
@@ -1230,17 +1239,24 @@ def get_parking(
 
     parking = (
         db.query(ParkingLocation)
-        .filter(
-            ParkingLocation.id == parking_id,
-            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
-        )
+        .filter(ParkingLocation.id == parking_id)
         .first()
     )
 
     if not parking:
         raise HTTPException(
             status_code=404,
-            detail="Parking not found or not approved"
+            detail="Parking location not found"
+        )
+
+    is_owner = parking.owner_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+    is_approved = str(parking.verification_status or "").upper().strip() == "APPROVED"
+
+    if not (is_approved or is_owner or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="This parking facility is currently pending verification"
         )
 
     ensure_parking_slots(parking, db)

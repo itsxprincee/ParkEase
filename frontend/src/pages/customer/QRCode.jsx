@@ -84,8 +84,11 @@ export default function QRCode() {
   };
 
   const qrValue = JSON.stringify({
-    app: "ParkEase",
+    type: "PARKEASE_BOOKING",
     booking_id: booking?.id,
+    user_id: booking?.user_id,
+    parking_location_id: booking?.parking_location_id || booking?.parking_id,
+    slot_id: booking?.slot_id,
     slot: booking?.slot_number,
     vehicle: booking?.vehicle_number,
     facility: booking?.parking_name,

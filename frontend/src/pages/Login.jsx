@@ -199,83 +199,67 @@ export default function Login() {
         </div>
       )}
 
-      <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12">
+      <div className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white">
         {/* LEFT PROMO HERO PANEL (Desktop only) */}
-        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-transparent to-transparent pointer-events-none" />
-
+        <div className="hidden lg:flex lg:col-span-5 bg-black text-white p-12 flex-col justify-between relative overflow-hidden">
           {/* BRAND */}
           <div className="relative z-10 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center text-white text-xl font-black shadow-md shadow-indigo-500/30">
+            <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center text-lg font-black shadow-md">
               <FiMapPin />
             </div>
             <div>
               <span className="text-2xl font-black tracking-tight text-white leading-none block">
-                Park<span className="text-indigo-400">Ease</span>
+                Park<span className="font-light text-neutral-400">Ease</span>
               </span>
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                Smart Parking SaaS
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                Smart Parking
               </span>
             </div>
           </div>
 
           {/* VALUE PROPOSITION */}
           <div className="relative z-10 space-y-6 my-auto max-w-md">
-            <Badge variant="primary" size="sm">
-              Next-Gen Parking Infrastructure
-            </Badge>
-
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-              Smarter, Faster Parking & Gate Management.
+            <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
+              Drive in. Park. Go.
             </h2>
 
-            <p className="text-slate-300 text-sm leading-relaxed">
-              Find and lock your spot in advance with digital QR passes, live slot matrices, and automated gate verification.
+            <p className="text-neutral-300 text-sm leading-relaxed">
+              Find and lock your parking spot in advance with digital QR passes, live slot tracking, and instant automated gate access.
             </p>
 
-            <div className="space-y-3 pt-4 border-t border-slate-800/80">
-              <div className="flex items-center gap-3 text-xs text-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                  ✓
-                </div>
-                <span>Zero-wait instant digital QR pass generation</span>
+            <div className="space-y-3 pt-4 border-t border-neutral-800">
+              <div className="flex items-center gap-3 text-xs text-neutral-200">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>Zero-wait instant QR pass generation</span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                  ✓
-                </div>
-                <span>Owner & Driver unified enterprise portals</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-slate-200">
-                <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                  ✓
-                </div>
-                <span>Real-time ALPR & slot matrix synchronization</span>
+              <div className="flex items-center gap-3 text-xs text-neutral-200">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>Live GPS navigation directly to your spot</span>
               </div>
             </div>
           </div>
 
           {/* FOOTER */}
-          <div className="relative z-10 text-xs text-slate-400">
-            &copy; 2026 ParkEase Platform. All rights reserved.
+          <div className="relative z-10 text-xs text-neutral-500">
+            &copy; 2026 ParkEase. All rights reserved.
           </div>
         </div>
 
         {/* RIGHT INTERACTIVE AUTH FORM */}
-        <div className="col-span-1 lg:col-span-7 flex flex-col justify-center items-center p-6 sm:p-12">
+        <div className="col-span-1 lg:col-span-7 flex flex-col justify-center items-center p-6 sm:p-12 bg-neutral-50">
           <div className="w-full max-w-md space-y-6">
             {/* MOBILE BRAND LOGO */}
             <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+              <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-bold text-lg">
                 <FiMapPin />
               </div>
-              <span className="text-xl font-extrabold text-slate-900">
-                Park<span className="text-indigo-600">Ease</span>
+              <span className="text-2xl font-black text-black">
+                Park<span className="font-light text-neutral-500">Ease</span>
               </span>
             </div>
 
             {/* TAB SELECTOR */}
-            <div className="flex items-center p-1.5 bg-slate-200/70 rounded-2xl">
+            <div className="flex items-center p-1.5 bg-neutral-200 rounded-2xl">
               <button
                 type="button"
                 onClick={() => {
@@ -284,8 +268,8 @@ export default function Login() {
                 }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   mode === "signin"
-                    ? "bg-white text-indigo-600 shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-black text-white shadow-sm"
+                    : "text-neutral-600 hover:text-black"
                 }`}
               >
                 Sign In
@@ -298,8 +282,8 @@ export default function Login() {
                 }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   mode === "signup"
-                    ? "bg-white text-indigo-600 shadow-xs"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-black text-white shadow-sm"
+                    : "text-neutral-600 hover:text-black"
                 }`}
               >
                 Create Account
@@ -308,63 +292,63 @@ export default function Login() {
 
             {/* ================= SIGN IN FORM ================= */}
             {mode === "signin" && (
-              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
+              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
                 <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-2xl font-black text-black tracking-tight">
                     Welcome back
                   </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Enter your credentials to access your dashboard.
+                  <p className="text-xs text-neutral-500 mt-1 font-medium">
+                    Sign in to manage your parking passes and bookings.
                   </p>
                 </div>
 
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
+                    <label className="text-xs font-bold text-neutral-700">
                       Email Address
                     </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                      <FiMail className="text-slate-400 w-4 h-4" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                      <FiMail className="text-neutral-400 w-4 h-4" />
                       <input
                         type="email"
                         required
-                        placeholder="you@example.com"
+                        placeholder="name@example.com"
                         value={signInEmail}
                         onChange={(e) => setSignInEmail(e.target.value)}
-                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-slate-700">
+                      <label className="text-xs font-bold text-neutral-700">
                         Password
                       </label>
                       <button
                         type="button"
                         onClick={() => setMode("forgot")}
-                        className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700"
+                        className="text-[11px] font-bold text-black hover:underline"
                       >
                         Forgot password?
                       </button>
                     </div>
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                      <FiLock className="text-slate-400 w-4 h-4" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                      <FiLock className="text-neutral-400 w-4 h-4" />
                       <input
                         type={showSignInPassword ? "text" : "password"}
                         required
                         placeholder="••••••••"
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
-                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowSignInPassword(!showSignInPassword)
                         }
-                        className="text-slate-400 hover:text-slate-600 p-1"
+                        className="text-neutral-400 hover:text-black p-1"
                       >
                         {showSignInPassword ? (
                           <FiEyeOff className="w-4 h-4" />
@@ -375,26 +359,21 @@ export default function Login() {
                     </div>
                   </div>
 
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
+                  <button
                     type="submit"
-                    loading={loading}
-                    iconRight={FiArrowRight}
+                    disabled={loading}
+                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center flex items-center justify-center gap-2"
                   >
-                    Sign In to Account
-                  </Button>
+                    <span>{loading ? "Signing In..." : "Sign In"}</span>
+                    <FiArrowRight className="w-4 h-4" />
+                  </button>
                 </form>
 
                 {/* DEMO QUICK-FILL SHORTCUTS */}
-                <div className="pt-4 border-t border-slate-100 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      Quick Portal Switcher
-                    </span>
-                    <span className="text-[10px] text-indigo-600 font-semibold">1-Click Auto-Fill</span>
-                  </div>
+                <div className="pt-4 border-t border-neutral-100 space-y-2.5">
+                  <span className="text-[11px] font-black text-neutral-400 uppercase tracking-wider block">
+                    Quick 1-Click Login:
+                  </span>
                   <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
@@ -402,12 +381,12 @@ export default function Login() {
                         setSignInEmail("driver@parkease.com");
                         setSignInPassword("password123");
                       }}
-                      className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-left transition-all group"
+                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
                     >
-                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-indigo-600 block">
+                      <span className="text-xs font-black text-black block">
                         🚗 Driver
                       </span>
-                      <span className="text-[9px] text-slate-400 block truncate">Customer Portal</span>
+                      <span className="text-[10px] text-neutral-500 block">Customer</span>
                     </button>
 
                     <button
@@ -416,12 +395,12 @@ export default function Login() {
                         setSignInEmail("owner@parkease.com");
                         setSignInPassword("password123");
                       }}
-                      className="p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-left transition-all group"
+                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
                     >
-                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-indigo-600 block">
+                      <span className="text-xs font-black text-black block">
                         🏢 Owner
                       </span>
-                      <span className="text-[9px] text-slate-400 block truncate">Manage Lots</span>
+                      <span className="text-[10px] text-neutral-500 block">Host Lots</span>
                     </button>
 
                     <button
@@ -430,12 +409,12 @@ export default function Login() {
                         setSignInEmail("admin@parkease.com");
                         setSignInPassword("password123");
                       }}
-                      className="p-2 rounded-xl bg-slate-50 hover:bg-purple-50 border border-slate-200 hover:border-purple-300 text-left transition-all group"
+                      className="p-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-left transition-all"
                     >
-                      <span className="text-[11px] font-bold text-slate-800 group-hover:text-purple-600 block">
+                      <span className="text-xs font-black text-black block">
                         ⚡ Admin
                       </span>
-                      <span className="text-[9px] text-slate-400 block truncate">Verify & Approvals</span>
+                      <span className="text-[10px] text-neutral-500 block">Portal</span>
                     </button>
                   </div>
                 </div>
@@ -458,46 +437,42 @@ export default function Login() {
                 <div className="grid grid-cols-2 gap-3">
                   <div
                     onClick={() => setRole("customer")}
-                    className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
                       role === "customer"
-                        ? "border-indigo-600 bg-indigo-50/70 shadow-xs"
-                        : "border-slate-200 hover:border-slate-300"
+                        ? "border-black bg-neutral-50 shadow-sm"
+                        : "border-neutral-200 hover:border-neutral-300"
                     }`}
                   >
                     <FiTruck
-                      className={`w-5 h-5 ${
-                        role === "customer"
-                          ? "text-indigo-600"
-                          : "text-slate-400"
+                      className={`w-6 h-6 ${
+                        role === "customer" ? "text-black" : "text-neutral-400"
                       }`}
                     />
-                    <span className="text-xs font-bold text-slate-900">
+                    <span className="text-xs font-black text-black">
                       Driver / Customer
                     </span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-neutral-500 font-bold">
                       Book & Pay for Spots
                     </span>
                   </div>
 
                   <div
                     onClick={() => setRole("owner")}
-                    className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1.5 ${
                       role === "owner"
-                        ? "border-indigo-600 bg-indigo-50/70 shadow-xs"
-                        : "border-slate-200 hover:border-slate-300"
+                        ? "border-black bg-neutral-50 shadow-sm"
+                        : "border-neutral-200 hover:border-neutral-300"
                     }`}
                   >
                     <FiLayers
-                      className={`w-5 h-5 ${
-                        role === "owner"
-                          ? "text-indigo-600"
-                          : "text-slate-400"
+                      className={`w-6 h-6 ${
+                        role === "owner" ? "text-black" : "text-neutral-400"
                       }`}
                     />
-                    <span className="text-xs font-bold text-slate-900">
+                    <span className="text-xs font-black text-black">
                       Facility Owner
                     </span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-neutral-500 font-bold">
                       Host & Scan Passes
                     </span>
                   </div>
@@ -505,59 +480,59 @@ export default function Login() {
 
                 <form onSubmit={handleRequestSignUpOTP} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Full Name / Business Name *
+                    <label className="text-xs font-bold text-neutral-700">
+                      Full Name *
                     </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                      <FiUser className="text-slate-400 w-4 h-4" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                      <FiUser className="text-neutral-400 w-4 h-4" />
                       <input
                         type="text"
                         required
-                        placeholder="John Doe / City Parkings"
+                        placeholder="John Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
+                    <label className="text-xs font-bold text-neutral-700">
                       Email Address *
                     </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                      <FiMail className="text-slate-400 w-4 h-4" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                      <FiMail className="text-neutral-400 w-4 h-4" />
                       <input
                         type="email"
                         required
-                        placeholder="you@example.com"
+                        placeholder="name@example.com"
                         value={signUpEmail}
                         onChange={(e) => setSignUpEmail(e.target.value)}
-                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
-                      Choose Password *
+                    <label className="text-xs font-bold text-neutral-700">
+                      Password *
                     </label>
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                      <FiLock className="text-slate-400 w-4 h-4" />
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                      <FiLock className="text-neutral-400 w-4 h-4" />
                       <input
                         type={showSignUpPassword ? "text" : "password"}
                         required
                         placeholder="Min. 6 characters"
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
-                        className="w-full bg-transparent text-xs text-slate-900 focus:outline-none"
+                        className="w-full bg-transparent text-xs text-black font-semibold focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowSignUpPassword(!showSignUpPassword)
                         }
-                        className="text-slate-400 hover:text-slate-600 p-1"
+                        className="text-neutral-400 hover:text-black p-1"
                       >
                         {showSignUpPassword ? (
                           <FiEyeOff className="w-4 h-4" />
@@ -568,30 +543,27 @@ export default function Login() {
                     </div>
                   </div>
 
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
+                  <button
                     type="submit"
-                    loading={loading}
-                    iconRight={FiArrowRight}
+                    disabled={loading}
+                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center flex items-center justify-center gap-2"
                   >
-                    Continue to OTP Verification
-                  </Button>
+                    <span>Continue &rarr;</span>
+                  </button>
                 </form>
               </div>
             )}
 
             {/* ================= SIGN UP OTP VERIFICATION ================= */}
             {mode === "signup" && step === 2 && (
-              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
+              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-2xl font-black text-black tracking-tight">
                     Verify Your Email
                   </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Enter the 6-digit verification code sent to{" "}
-                    <span className="font-bold text-slate-800">
+                  <p className="text-xs text-neutral-500 mt-1 font-medium">
+                    Enter the code sent to{" "}
+                    <span className="font-bold text-black">
                       {signUpEmail}
                     </span>
                   </p>
@@ -599,7 +571,7 @@ export default function Login() {
 
                 <form onSubmit={handleConfirmSignUp} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-700">
+                    <label className="text-xs font-bold text-neutral-700">
                       Verification Code
                     </label>
                     <input
@@ -608,27 +580,25 @@ export default function Login() {
                       placeholder="123456"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      className="w-full text-center tracking-widest text-lg font-black py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
+                      className="w-full text-center tracking-widest text-xl font-black py-3 rounded-xl bg-neutral-100 border border-neutral-200 text-black focus:outline-none focus:border-black"
                     />
                   </div>
 
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
+                  <button
                     type="submit"
-                    loading={loading}
+                    disabled={loading}
+                    className="w-full py-3.5 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-sm font-black shadow-md transition active:scale-95 text-center"
                   >
                     Verify & Create Account
-                  </Button>
+                  </button>
 
                   <div className="text-center pt-2">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="text-xs text-slate-500 hover:text-indigo-600 font-semibold"
+                      className="text-xs text-neutral-500 hover:text-black font-bold"
                     >
-                      &larr; Back to details
+                      &larr; Back
                     </button>
                   </div>
                 </form>
@@ -637,31 +607,31 @@ export default function Login() {
 
             {/* ================= FORGOT PASSWORD ================= */}
             {mode === "forgot" && (
-              <div className="apple-card p-6 sm:p-8 space-y-6 animate-in fade-in">
+              <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 space-y-6 animate-in fade-in">
                 <div>
-                  <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-2xl font-black text-black tracking-tight">
                     Recover Password
                   </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    We will send a password reset link to your email.
+                  <p className="text-xs text-neutral-500 mt-1 font-medium">
+                    We will send a reset link to your email.
                   </p>
                 </div>
 
                 {forgotSent ? (
                   <div className="text-center py-4 space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                      <FiCheckCircle className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto font-black text-xl">
+                      ✓
                     </div>
-                    <p className="text-xs text-slate-700 font-medium">
+                    <p className="text-xs text-neutral-700 font-bold">
                       Check your inbox for reset instructions.
                     </p>
-                    <Button
-                      variant="outline"
-                      size="md"
+                    <button
+                      type="button"
                       onClick={() => setMode("signin")}
+                      className="px-4 py-2 rounded-xl bg-black text-white text-xs font-bold"
                     >
                       Return to Sign In
-                    </Button>
+                    </button>
                   </div>
                 ) : (
                   <form onSubmit={handleForgotPassword} className="space-y-4">

@@ -113,17 +113,17 @@ export default function OwnerDashboard() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f6f6f6] text-black flex flex-col font-sans">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold ${
               toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+                ? "bg-rose-50 text-rose-800 border-rose-200"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200"
             }`}
           >
             {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
@@ -132,50 +132,42 @@ export default function OwnerDashboard() {
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* EXECUTIVE HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="primary" size="sm">
-                Owner Portal
-              </Badge>
-              <span className="text-xs text-slate-400 font-medium">Real-Time Facility Ops</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              Parking Lot Management & Analytics
+            <h1 className="text-3xl font-black text-black tracking-tight">
+              Facility Hub
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Monitor slot occupancy, manage parking locations, and scan incoming digital passes.
+            <p className="text-xs sm:text-sm text-neutral-500 mt-0.5 font-medium">
+              Monitor slot occupancy, manage facilities, and scan incoming digital passes.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
-              size="md"
-              icon={FiRefreshCw}
-              loading={refreshing}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
               onClick={() => loadOwnerData(true)}
+              className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 hover:border-black text-black text-xs font-bold transition"
             >
               Refresh
-            </Button>
-            <Button
-              variant="secondary"
-              size="md"
-              icon={FiCamera}
+            </button>
+            <button
+              type="button"
               onClick={() => navigate("/owner/scan-qr")}
+              className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 hover:border-black text-black text-xs font-bold transition flex items-center gap-2"
             >
-              Scan Pass Terminal
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              icon={FiPlus}
+              <FiCamera className="w-3.5 h-3.5" />
+              <span>Scan QR Pass</span>
+            </button>
+            <button
+              type="button"
               onClick={() => navigate("/owner/add-parking")}
+              className="px-4 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition flex items-center gap-2 shadow-sm"
             >
-              Add New Facility
-            </Button>
+              <FiPlus className="w-3.5 h-3.5" />
+              <span>Add Facility</span>
+            </button>
           </div>
         </div>
 

@@ -309,291 +309,230 @@ export default function BookParking() {
           </div>
         </div>
 
-        {/* FACILITY TITLE BANNER */}
-        <div className="apple-card p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
+        {/* UBER FACILITY HEADER */}
+        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-extrabold tracking-wide uppercase">
-                Instant Reservation
+              <span className="px-2.5 py-0.5 rounded-full bg-black text-white text-[11px] font-black uppercase">
+                ParkEase
               </span>
               <span className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live Availability
+                Live Spot Locking
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              {parking?.name || "ParkEase Smart Facility"}
+            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+              {parking?.name || "ParkEase Facility"}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1.5">
-              <FiMapPin className="w-4 h-4 text-indigo-600 shrink-0" />
-              <span>
-                {parking?.address || parking?.location || "Premium City Hub, Zone 1"}
-              </span>
+            <p className="text-xs sm:text-sm text-neutral-500 flex items-center gap-1.5 font-medium">
+              <FiMapPin className="w-4 h-4 text-black shrink-0" />
+              <span>{parking?.address || parking?.location || "City Location"}</span>
             </p>
 
-            {/* SECURITY & AMENITIES BADGES */}
+            {/* AMENITIES */}
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              {parking?.has_cctv && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-100">
-                  📹 24/7 CCTV
+              {parking?.has_ev && (
+                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
+                  ⚡ EV Ready
                 </span>
               )}
               {parking?.has_security_guard && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
-                  🛡️ Security Guard
+                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
+                  🛡️ Guarded
                 </span>
               )}
-              {parking?.has_ev && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-100">
-                  ⚡ EV Charging
-                </span>
-              )}
-              {parking?.has_covered_roof && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100">
-                  🏢 Covered Parking
-                </span>
-              )}
-              {parking?.is_24_7 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-100">
-                  ⏰ 24/7 Access
-                </span>
-              )}
-              {parking?.has_valet && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 text-xs font-semibold border border-rose-100">
-                  🔑 Valet Service
+              {parking?.has_cctv && (
+                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
+                  📹 CCTV
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-right min-w-[140px]">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                Parking Rate
+          <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-right min-w-[130px]">
+            <p className="text-[10px] text-neutral-400 font-bold uppercase">Rate</p>
+            {HOURLY_RATE === 0 ? (
+              <p className="text-2xl font-black text-emerald-600">FREE</p>
+            ) : (
+              <p className="text-2xl font-black text-black">
+                ₹{HOURLY_RATE}<span className="text-xs text-neutral-400 font-normal">/hr</span>
               </p>
-              {HOURLY_RATE === 0 ? (
-                <p className="text-2xl font-black text-emerald-600">
-                  FREE
-                  <span className="text-xs text-slate-400 font-medium ml-1">parking</span>
-                </p>
-              ) : (
-                <p className="text-2xl font-black text-slate-900">
-                  ₹{HOURLY_RATE}
-                  <span className="text-xs text-slate-400 font-normal">/hr</span>
-                </p>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
-        {/* FREE PARKING BANNER */}
-        {HOURLY_RATE === 0 && (
-          <div className="flex items-center gap-3.5 p-4 rounded-3xl bg-emerald-50/90 border border-emerald-200 shadow-xs">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-xs">
-              🆓
-            </div>
-            <div>
-              <p className="text-sm font-bold text-emerald-900">Free Parking Facility!</p>
-              <p className="text-xs text-emerald-700 mt-0.5">
-                This location provides free parking. You only pay the ₹5 ParkEase digital gate fee.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* BOOKING WORKFLOW GRID */}
+        {/* 3-STEP RESERVATION GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT 2 COLUMNS: CONFIGURATION & SLOT SELECTION */}
+          {/* LEFT 2 COLUMNS */}
           <div className="lg:col-span-2 space-y-6">
-            {/* STEP 1: TIME & VEHICLE CONFIG */}
-            <div className="apple-card p-6 sm:p-7 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                    1
-                  </div>
-                  <div>
-                    <h3 className="text-base font-extrabold text-slate-900">
-                      Duration & Vehicle
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Select how long you need and choose your vehicle.
-                    </p>
-                  </div>
+            {/* STEP 1: DURATION */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-3 border-b border-neutral-100 pb-3">
+                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                  1
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-black">Duration</h3>
+                  <p className="text-xs text-neutral-500">Select hours needed.</p>
                 </div>
               </div>
 
-              {/* DURATION PRESET BUTTONS */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Select Parking Duration
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {[1, 2, 3, 4, 6, 8].map((hrs) => (
-                    <button
-                      key={hrs}
-                      type="button"
-                      onClick={() => handleDurationChange(hrs)}
-                      className={`py-3 rounded-2xl text-xs font-extrabold transition-all border ${
-                        selectedDurationHours === hrs
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20 scale-[1.02]"
-                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300"
-                      }`}
-                    >
-                      {hrs} {hrs === 1 ? "Hour" : "Hours"}
-                    </button>
-                  ))}
-                </div>
+              {/* DURATION PILLS */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {[1, 2, 3, 4, 6, 8].map((hrs) => (
+                  <button
+                    key={hrs}
+                    type="button"
+                    onClick={() => handleDurationChange(hrs)}
+                    className={`py-3 rounded-xl text-xs font-black transition-all border ${
+                      selectedDurationHours === hrs
+                        ? "bg-black text-white border-black shadow-md scale-105"
+                        : "bg-neutral-100 border-transparent text-black hover:bg-neutral-200"
+                    }`}
+                  >
+                    {hrs} {hrs === 1 ? "Hour" : "Hours"}
+                  </button>
+                ))}
               </div>
 
-              {/* DATE & TIME PICKERS */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Booking Date
-                  </label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
-                    <FiCalendar className="text-indigo-600 w-4 h-4" />
+              {/* DATE & TIME */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-neutral-700">Date</label>
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200">
+                    <FiCalendar className="text-black w-4 h-4" />
                     <input
                       type="date"
                       value={bookingDate}
                       min={formattedToday}
                       onChange={(e) => setBookingDate(e.target.value)}
-                      className="w-full bg-transparent text-xs text-slate-800 font-bold focus:outline-none"
+                      className="w-full bg-transparent text-xs text-black font-bold focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Entry Time
-                  </label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
-                    <FiClock className="text-indigo-600 w-4 h-4" />
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-neutral-700">Entry Time</label>
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200">
+                    <FiClock className="text-black w-4 h-4" />
                     <input
                       type="time"
                       value={startTime}
                       onChange={(e) => handleStartTimeChange(e.target.value)}
-                      className="w-full bg-transparent text-xs text-slate-800 font-bold focus:outline-none"
+                      className="w-full bg-transparent text-xs text-black font-bold focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Expected Exit
-                  </label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-100/80 border border-slate-200 text-slate-500">
-                    <FiClock className="text-slate-400 w-4 h-4" />
-                    <span className="text-xs font-bold text-slate-700">
-                      {endTime}
-                    </span>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-neutral-700">Estimated Exit</label>
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-500">
+                    <FiClock className="text-neutral-400 w-4 h-4" />
+                    <span className="text-xs font-bold text-black">{endTime}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* VEHICLE PICKER */}
-              <div className="space-y-3 pt-3 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Select Your Vehicle
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddVehicleModal(true)}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5"
-                  >
-                    <FiPlus className="w-3.5 h-3.5" />
-                    <span>+ Add Vehicle</span>
-                  </button>
-                </div>
-
-                {vehicles.length === 0 ? (
-                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div className="flex items-start gap-2.5">
-                      <FiAlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-xs font-bold text-amber-800">No vehicle registered yet</p>
-                        <p className="text-[11px] text-amber-700 mt-0.5">Please add your car/bike license plate to proceed.</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => setShowAddVehicleModal(true)}
-                    >
-                      Add Vehicle
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {vehicles.map((veh) => {
-                      const isSelected = selectedVehicle?.id === veh.id;
-                      return (
-                        <div
-                          key={veh.id}
-                          onClick={() => setSelectedVehicle(veh)}
-                          className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
-                            isSelected
-                              ? "bg-indigo-50/90 border-indigo-600 shadow-sm"
-                              : "bg-slate-50 border-slate-200 hover:border-slate-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="license-plate text-xs">
-                              <span className="license-plate-ind">IND</span>
-                              <span>{veh.vehicle_number}</span>
-                            </div>
-                            <span className="text-[11px] font-semibold text-slate-500 truncate">
-                              {veh.vehicle_name || veh.vehicle_type || "Vehicle"}
-                            </span>
-                          </div>
-
-                          {isSelected && (
-                            <FiCheckCircle className="w-4 h-4 text-indigo-600 shrink-0" />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* STEP 2: INTERACTIVE VISUAL SLOT MATRIX */}
-            <div className="apple-card p-6 sm:p-7 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            {/* STEP 2: SELECT VEHICLE */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
                     2
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900">
-                      Choose Your Parking Spot
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Select any available slot from the visual floorplan below.
-                    </p>
+                    <h3 className="text-base font-black text-black">Vehicle</h3>
+                    <p className="text-xs text-neutral-500">Select which car or bike is parking.</p>
                   </div>
                 </div>
 
-                {/* Filter slot types */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setShowAddVehicleModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-black text-white text-xs font-black hover:bg-neutral-800 transition"
+                >
+                  + Add Vehicle
+                </button>
+              </div>
+
+              {vehicles.length === 0 ? (
+                <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-neutral-700">
+                    No vehicle added yet.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddVehicleModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-black text-white text-xs font-bold"
+                  >
+                    + Add Vehicle
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {vehicles.map((veh) => {
+                    const isSelected = selectedVehicle?.id === veh.id;
+                    return (
+                      <div
+                        key={veh.id}
+                        onClick={() => setSelectedVehicle(veh)}
+                        className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                          isSelected
+                            ? "bg-neutral-50 border-black shadow-sm"
+                            : "bg-white border-neutral-200 hover:border-neutral-400"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="license-plate text-xs">
+                            <span className="license-plate-ind">IND</span>
+                            <span>{veh.vehicle_number}</span>
+                          </div>
+                          <span className="text-xs font-bold text-neutral-600 truncate">
+                            {veh.vehicle_name || veh.vehicle_type || "Vehicle"}
+                          </span>
+                        </div>
+
+                        {isSelected && (
+                          <FiCheckCircle className="w-5 h-5 text-black shrink-0" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* STEP 3: PICK SPOT */}
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-black">Select Spot</h3>
+                    <p className="text-xs text-neutral-500">Tap an available spot to lock it.</p>
+                  </div>
+                </div>
+
+                {/* Filter */}
+                <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl">
                   {[
-                    { id: "ALL", label: "All Spots" },
-                    { id: "EV", label: "⚡ EV Only" },
-                    { id: "CAR", label: "🚗 Cars" },
-                    { id: "BIKE", label: "🏍️ Bikes" },
+                    { id: "ALL", label: "All" },
+                    { id: "EV", label: "⚡ EV" },
+                    { id: "CAR", label: "🚗 Car" },
+                    { id: "BIKE", label: "🏍️ Bike" },
                   ].map((filter) => (
                     <button
                       key={filter.id}
                       type="button"
                       onClick={() => setSlotFilter(filter.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
                         slotFilter === filter.id
-                          ? "bg-white text-indigo-600 shadow-xs"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "bg-black text-white shadow-sm"
+                          : "text-neutral-600 hover:text-black"
                       }`}
                     >
                       {filter.label}
@@ -602,47 +541,11 @@ export default function BookParking() {
                 </div>
               </div>
 
-              {/* SLOT LEGEND */}
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-md bg-white border-2 border-emerald-500" />
-                  <span>Available</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-md bg-indigo-600 border border-indigo-600" />
-                  <span>Selected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 rounded-md bg-slate-200 border border-slate-300" />
-                  <span>Occupied</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-amber-500 font-bold">⚡</span>
-                  <span>EV Ready</span>
-                </div>
-              </div>
-
-              {/* INTERACTIVE SLOT MAP GRID */}
+              {/* SLOTS GRID */}
               {slots.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                    <FiMapPin className="w-6 h-6 text-slate-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-700">No slots available</p>
-                    <p className="text-xs text-slate-500 mt-0.5">This facility has no configured slots.</p>
-                  </div>
-                </div>
-              ) : filteredSlots.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
-                  <p className="text-sm font-bold text-slate-600">No slots match this filter.</p>
-                  <button
-                    onClick={() => setSlotFilter("ALL")}
-                    className="text-xs text-indigo-600 font-bold hover:underline"
-                  >
-                    Show all slots
-                  </button>
-                </div>
+                <p className="text-center py-6 text-sm text-neutral-500 font-bold">
+                  No slots configured yet.
+                </p>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {filteredSlots.map((slot) => {
@@ -658,38 +561,24 @@ export default function BookParking() {
                         type="button"
                         disabled={isOccupied}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`relative p-3.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all duration-150 border-2 cursor-pointer disabled:cursor-not-allowed ${
+                        className={`relative p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2 ${
                           isSelected
-                            ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/25 scale-105"
+                            ? "bg-black border-black text-white shadow-md scale-105"
                             : isOccupied
-                            ? "bg-slate-100 border-slate-200 text-slate-400 opacity-60"
-                            : "bg-white border-emerald-400 hover:border-emerald-500 text-slate-900 hover:shadow-xs"
+                            ? "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed opacity-50"
+                            : "bg-white border-neutral-300 hover:border-black text-black"
                         }`}
                       >
                         {slot.is_ev && (
-                          <span
-                            className={`absolute top-1.5 right-1.5 text-[10px] ${
-                              isSelected ? "text-amber-300" : "text-amber-500"
-                            }`}
-                          >
-                            ⚡
-                          </span>
+                          <span className="absolute top-1.5 right-1.5 text-[10px]">⚡</span>
                         )}
-
-                        <span className="text-xs font-black tracking-tight">
-                          {slot.slot_number}
-                        </span>
-
+                        <span className="text-sm font-black">{slot.slot_number}</span>
                         <span
-                          className={`text-[9px] font-black uppercase tracking-wider ${
-                            isSelected
-                              ? "text-indigo-100"
-                              : isOccupied
-                              ? "text-slate-400"
-                              : "text-emerald-600"
+                          className={`text-[9px] font-black uppercase ${
+                            isSelected ? "text-neutral-200" : isOccupied ? "text-neutral-400" : "text-emerald-600"
                           }`}
                         >
-                          {isSelected ? "Selected" : isOccupied ? "Occupied" : "Free"}
+                          {isSelected ? "Selected" : isOccupied ? "Busy" : "Free"}
                         </span>
                       </button>
                     );
@@ -699,108 +588,67 @@ export default function BookParking() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: FARE SUMMARY & CHECKOUT */}
-          <div className="space-y-6">
-            <div className="apple-card p-6 sm:p-7 sticky top-24 space-y-6">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="text-base font-extrabold text-slate-900">
-                  Reservation Summary
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Instant QR gate ticket generation.
-                </p>
-              </div>
+          {/* RIGHT COLUMN: UBER CHECKOUT CARD */}
+          <div>
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm sticky top-24 space-y-4">
+              <h3 className="text-lg font-black text-black border-b border-neutral-100 pb-3">
+                Fare Summary
+              </h3>
 
-              {/* SELECTION RECAP */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Facility</span>
-                  <span className="font-bold text-slate-900">
-                    {parking?.name || "ParkEase Hub"}
+              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Spot:</span>
+                  <span className="font-black text-black">
+                    {selectedSlot ? selectedSlot.slot_number : "None selected"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Selected Spot</span>
-                  <span className="font-extrabold text-indigo-600">
-                    {selectedSlot ? selectedSlot.slot_number : "None Selected"}
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Vehicle:</span>
+                  <span className="font-bold text-black">
+                    {selectedVehicle?.vehicle_number || "None selected"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Vehicle</span>
-                  <span className={`font-bold ${selectedVehicle ? "text-slate-900" : "text-rose-500"}`}>
-                    {selectedVehicle?.vehicle_number || "Not Selected"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500">Time Window</span>
-                  <span className="font-bold text-slate-900">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Duration:</span>
+                  <span className="font-bold text-black">
                     {startTime} - {endTime} ({selectedDurationHours}h)
                   </span>
                 </div>
               </div>
 
-              {/* PRICE BREAKDOWN */}
-              <div className="space-y-2.5 text-xs text-slate-600">
-                <div className="flex items-center justify-between">
-                  <span>
-                    {HOURLY_RATE === 0
-                      ? `Free Parking (${selectedDurationHours}h)`
-                      : `Parking (${selectedDurationHours}h × ₹${HOURLY_RATE})`}
-                  </span>
-                  <span className={`font-bold ${HOURLY_RATE === 0 ? "text-emerald-600" : "text-slate-900"}`}>
-                    {HOURLY_RATE === 0 ? "FREE" : `₹${subtotal}.00`}
+              {/* PRICING */}
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-neutral-600">
+                  <span>Parking ({selectedDurationHours}h):</span>
+                  <span className="font-bold text-black">
+                    {HOURLY_RATE === 0 ? "FREE" : `₹${subtotal}`}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <span>Platform Gate Fee</span>
-                    <FiInfo className="w-3 h-3 text-slate-400" />
-                  </span>
-                  <span className="font-bold text-slate-900">
-                    ₹{PLATFORM_FEE}.00
-                  </span>
+                <div className="flex justify-between text-neutral-600">
+                  <span>Platform Fee:</span>
+                  <span className="font-bold text-black">₹{PLATFORM_FEE}</span>
                 </div>
-
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                  <span className="text-sm font-extrabold text-slate-900">
-                    Grand Total
-                  </span>
-                  <span className="text-2xl font-black text-indigo-600">
-                    ₹{grandTotal}.00
-                  </span>
+                <div className="pt-2 border-t border-neutral-200 flex justify-between text-base">
+                  <span className="font-black text-black">Total:</span>
+                  <span className="text-2xl font-black text-black">₹{grandTotal}</span>
                 </div>
-
-                {HOURLY_RATE === 0 && (
-                  <p className="text-[11px] text-emerald-600 font-bold text-center pt-1">
-                    ✅ Free parking facility — only ₹5 platform fee.
-                  </p>
-                )}
               </div>
 
-              {/* CHECKOUT ACTION */}
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={bookingLoading}
-                disabled={!selectedSlot || !selectedVehicle}
+              {/* UBER JET BLACK CONFIRM BUTTON */}
+              <button
+                type="button"
+                disabled={!selectedSlot || !selectedVehicle || bookingLoading}
                 onClick={handleConfirmBooking}
+                className="w-full py-4 px-4 rounded-xl bg-black hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-black shadow-md transition active:scale-95 text-center"
               >
-                Confirm & Generate QR Pass &rarr;
-              </Button>
+                {bookingLoading ? "Locking Spot..." : "Confirm Reservation &rarr;"}
+              </button>
 
               {(!selectedSlot || !selectedVehicle) && (
-                <p className="text-[11px] text-amber-600 font-bold text-center">
-                  {!selectedVehicle
-                    ? "⚠ Select a vehicle to continue."
-                    : "⚠ Choose a parking spot to continue."}
+                <p className="text-xs text-rose-600 font-bold text-center">
+                  {!selectedVehicle ? "⚠ Please choose a vehicle" : "⚠ Please pick a spot"}
                 </p>
               )}
-
-              <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
-                <FiShield className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Instant QR pass guaranteed upon confirmation.</span>
-              </div>
             </div>
           </div>
         </div>

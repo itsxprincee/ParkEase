@@ -146,23 +146,19 @@ export default function AddParking() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-bold text-black hover:border-black transition"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Dashboard</span>
+            <span>Back to Hub</span>
           </button>
-
-          <Badge variant="primary" size="sm">
-            Facility Onboarding
-          </Badge>
         </div>
 
-        <Card className="space-y-6">
-          <div className="border-b border-slate-100 pb-4">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="border-b border-neutral-100 pb-4">
+            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
               Register New Parking Facility
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
               Provide location coordinates, slot capacity, and an image to publish your facility on ParkEase.
             </p>
           </div>
@@ -170,28 +166,28 @@ export default function AddParking() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* BASIC INFO */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
                 1. General Information
               </h3>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-bold text-neutral-700">
                   Facility Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. ParkEase Tech Park Garage"
+                  placeholder="e.g. Metro Grand Parking Deck"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-700">
+                <label className="text-xs font-bold text-neutral-700">
                   Full Street Address *
                 </label>
                 <textarea
@@ -202,21 +198,21 @@ export default function AddParking() {
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs text-black font-semibold focus:outline-none transition"
                 />
               </div>
             </div>
 
             {/* CAPACITY & COORDINATES */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="space-y-4 pt-4 border-t border-neutral-100">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
                   2. Capacity & Coordinates
                 </h3>
                 <button
                   type="button"
                   onClick={handleGetLocation}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-black text-black hover:underline"
                 >
                   <FiCompass className="w-3.5 h-3.5" />
                   <span>Use Device GPS</span>
@@ -225,8 +221,8 @@ export default function AddParking() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Total Capacity (Slots)
+                  <label className="text-xs font-bold text-neutral-700">
+                    Total Slots
                   </label>
                   <input
                     type="number"
@@ -237,12 +233,12 @@ export default function AddParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, total_slots: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
+                  <label className="text-xs font-bold text-neutral-700">
                     Latitude
                   </label>
                   <input
@@ -252,12 +248,12 @@ export default function AddParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, latitude: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
+                  <label className="text-xs font-bold text-neutral-700">
                     Longitude
                   </label>
                   <input
@@ -267,38 +263,37 @@ export default function AddParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, longitude: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
                   />
                 </div>
               </div>
             </div>
 
-            {/* PRICING */}
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                3. Pricing
-              </h3>
+            {/* HOURLY RATE */}
+            <div className="space-y-4 pt-4 border-t border-neutral-100">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
+                  3. Pricing
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, hourly_rate: "0" })}
+                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
+                    formData.hourly_rate === "0"
+                      ? "bg-black text-white border-black"
+                      : "bg-neutral-100 text-black border-neutral-200"
+                  }`}
+                >
+                  🆓 Set as Free
+                </button>
+              </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Hourly Rate (₹)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, hourly_rate: "0" })}
-                    className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                      formData.hourly_rate === "0"
-                        ? "bg-emerald-600 text-white border-emerald-600"
-                        : "bg-slate-50 text-slate-600 border-slate-200 hover:border-emerald-400 hover:text-emerald-700"
-                    }`}
-                  >
-                    🆓 Set as Free
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus-within:border-indigo-500 transition">
-                  <FiDollarSign className="text-slate-400 w-4 h-4 shrink-0" />
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-neutral-700">
+                  Hourly Rate (₹ / Hour)
+                </label>
+                <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                  <span className="font-bold text-black">₹</span>
                   <input
                     type="number"
                     min="0"
@@ -309,27 +304,10 @@ export default function AddParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, hourly_rate: e.target.value })
                     }
-                    className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none"
+                    className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
                     placeholder="e.g. 50"
                   />
-                  <span className="text-xs text-slate-400 font-medium shrink-0">/hour</span>
-                </div>
-
-                {/* Platform Fee Callout */}
-                <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100">
-                  <FiInfo className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
-                  <div className="text-[11px] text-indigo-700 leading-relaxed">
-                    <p className="font-bold mb-0.5">Revenue Model</p>
-                    <p>
-                      You earn <strong>₹{formData.hourly_rate || 0}/hour</strong> × duration per booking.
-                      ParkEase adds a flat <strong>₹5 Platform Fee</strong> per booking on top — this is how the platform earns.
-                      {formData.hourly_rate === "0" && (
-                        <span className="block mt-1 text-emerald-700 font-semibold">
-                          ✅ Free parking selected — customers pay only ₹5 platform fee.
-                        </span>
-                      )}
-                    </p>
-                  </div>
+                  <span className="text-xs text-neutral-400 font-medium shrink-0">/hour</span>
                 </div>
               </div>
             </div>
@@ -480,26 +458,24 @@ export default function AddParking() {
             </div>
 
             {/* SUBMIT BUTTON */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <Button
-                variant="outline"
-                size="lg"
+            <div className="pt-4 border-t border-neutral-100 flex items-center justify-end gap-3">
+              <button
                 type="button"
                 onClick={() => navigate("/owner")}
+                className="px-5 py-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
               >
                 Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="lg"
+              </button>
+              <button
                 type="submit"
-                loading={loading}
+                disabled={loading}
+                className="px-6 py-3 rounded-xl bg-black hover:bg-neutral-800 disabled:opacity-50 text-white text-xs font-black shadow-sm transition"
               >
-                Submit for Verification
-              </Button>
+                {loading ? "Registering..." : "Submit Facility &rarr;"}
+              </button>
             </div>
           </form>
-        </Card>
+        </div>
       </main>
     </div>
   );

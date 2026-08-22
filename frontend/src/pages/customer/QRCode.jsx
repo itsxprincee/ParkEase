@@ -129,87 +129,84 @@ export default function QRCode() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/customer/my-bookings")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-bold text-black hover:border-black transition"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            <span>My Bookings</span>
+            <span>My Passes</span>
           </button>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={FiRefreshCw}
-              loading={refreshing}
-              onClick={() => loadBooking(true)}
-            >
-              Sync Pass
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={() => loadBooking(true)}
+            className="px-3.5 py-2 rounded-xl bg-white border border-neutral-200 hover:border-black text-black text-xs font-bold transition flex items-center gap-1.5"
+          >
+            <FiRefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+            <span>Sync</span>
+          </button>
         </div>
 
         {loading ? (
           <CardSkeleton />
         ) : !booking ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 p-8 space-y-4">
-            <FiAlertCircle className="w-12 h-12 text-slate-400 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-900">
+          <div className="text-center py-12 bg-white rounded-2xl border border-neutral-200 p-8 space-y-4">
+            <FiAlertCircle className="w-12 h-12 text-neutral-400 mx-auto" />
+            <h3 className="text-lg font-black text-black">
               No Active Pass Found
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-neutral-500">
               You do not have an active booking session. Reserve a parking spot to get your digital entry QR ticket.
             </p>
-            <Button
-              variant="primary"
-              size="md"
+            <button
+              type="button"
               onClick={() => navigate("/customer/dashboard")}
+              className="px-6 py-3 rounded-xl bg-black text-white text-xs font-black"
             >
               Explore Parking Spots
-            </Button>
+            </button>
           </div>
         ) : (
           /* DIGITAL BOARDING PASS TICKET */
           <div
             id="printable-receipt"
-            className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden"
+            className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden"
           >
             {/* TICKET TOP HEADER */}
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="bg-black text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="success" size="sm" dot>
+                  <span className="px-2.5 py-0.5 rounded-full bg-neutral-800 text-emerald-400 text-[10px] font-black uppercase">
                     Verified Digital Ticket
-                  </Badge>
-                  <span className="text-xs font-semibold text-slate-300">
+                  </span>
+                  <span className="text-xs font-semibold text-neutral-400">
                     Pass #{booking.id}
                   </span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  {booking.parking_name || "ParkEase Smart Facility"}
+                  {booking.parking_name || "ParkEase Facility"}
                 </h2>
-                <p className="text-xs text-slate-300 flex items-center gap-1.5">
-                  <FiMapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <p className="text-xs text-neutral-400 flex items-center gap-1.5 font-medium">
+                  <FiMapPin className="w-3.5 h-3.5 text-white shrink-0" />
                   <span>{booking.parking_address || "Central Zone"}</span>
                 </p>
               </div>
 
               <div className="sm:text-right">
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold block">
+                <span className="text-[10px] text-neutral-400 uppercase tracking-widest font-black block">
                   Designated Spot
                 </span>
-                <span className="text-2xl sm:text-3xl font-black text-indigo-400">
+                <span className="text-3xl sm:text-4xl font-black text-white">
                   {booking.slot_number || "A-1"}
                 </span>
               </div>
             </div>
 
             {/* CUT-OUT TICKETS DIVIDER */}
-            <div className="relative flex items-center justify-between px-6 py-2 bg-slate-100/60 border-y border-dashed border-slate-200">
-              <div className="w-4 h-8 rounded-r-full bg-slate-50 border-r border-t border-b border-slate-200 -ml-6" />
-              <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">
+            <div className="relative flex items-center justify-between px-6 py-2 bg-neutral-100 border-y border-dashed border-neutral-200">
+              <div className="w-4 h-8 rounded-r-full bg-[#f6f6f6] border-r border-t border-b border-neutral-200 -ml-6" />
+              <span className="text-[10px] uppercase tracking-widest font-black text-neutral-400">
                 Hold under scanner at barrier gate
               </span>
-              <div className="w-4 h-8 rounded-l-full bg-slate-50 border-l border-t border-b border-slate-200 -mr-6" />
+              <div className="w-4 h-8 rounded-l-full bg-[#f6f6f6] border-l border-t border-b border-neutral-200 -mr-6" />
             </div>
 
             {/* TICKET BODY: QR CODE + METRICS */}
@@ -218,7 +215,7 @@ export default function QRCode() {
               <div className="flex flex-col items-center space-y-3">
                 <div
                   ref={qrRef}
-                  className="p-4 bg-white rounded-2xl border-2 border-indigo-500 shadow-md flex items-center justify-center"
+                  className="p-4 bg-white rounded-2xl border-2 border-black shadow-sm flex items-center justify-center"
                 >
                   <QRCodeCanvas
                     value={qrValue}
@@ -235,28 +232,28 @@ export default function QRCode() {
 
               {/* TICKET DETAILS MATRIX */}
               <div className="flex-1 w-full space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
                       Booking Date
                     </span>
-                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                    <span className="text-sm font-bold text-black mt-0.5 block">
                       {booking.booking_date || "Today"}
                     </span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
                       Time Slot
                     </span>
-                    <span className="text-sm font-bold text-slate-800 mt-0.5 block">
+                    <span className="text-sm font-bold text-black mt-0.5 block">
                       {booking.start_time || "10:00"} - {booking.end_time || "12:00"}
                     </span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Registered Vehicle
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                      Vehicle
                     </span>
                     <div className="license-plate mt-1 text-xs">
                       <span className="license-plate-ind">IND</span>
@@ -264,11 +261,11 @@ export default function QRCode() {
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Total Fare Paid
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-200">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                      Total Paid
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-600 mt-1 block">
+                    <span className="text-base font-black text-black mt-1 block">
                       ₹{booking.total_amount || 105}.00
                     </span>
                   </div>
@@ -291,29 +288,29 @@ export default function QRCode() {
                         );
                       }
                     }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition active:scale-95"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition active:scale-95"
                   >
-                    <FiNavigation className="w-4 h-4 text-indigo-600" />
-                    <span>Get Turn-by-Turn Directions in Google Maps</span>
+                    <FiNavigation className="w-4 h-4 text-black" />
+                    <span>Get Directions in Google Maps</span>
                   </button>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      size="md"
-                      icon={FiDownload}
+                    <button
+                      type="button"
                       onClick={handleDownloadQR}
+                      className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition flex items-center justify-center gap-2"
                     >
-                      Save Image
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="md"
-                      icon={FiPrinter}
+                      <FiDownload className="w-3.5 h-3.5" />
+                      <span>Save Image</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => window.print()}
+                      className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition flex items-center justify-center gap-2 shadow-sm"
                     >
-                      Print Ticket
-                    </Button>
+                      <FiPrinter className="w-3.5 h-3.5" />
+                      <span>Print Ticket</span>
+                    </button>
                   </div>
                 </div>
               </div>

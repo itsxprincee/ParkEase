@@ -129,17 +129,17 @@ export default function MyBookings() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f6f6f6] text-black flex flex-col font-sans">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md text-xs sm:text-sm font-semibold ${
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold ${
               toast.type === "error"
-                ? "bg-rose-50/95 text-rose-800 border-rose-200"
-                : "bg-emerald-50/95 text-emerald-800 border-emerald-200"
+                ? "bg-rose-50 text-rose-800 border-rose-200"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200"
             }`}
           >
             {toast.type === "error" ? <FiAlertCircle /> : <FiCheckCircle />}
@@ -152,39 +152,37 @@ export default function MyBookings() {
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              My Parking Passes & History
+            <h1 className="text-3xl font-black text-black tracking-tight">
+              My Parking Passes
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Manage all active digital tickets, past parking sessions, and receipts.
+            <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
+              Manage your active digital gate tickets and past parking history.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="md"
-              icon={FiRefreshCw}
-              loading={refreshing}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
               onClick={() => loadBookings(true)}
+              className="px-4 py-2.5 rounded-xl bg-white border border-neutral-200 hover:border-black text-black text-xs font-bold transition"
             >
               Refresh
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              iconRight={FiArrowRight}
+            </button>
+            <button
+              type="button"
               onClick={() => navigate("/customer/dashboard")}
+              className="px-4 py-2.5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition flex items-center gap-2 shadow-sm"
             >
-              Book New Spot
-            </Button>
+              <span>Book Spot</span>
+              <FiArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
         {/* SEARCH & STATUS TABS */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* STATUS TABS */}
-          <div className="flex items-center gap-1.5 bg-slate-200/70 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
+          <div className="flex items-center gap-1.5 bg-neutral-200 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
             {[
               { id: "ALL", label: "All Passes" },
               { id: "ACTIVE", label: "Active" },
@@ -195,10 +193,10 @@ export default function MyBookings() {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   statusFilter === tab.id
-                    ? "bg-white text-indigo-600 shadow-xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-black text-white shadow-sm"
+                    : "text-neutral-600 hover:text-black"
                 }`}
               >
                 {tab.label}
@@ -208,19 +206,19 @@ export default function MyBookings() {
 
           {/* SEARCH BAR */}
           <div className="w-full sm:w-72">
-            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition">
-              <FiSearch className="text-slate-400 w-4 h-4" />
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-neutral-200 focus-within:border-black transition">
+              <FiSearch className="text-neutral-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search passes..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
+                className="w-full bg-transparent text-xs text-black font-semibold placeholder-neutral-400 focus:outline-none"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="text-slate-400 hover:text-slate-600"
+                  className="text-neutral-400 hover:text-black"
                 >
                   <FiX className="w-3.5 h-3.5" />
                 </button>
@@ -231,7 +229,7 @@ export default function MyBookings() {
 
         {/* BOOKINGS LIST */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CardSkeleton />
             <CardSkeleton />
           </div>
@@ -240,112 +238,114 @@ export default function MyBookings() {
             icon={FiCalendar}
             title="No parking passes found"
             description="You don't have any bookings matching this filter. Find verified parking spots nearby and book instantly."
-            actionLabel="Browse Available Facilities"
+            actionLabel="Find Parking Spots"
             onAction={() => navigate("/customer/dashboard")}
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredBookings.map((b) => {
               const status = b.status?.toUpperCase() || "ACTIVE";
               const isActive = status === "ACTIVE" || status === "BOOKED";
 
               return (
-                <Card
+                <div
                   key={b.id}
-                  hover
-                  className="flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm hover:border-black transition-all flex flex-col justify-between space-y-4"
                 >
                   {/* TOP STRIP */}
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant={getBadgeVariant(status)} size="sm" dot={isActive}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          isActive
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-neutral-100 text-neutral-600"
+                        }`}>
                           {status}
-                        </Badge>
-                        <span className="text-[11px] font-bold text-slate-400">
+                        </span>
+                        <span className="text-[11px] font-bold text-neutral-400">
                           Pass #{b.id}
                         </span>
                       </div>
-                      <h3 className="text-base font-extrabold text-slate-900 line-clamp-1">
-                        {b.parking_name || "Smart Parking Facility"}
+                      <h3 className="text-base font-black text-black line-clamp-1">
+                        {b.parking_name || "ParkEase Facility"}
                       </h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                        <FiMapPin className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                      <p className="text-xs text-neutral-500 flex items-center gap-1.5">
+                        <FiMapPin className="w-3.5 h-3.5 text-black shrink-0" />
                         <span>{b.parking_address || "City Center Zone"}</span>
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                      <span className="text-xs font-black text-black bg-neutral-100 px-2.5 py-1 rounded-xl border border-neutral-200">
                         Slot {b.slot_number || "A-1"}
                       </span>
                     </div>
                   </div>
 
                   {/* DETAILS GRID */}
-                  <div className="grid grid-cols-3 gap-2 py-3 px-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+                  <div className="grid grid-cols-3 gap-2 py-3 px-4 rounded-xl bg-neutral-50 border border-neutral-200 text-xs">
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-semibold uppercase">
+                      <span className="text-[10px] text-neutral-400 block font-bold uppercase">
                         Date
                       </span>
-                      <span className="font-bold text-slate-800">
+                      <span className="font-bold text-black">
                         {b.booking_date || "Today"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-semibold uppercase">
-                        Time Window
+                      <span className="text-[10px] text-neutral-400 block font-bold uppercase">
+                        Window
                       </span>
-                      <span className="font-bold text-slate-800">
+                      <span className="font-bold text-black">
                         {b.start_time || "10:00"} - {b.end_time || "12:00"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 block font-semibold uppercase">
+                      <span className="text-[10px] text-neutral-400 block font-bold uppercase">
                         Vehicle
                       </span>
-                      <span className="font-bold text-slate-800 truncate block">
+                      <span className="font-bold text-black truncate block">
                         {b.vehicle_number || "MH-01-AB-1234"}
                       </span>
                     </div>
                   </div>
 
                   {/* FOOTER ACTIONS */}
-                  <div className="pt-2 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={FiPrinter}
+                  <div className="pt-2 flex items-center justify-between gap-2 border-t border-neutral-100">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
                         onClick={() => setInvoiceModalBooking(b)}
+                        className="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition flex items-center gap-1.5"
                       >
-                        Receipt
-                      </Button>
+                        <FiPrinter className="w-3.5 h-3.5" />
+                        <span>Receipt</span>
+                      </button>
 
                       {isActive && (
                         <button
                           onClick={() => setCancelModalBooking(b)}
-                          className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                          className="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
                         >
                           Cancel
                         </button>
                       )}
                     </div>
 
-                    <Button
-                      variant={isActive ? "primary" : "secondary"}
-                      size="sm"
-                      icon={FiEye}
+                    <button
+                      type="button"
                       onClick={() =>
                         navigate(`/customer/qr?booking=${b.id}`, {
                           state: { booking: b },
                         })
                       }
+                      className="px-4 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black shadow-sm transition"
                     >
-                      {isActive ? "Show Digital Pass" : "View Pass Details"}
-                    </Button>
+                      {isActive ? "Show QR Pass &rarr;" : "View Pass"}
+                    </button>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>

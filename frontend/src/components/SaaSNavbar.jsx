@@ -171,42 +171,31 @@ export default function SaaSNavbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+      <header className="sticky top-0 z-40 bg-black text-white border-b border-neutral-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-16 sm:h-20 flex items-center justify-between gap-4">
+          <div className="h-16 sm:h-18 flex items-center justify-between gap-4">
             {/* BRAND LOGO */}
             <div className="flex items-center gap-3">
               <Link
                 to={brandHome}
-                className="flex items-center gap-3 group focus:outline-none"
+                className="flex items-center gap-2.5 group focus:outline-none"
               >
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white text-lg font-extrabold shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-                  <FiMapPin className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-xl bg-white text-black flex items-center justify-center text-base font-black shadow-sm group-hover:scale-105 transition-transform">
+                  <FiMapPin className="w-5 h-5 text-black" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 leading-none">
-                      Park<span className="text-indigo-600">Ease</span>
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      SaaS Platform
-                    </span>
-                    <Badge
-                      variant={getRoleBadgeVariant()}
-                      size="sm"
-                      className="text-[9px] py-0 px-1.5"
-                    >
-                      {getRoleLabel()}
-                    </Badge>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl sm:text-2xl font-black tracking-tight text-white leading-none">
+                    Park<span className="font-light text-neutral-400">Ease</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-neutral-800 text-[10px] font-bold text-neutral-300 uppercase tracking-wider">
+                    {getRoleLabel()}
+                  </span>
                 </div>
               </Link>
             </div>
 
             {/* DESKTOP NAVIGATION LINKS */}
-            <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60">
+            <nav className="hidden md:flex items-center gap-1 bg-neutral-900 p-1 rounded-2xl border border-neutral-800">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive =
@@ -218,10 +207,10 @@ export default function SaaSNavbar() {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                       isActive
-                        ? "bg-white text-indigo-600 shadow-xs font-bold"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                        ? "bg-white text-black shadow-sm"
+                        : "text-neutral-300 hover:text-white hover:bg-neutral-800"
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />

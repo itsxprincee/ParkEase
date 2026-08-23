@@ -35,6 +35,7 @@ class BookingCreate(BaseModel):
         max_length=50
     )
     amount: float = 0
+    pass_type: str | None = "HOURLY"
 
 
 # =========================================================
@@ -66,10 +67,13 @@ def get_user_booking(
 
 # =========================================================
 # CREATE BOOKING
+#
+# POST /booking/create
+# POST /booking/
+# POST /booking
 # =========================================================
 
 @router.post("/create")
-@router.post("/book")
 @router.post("/")
 @router.post("")
 def create_booking(
@@ -79,15 +83,14 @@ def create_booking(
 ):
 
     # -----------------------------------------------------
-    # CHECK PARKING
+    # CHECK PARKING LOCATION
     # -----------------------------------------------------
 
     parking = (
         db.query(ParkingLocation)
         .filter(
-            ParkingLocation.id
-            == data.parking_location_id,
-            ParkingLocation.verification_status
+            ParkingLocation.id == data.parking_location_id,
+            func.upper(func.trim(ParkingLocation.verification_status))
             == "APPROVED"
         )
         .first()
@@ -136,6 +139,9 @@ def create_booking(
     # CREATE BOOKING
     # -----------------------------------------------------
 
+    pass_type = str(data.pass_type or "HOURLY").upper().strip()
+    last_exit_rule = getattr(parking, "last_exit_time", "11:00 PM") if pass_type == "DAILY_PASS" else None
+
     booking = Booking(
         user_id=user.id,
         parking_location_id=data.parking_location_id,
@@ -144,7 +150,11 @@ def create_booking(
         start_time=data.start_time.strip(),
         end_time=data.end_time.strip(),
         amount=data.amount,
-        status="BOOKED"
+        status="BOOKED",
+        pass_type=pass_type,
+        entry_count=0,
+        is_inside=False,
+        last_exit_rule=last_exit_rule
     )
 
     # Reserve slot
@@ -160,15 +170,15 @@ def create_booking(
         "booking": {
             "id": booking.id,
             "user_id": booking.user_id,
-            "parking_location_id": (
-                booking.parking_location_id
-            ),
+            "parking_location_id": booking.parking_location_id,
             "slot_id": booking.slot_id,
             "booking_date": booking.booking_date,
             "start_time": booking.start_time,
             "end_time": booking.end_time,
             "amount": booking.amount,
-            "status": booking.status
+            "status": booking.status,
+            "pass_type": booking.pass_type,
+            "last_exit_rule": booking.last_exit_rule
         }
     }
 
@@ -271,7 +281,12 @@ def get_my_bookings(
 
             "status": (
                 booking.status
-            )
+            ),
+
+            "pass_type": getattr(booking, "pass_type", "HOURLY") or "HOURLY",
+            "entry_count": getattr(booking, "entry_count", 0) or 0,
+            "is_inside": getattr(booking, "is_inside", False),
+            "last_exit_rule": getattr(booking, "last_exit_rule", None)
         })
 
     return result
@@ -578,18 +593,26 @@ def check_in_booking(
             detail="This booking has already been completed"
         )
 
-    if booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"]:
+    is_daily_pass = (getattr(booking, "pass_type", "HOURLY") or "HOURLY").upper() == "DAILY_PASS"
+    allow_multi = getattr(parking, "allow_multi_entry", True)
+
+    if booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"] and getattr(booking, "is_inside", False):
         slot_obj = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first() if booking.slot_id else None
         return {
             "success": True,
-            "message": "Vehicle is already checked in and currently parked.",
+            "message": "Vehicle is already checked in and currently inside the parking facility.",
             "booking_id": booking.id,
             "status": "ACTIVE",
+            "is_inside": True,
+            "pass_type": booking.pass_type,
+            "entry_count": booking.entry_count or 1,
             "parking_name": parking.name,
             "slot_number": slot_obj.slot_number if slot_obj else "N/A"
         }
 
-    # Transition status to ACTIVE
+    # Increment entry count and set inside
+    booking.entry_count = (booking.entry_count or 0) + 1
+    booking.is_inside = True
     booking.status = "ACTIVE"
 
     # Ensure slot is OCCUPIED
@@ -603,11 +626,21 @@ def check_in_booking(
 
     slot_obj = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first() if booking.slot_id else None
 
+    entry_msg = (
+        f"Multi-Entry Pass verified (Entry #{booking.entry_count})! Valid until {booking.last_exit_rule or 'gate closing'}."
+        if is_daily_pass
+        else f"Vehicle check-in successful! Welcome to {parking.name}."
+    )
+
     return {
         "success": True,
-        "message": f"Vehicle check-in successful! Welcome to {parking.name}.",
+        "message": entry_msg,
         "booking_id": booking.id,
         "status": "ACTIVE",
+        "is_inside": True,
+        "pass_type": getattr(booking, "pass_type", "HOURLY"),
+        "entry_count": booking.entry_count,
+        "last_exit_rule": booking.last_exit_rule,
         "parking_name": parking.name,
         "slot_number": slot_obj.slot_number if slot_obj else "N/A",
         "entry_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -678,10 +711,9 @@ def check_out_booking(
             "parking_name": parking.name
         }
 
-    # Transition status to COMPLETED
-    booking.status = "COMPLETED"
+    is_daily_pass = (getattr(booking, "pass_type", "HOURLY") or "HOURLY").upper() == "DAILY_PASS"
+    allow_multi = getattr(parking, "allow_multi_entry", True)
 
-    # Release slot back to AVAILABLE
     slot_number = "N/A"
     if booking.slot_id:
         slot = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first()
@@ -689,18 +721,43 @@ def check_out_booking(
             slot.status = "AVAILABLE"
             slot_number = slot.slot_number
 
-    db.commit()
-    db.refresh(booking)
+    if is_daily_pass and allow_multi:
+        # Mark as temporarily out, but keep pass valid for re-entry
+        booking.is_inside = False
+        booking.status = "ACTIVE"
+        db.commit()
+        db.refresh(booking)
 
-    return {
-        "success": True,
-        "message": f"Vehicle check-out successful! Slot {slot_number} is now AVAILABLE.",
-        "booking_id": booking.id,
-        "status": "COMPLETED",
-        "parking_name": parking.name,
-        "slot_number": slot_number,
-        "exit_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    }
+        curfew_text = f" before {booking.last_exit_rule}" if booking.last_exit_rule else ""
+        return {
+            "success": True,
+            "message": f"Temporary exit recorded. Unlimited Daily Pass remains active! You can re-enter anytime today{curfew_text}.",
+            "booking_id": booking.id,
+            "status": "ACTIVE",
+            "is_inside": False,
+            "pass_type": "DAILY_PASS",
+            "last_exit_rule": booking.last_exit_rule,
+            "parking_name": parking.name,
+            "slot_number": slot_number,
+            "exit_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        }
+    else:
+        # Standard hourly or single-entry pass completion
+        booking.is_inside = False
+        booking.status = "COMPLETED"
+        db.commit()
+        db.refresh(booking)
+
+        return {
+            "success": True,
+            "message": f"Vehicle check-out completed! Slot {slot_number} is now AVAILABLE.",
+            "booking_id": booking.id,
+            "status": "COMPLETED",
+            "is_inside": False,
+            "parking_name": parking.name,
+            "slot_number": slot_number,
+            "exit_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        }
 
 
 # =========================================================

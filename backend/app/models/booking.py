@@ -91,6 +91,29 @@ class Booking(Base):
         nullable=True
     )
 
+    pass_type = Column(
+        String(50),
+        default="HOURLY",
+        nullable=False
+    )
+
+    entry_count = Column(
+        Integer,
+        default=0,
+        nullable=False
+    )
+
+    is_inside = Column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
+
+    last_exit_rule = Column(
+        String(50),
+        nullable=True
+    )
+
     # =====================================================
     # RELATIONSHIPS
     # =====================================================

@@ -56,6 +56,17 @@ export default function BookParking() {
   const [endTime, setEndTime] = useState(initialEndTime);
   const [selectedDurationHours, setSelectedDurationHours] = useState(2);
 
+  // Pricing Model & Pass Selection
+  const isFacilityDailyOnly = parking?.pricing_type === "DAILY_PASS";
+  const hasDailyOption = parking?.pricing_type === "DAILY_PASS" || parking?.pricing_type === "BOTH";
+  const [passType, setPassType] = useState(isFacilityDailyOnly ? "DAILY_PASS" : "HOURLY");
+
+  useEffect(() => {
+    if (parking?.pricing_type === "DAILY_PASS") {
+      setPassType("DAILY_PASS");
+    }
+  }, [parking]);
+
   // State & Loading
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -64,6 +75,7 @@ export default function BookParking() {
 
   // Dynamic rate from parking API, fallback to 50
   const HOURLY_RATE = parking?.price_per_hour || parking?.hourly_rate || 50;
+  const DAILY_RATE = parseFloat(parking?.daily_rate) || 10;
   const PLATFORM_FEE = 5;
 
   const showToast = (message, type = "success") => {
@@ -77,6 +89,9 @@ export default function BookParking() {
     try {
       const response = await API.get(`/parking/${id}`);
       setParking(response.data);
+      if (response.data?.pricing_type === "DAILY_PASS") {
+        setPassType("DAILY_PASS");
+      }
     } catch (error) {
       console.error("Failed to load parking:", error);
       showToast(
@@ -181,7 +196,8 @@ export default function BookParking() {
   };
 
   // Calculated Costs
-  const subtotal = selectedDurationHours * HOURLY_RATE;
+  const isDaily = passType === "DAILY_PASS";
+  const subtotal = isDaily ? DAILY_RATE : selectedDurationHours * HOURLY_RATE;
   const grandTotal = subtotal + PLATFORM_FEE;
 
   // Filtered Slots
@@ -210,23 +226,27 @@ export default function BookParking() {
 
       const payload = {
         parking_id: parseInt(id),
+        parking_location_id: parseInt(id),
         slot_id: selectedSlot.id,
         vehicle_id: selectedVehicle.id,
         vehicle_number: selectedVehicle.vehicle_number,
         vehicle_type: selectedVehicle.vehicle_type,
         booking_date: bookingDate,
-        start_time: startTime,
-        end_time: endTime,
-        duration_hours: selectedDurationHours,
+        start_time: isDaily ? "Full Day" : startTime,
+        end_time: isDaily ? (parking?.last_exit_time || "11:00 PM") : endTime,
+        duration_hours: isDaily ? 24 : selectedDurationHours,
+        amount: grandTotal,
         total_amount: grandTotal,
+        pass_type: passType,
       };
 
-      const response = await API.post("/booking/book", payload);
-      const bookedData = response.data || {
+      const response = await API.post("/booking/create", payload);
+      const bookedData = response.data?.booking || {
         id: Math.floor(1000 + Math.random() * 9000),
         ...payload,
         parking_name: parking?.name || "ParkEase Central",
         slot_number: selectedSlot?.slot_number,
+        last_exit_rule: parking?.last_exit_time || "11:00 PM",
       };
 
       setSuccessModal(bookedData);
@@ -361,35 +381,92 @@ export default function BookParking() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT 2 COLUMNS */}
           <div className="lg:col-span-2 space-y-6">
-            {/* STEP 1: DURATION */}
+            {/* STEP 1: PRICING PASS & DURATION */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-3 border-b border-neutral-100 pb-3">
-                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
-                  1
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-black">Duration</h3>
-                  <p className="text-xs text-neutral-500">Select hours needed.</p>
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-black">Booking Plan & Duration</h3>
+                    <p className="text-xs text-neutral-500">Choose between flat day pass or hourly duration.</p>
+                  </div>
                 </div>
               </div>
 
-              {/* DURATION PILLS */}
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {[1, 2, 3, 4, 6, 8].map((hrs) => (
-                  <button
-                    key={hrs}
-                    type="button"
-                    onClick={() => handleDurationChange(hrs)}
-                    className={`py-3 rounded-xl text-xs font-black transition-all border ${
-                      selectedDurationHours === hrs
-                        ? "bg-black text-white border-black shadow-md scale-105"
-                        : "bg-neutral-100 border-transparent text-black hover:bg-neutral-200"
+              {/* Pass Mode Toggle (if facility supports both or day pass) */}
+              {hasDailyOption && !isFacilityDailyOnly && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setPassType("HOURLY")}
+                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      passType === "HOURLY"
+                        ? "bg-black text-white border-black shadow-xs"
+                        : "bg-white text-black border-neutral-200 hover:border-neutral-400"
                     }`}
                   >
-                    {hrs} {hrs === 1 ? "Hour" : "Hours"}
-                  </button>
-                ))}
-              </div>
+                    <p className="text-xs font-black">⏱️ Hourly Booking</p>
+                    <p className={`text-[11px] mt-0.5 ${passType === "HOURLY" ? "text-neutral-300" : "text-neutral-500"}`}>
+                      ₹{HOURLY_RATE}/hr · Custom duration
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setPassType("DAILY_PASS")}
+                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      passType === "DAILY_PASS"
+                        ? "bg-[#05944f] text-white border-[#05944f] shadow-xs"
+                        : "bg-[#f0fdf4] text-[#05944f] border-[#86efac] hover:border-[#05944f]"
+                    }`}
+                  >
+                    <p className="text-xs font-black">🎟️ Unlimited Day Pass (₹{DAILY_RATE})</p>
+                    <p className={`text-[11px] mt-0.5 ${passType === "DAILY_PASS" ? "text-white/90" : "text-[#545454]"}`}>
+                      Multi-entry & exit all day
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Day Pass Curfew Banner */}
+              {passType === "DAILY_PASS" && (
+                <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] space-y-1.5 animate-fade-in">
+                  <div className="flex items-center gap-2 text-xs font-black text-[#05944f]">
+                    <FiCheckCircle className="w-4 h-4" />
+                    <span>Flat Daily Pass — ₹{DAILY_RATE} for Entire Day</span>
+                  </div>
+                  <p className="text-xs text-neutral-700 leading-relaxed">
+                    🚗 <strong>Unlimited Entry & Exit:</strong> You can drive in and out freely all day using your digital QR pass.
+                  </p>
+                  <p className="text-xs text-[#b45309] font-bold">
+                    ⚠️ <strong>Gate Closing Rule:</strong> Final vehicle exit must be completed before{" "}
+                    <span className="underline">{parking?.last_exit_time || "11:00 PM"}</span> tonight.
+                  </p>
+                </div>
+              )}
+
+              {/* DURATION PILLS (Only for Hourly) */}
+              {passType === "HOURLY" && (
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-bold text-neutral-700">Quick Duration</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {[1, 2, 3, 4, 6, 8].map((hrs) => (
+                      <button
+                        key={hrs}
+                        type="button"
+                        onClick={() => handleDurationChange(hrs)}
+                        className={`py-3 rounded-xl text-xs font-black transition-all border ${
+                          selectedDurationHours === hrs
+                            ? "bg-black text-white border-black shadow-md scale-105"
+                            : "bg-neutral-100 border-transparent text-black hover:bg-neutral-200"
+                        }`}
+                      >
+                        {hrs} {hrs === 1 ? "Hour" : "Hours"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* DATE & TIME */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
@@ -408,7 +485,9 @@ export default function BookParking() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-700">Entry Time</label>
+                  <label className="text-xs font-bold text-neutral-700">
+                    {passType === "DAILY_PASS" ? "First Entry From" : "Entry Time"}
+                  </label>
                   <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200">
                     <FiClock className="text-black w-4 h-4" />
                     <input
@@ -421,10 +500,14 @@ export default function BookParking() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-700">Estimated Exit</label>
+                  <label className="text-xs font-bold text-neutral-700">
+                    {passType === "DAILY_PASS" ? "Final Gate Exit" : "Estimated Exit"}
+                  </label>
                   <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-500">
                     <FiClock className="text-neutral-400 w-4 h-4" />
-                    <span className="text-xs font-bold text-black">{endTime}</span>
+                    <span className="text-xs font-bold text-black">
+                      {passType === "DAILY_PASS" ? (parking?.last_exit_time || "11:00 PM") : endTime}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -592,6 +675,12 @@ export default function BookParking() {
 
               <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs">
                 <div className="flex justify-between">
+                  <span className="text-neutral-500">Plan:</span>
+                  <span className="font-black text-black">
+                    {passType === "DAILY_PASS" ? "🎟️ Unlimited Full-Day Pass" : "⏱️ Hourly Duration"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-neutral-500">Spot:</span>
                   <span className="font-black text-black">
                     {selectedSlot ? selectedSlot.slot_number : "None selected"}
@@ -604,9 +693,9 @@ export default function BookParking() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Duration:</span>
+                  <span className="text-neutral-500">Validity:</span>
                   <span className="font-bold text-black">
-                    {startTime} - {endTime} ({selectedDurationHours}h)
+                    {passType === "DAILY_PASS" ? `Until ${parking?.last_exit_time || "11:00 PM"}` : `${startTime} - ${endTime}`}
                   </span>
                 </div>
               </div>
@@ -614,13 +703,13 @@ export default function BookParking() {
               {/* PRICING */}
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between text-neutral-600">
-                  <span>Parking ({selectedDurationHours}h):</span>
+                  <span>{passType === "DAILY_PASS" ? "Flat Day Pass:" : `Parking (${selectedDurationHours}h):`}</span>
                   <span className="font-bold text-black">
-                    {HOURLY_RATE === 0 ? "FREE" : `₹${subtotal}`}
+                    {subtotal === 0 ? "FREE" : `₹${subtotal}`}
                   </span>
                 </div>
                 <div className="flex justify-between text-neutral-600">
-                  <span>Platform Fee:</span>
+                  <span>Platform Convenience Fee:</span>
                   <span className="font-bold text-black">₹{PLATFORM_FEE}</span>
                 </div>
                 <div className="pt-2 border-t border-neutral-200 flex justify-between text-base">
@@ -628,6 +717,12 @@ export default function BookParking() {
                   <span className="text-2xl font-black text-black">₹{grandTotal}</span>
                 </div>
               </div>
+
+              {passType === "DAILY_PASS" && (
+                <div className="p-3 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[11px] text-[#05944f] font-bold">
+                  ✓ Includes Unlimited Entries & Exits until {parking?.last_exit_time || "11:00 PM"}
+                </div>
+              )}
 
               {/* UBER JET BLACK CONFIRM BUTTON */}
               <button
@@ -748,12 +843,24 @@ export default function BookParking() {
 
           <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs space-y-2 text-left">
             <div className="flex justify-between">
+              <span className="text-neutral-500">Plan Type</span>
+              <span className="font-bold text-black">
+                {successModal?.pass_type === "DAILY_PASS" ? "🎟️ Unlimited Full-Day Pass" : "⏱️ Hourly Duration"}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-neutral-500">Date</span>
               <span className="font-bold text-black">{successModal?.booking_date || bookingDate}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">Time Window</span>
-              <span className="font-bold text-black">{successModal?.start_time} – {successModal?.end_time}</span>
+              <span className="text-neutral-500">
+                {successModal?.pass_type === "DAILY_PASS" ? "Last Exit Curfew" : "Time Window"}
+              </span>
+              <span className="font-bold text-[#b45309]">
+                {successModal?.pass_type === "DAILY_PASS"
+                  ? `Must exit before ${successModal?.last_exit_rule || parking?.last_exit_time || "11:00 PM"}`
+                  : `${successModal?.start_time} – ${successModal?.end_time}`}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-500">Vehicle</span>

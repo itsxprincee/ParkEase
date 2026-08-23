@@ -63,13 +63,37 @@ class ParkingLocation(Base):
     )
 
     # =====================================================
-    # PRICING — Owner-defined hourly rate (0 = free parking)
+    # PRICING & PASS RULES
     # =====================================================
 
     hourly_rate = Column(
         Float,
         nullable=False,
         default=0.0
+    )
+
+    pricing_type = Column(
+        String(50),
+        nullable=False,
+        default="HOURLY"  # "HOURLY", "DAILY_PASS", "BOTH"
+    )
+
+    daily_rate = Column(
+        Float,
+        nullable=False,
+        default=10.0
+    )
+
+    allow_multi_entry = Column(
+        Boolean,
+        nullable=False,
+        default=True
+    )
+
+    last_exit_time = Column(
+        String(50),
+        nullable=False,
+        default="11:00 PM"
     )
 
     # =====================================================

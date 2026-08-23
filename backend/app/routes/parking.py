@@ -156,6 +156,13 @@ async def create_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        pricing_type = str(form.get("pricing_type") or "HOURLY").upper().strip()
+        try:
+            daily_rate = float(form.get("daily_rate") or 10.0)
+        except (ValueError, TypeError):
+            daily_rate = 10.0
+        allow_multi_entry = parse_bool(form.get("allow_multi_entry") if "allow_multi_entry" in form else True)
+        last_exit_time = str(form.get("last_exit_time") or "11:00 PM").strip()
         has_ev = parse_bool(form.get("has_ev"))
         has_cctv = parse_bool(form.get("has_cctv"))
         has_security_guard = parse_bool(form.get("has_security_guard"))
@@ -179,6 +186,13 @@ async def create_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        pricing_type = str(body.get("pricing_type") or "HOURLY").upper().strip()
+        try:
+            daily_rate = float(body.get("daily_rate") or 10.0)
+        except (ValueError, TypeError):
+            daily_rate = 10.0
+        allow_multi_entry = parse_bool(body.get("allow_multi_entry") if "allow_multi_entry" in body else True)
+        last_exit_time = str(body.get("last_exit_time") or "11:00 PM").strip()
         has_ev = parse_bool(body.get("has_ev"))
         has_cctv = parse_bool(body.get("has_cctv"))
         has_security_guard = parse_bool(body.get("has_security_guard"))
@@ -204,6 +218,10 @@ async def create_parking(
         longitude=longitude,
         total_slots=total_slots,
         hourly_rate=hourly_rate,
+        pricing_type=pricing_type,
+        daily_rate=daily_rate,
+        allow_multi_entry=allow_multi_entry,
+        last_exit_time=last_exit_time,
         has_ev=has_ev,
         has_cctv=has_cctv,
         has_security_guard=has_security_guard,
@@ -316,6 +334,10 @@ def get_all_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "pricing_type": getattr(location, "pricing_type", "HOURLY") or "HOURLY",
+                "daily_rate": getattr(location, "daily_rate", 10.0) if getattr(location, "daily_rate", 10.0) is not None else 10.0,
+                "allow_multi_entry": getattr(location, "allow_multi_entry", True),
+                "last_exit_time": getattr(location, "last_exit_time", "11:00 PM") or "11:00 PM",
                 "has_ev": location.has_ev,
                 "has_cctv": location.has_cctv,
                 "has_security_guard": location.has_security_guard,
@@ -379,6 +401,10 @@ def get_approved_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "pricing_type": getattr(location, "pricing_type", "HOURLY") or "HOURLY",
+                "daily_rate": getattr(location, "daily_rate", 10.0) if getattr(location, "daily_rate", 10.0) is not None else 10.0,
+                "allow_multi_entry": getattr(location, "allow_multi_entry", True),
+                "last_exit_time": getattr(location, "last_exit_time", "11:00 PM") or "11:00 PM",
                 "has_ev": location.has_ev,
                 "has_cctv": location.has_cctv,
                 "has_security_guard": location.has_security_guard,
@@ -441,6 +467,10 @@ def get_customer_parking_details(
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
+        "pricing_type": getattr(parking, "pricing_type", "HOURLY") or "HOURLY",
+        "daily_rate": getattr(parking, "daily_rate", 10.0) if getattr(parking, "daily_rate", 10.0) is not None else 10.0,
+        "allow_multi_entry": getattr(parking, "allow_multi_entry", True),
+        "last_exit_time": getattr(parking, "last_exit_time", "11:00 PM") or "11:00 PM",
         "has_ev": parking.has_ev,
         "has_cctv": parking.has_cctv,
         "has_security_guard": parking.has_security_guard,
@@ -743,6 +773,17 @@ async def update_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        if "pricing_type" in form:
+            parking.pricing_type = str(form.get("pricing_type")).upper().strip()
+        if "daily_rate" in form:
+            try:
+                parking.daily_rate = float(form.get("daily_rate"))
+            except (ValueError, TypeError):
+                pass
+        if "allow_multi_entry" in form:
+            parking.allow_multi_entry = parse_bool(form.get("allow_multi_entry"))
+        if "last_exit_time" in form:
+            parking.last_exit_time = str(form.get("last_exit_time")).strip()
         if "has_ev" in form:
             parking.has_ev = parse_bool(form.get("has_ev"))
         if "has_cctv" in form:
@@ -772,6 +813,17 @@ async def update_parking(
                 status_code=400,
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
+        if "pricing_type" in body:
+            parking.pricing_type = str(body.get("pricing_type")).upper().strip()
+        if "daily_rate" in body:
+            try:
+                parking.daily_rate = float(body.get("daily_rate"))
+            except (ValueError, TypeError):
+                pass
+        if "allow_multi_entry" in body:
+            parking.allow_multi_entry = parse_bool(body.get("allow_multi_entry"))
+        if "last_exit_time" in body:
+            parking.last_exit_time = str(body.get("last_exit_time")).strip()
         if "has_ev" in body:
             parking.has_ev = parse_bool(body.get("has_ev"))
         if "has_cctv" in body:

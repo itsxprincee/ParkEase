@@ -37,7 +37,11 @@ export default function EditParking() {
     latitude: "",
     longitude: "",
     total_slots: "",
+    pricing_type: "HOURLY",
     hourly_rate: "50",
+    daily_rate: "10",
+    allow_multi_entry: true,
+    last_exit_time: "11:00 PM",
     has_ev: false,
     has_cctv: true,
     has_security_guard: true,
@@ -69,7 +73,11 @@ export default function EditParking() {
           latitude: data.latitude || "19.0760",
           longitude: data.longitude || "72.8777",
           total_slots: String(data.total_slots || 20),
-          hourly_rate: String(data.hourly_rate ?? 0),
+          pricing_type: data.pricing_type || "HOURLY",
+          hourly_rate: String(data.hourly_rate ?? 50),
+          daily_rate: String(data.daily_rate ?? 10),
+          allow_multi_entry: data.allow_multi_entry !== false,
+          last_exit_time: data.last_exit_time || "11:00 PM",
           has_ev: Boolean(data.has_ev),
           has_cctv: Boolean(data.has_cctv),
           has_security_guard: Boolean(data.has_security_guard),
@@ -126,7 +134,11 @@ export default function EditParking() {
       submitData.append("latitude", formData.latitude);
       submitData.append("longitude", formData.longitude);
       submitData.append("total_slots", formData.total_slots);
+      submitData.append("pricing_type", formData.pricing_type);
       submitData.append("hourly_rate", formData.hourly_rate || "0");
+      submitData.append("daily_rate", formData.daily_rate || "10");
+      submitData.append("allow_multi_entry", formData.allow_multi_entry);
+      submitData.append("last_exit_time", formData.last_exit_time || "11:00 PM");
       submitData.append("has_ev", formData.has_ev);
       submitData.append("has_cctv", formData.has_cctv);
       submitData.append("has_security_guard", formData.has_security_guard);
@@ -301,53 +313,161 @@ export default function EditParking() {
                 </div>
               </div>
 
-              {/* HOURLY RATE */}
+              {/* PRICING MODEL, DAILY PASS & CURFEW */}
               <div className="space-y-4 pt-4 border-t border-neutral-100">
-                <div className="flex items-center justify-between">
+                <div>
                   <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                    Pricing
+                    Pricing Model & Gate Curfew
                   </h3>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({ ...formData, hourly_rate: "0" })
-                    }
-                    className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition ${
-                      formData.hourly_rate === "0"
-                        ? "bg-black text-white border-black"
-                        : "bg-neutral-100 text-black border-neutral-200"
-                    }`}
-                  >
-                    🆓 Set as Free
-                  </button>
+                  <p className="text-xs text-[#737373] mt-0.5">
+                    Select hourly billing, flat daily passes with unlimited entry & exit, or both.
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
-                    Hourly Rate (₹ / Hour)
-                  </label>
-                  <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                    <span className="font-bold text-black">₹</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="500"
-                      step="5"
-                      required
-                      value={formData.hourly_rate}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          hourly_rate: e.target.value,
-                        })
-                      }
-                      className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
-                    />
-                    <span className="text-xs text-neutral-400 font-medium shrink-0">
-                      /hour
-                    </span>
-                  </div>
+                {/* Model Selector */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: "HOURLY", title: "⏱️ Hourly Billing", desc: "Pay per hour" },
+                    { id: "DAILY_PASS", title: "🎟️ Flat Day Pass", desc: "Unlimited entry/exit" },
+                    { id: "BOTH", title: "⚡ Both Options", desc: "Driver chooses pass" },
+                  ].map((mode) => (
+                    <div
+                      key={mode.id}
+                      onClick={() => setFormData({ ...formData, pricing_type: mode.id })}
+                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                        formData.pricing_type === mode.id
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-neutral-200 hover:border-neutral-400"
+                      }`}
+                    >
+                      <p className="text-xs font-black">{mode.title}</p>
+                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === mode.id ? "text-neutral-400" : "text-neutral-500"}`}>
+                        {mode.desc}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {(formData.pricing_type === "HOURLY" || formData.pricing_type === "BOTH") && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-neutral-700">
+                        Hourly Rate (₹ / Hour)
+                      </label>
+                      <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
+                        <span className="font-bold text-black">₹</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="2000"
+                          step="5"
+                          required
+                          value={formData.hourly_rate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              hourly_rate: e.target.value,
+                            })
+                          }
+                          className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
+                        />
+                        <span className="text-xs text-neutral-400 font-medium shrink-0">
+                          /hr
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#05944f]">
+                        Flat Day Pass Rate (₹ / Whole Day)
+                      </label>
+                      <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#f0fdf4] border border-[#86efac] focus-within:border-[#05944f] transition">
+                        <span className="font-bold text-[#05944f]">₹</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="5000"
+                          step="1"
+                          required
+                          value={formData.daily_rate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              daily_rate: e.target.value,
+                            })
+                          }
+                          className="w-full bg-transparent text-xs font-bold text-[#05944f] focus:outline-none"
+                        />
+                        <span className="text-xs text-[#05944f] font-medium shrink-0">
+                          /day
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
+                  <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-black text-[#05944f]">
+                          Unlimited Multi-Entry & Gate Curfew Rule
+                        </p>
+                        <p className="text-[11px] text-neutral-600">
+                          Drivers can exit and re-enter multiple times before gate closing.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            allow_multi_entry: !formData.allow_multi_entry,
+                          })
+                        }
+                        className="p-3 rounded-xl bg-white border border-[#86efac] flex items-center justify-between cursor-pointer"
+                      >
+                        <div>
+                          <p className="text-xs font-bold text-black">Unlimited In / Out Entry</p>
+                          <p className="text-[10px] text-neutral-500">QR code remains valid</p>
+                        </div>
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
+                            formData.allow_multi_entry ? "bg-[#05944f] text-white" : "bg-neutral-200 text-neutral-600"
+                          }`}
+                        >
+                          {formData.allow_multi_entry ? <FiCheck className="w-3.5 h-3.5" /> : "✕"}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-black block">
+                          Last Exit Timing (Gate Curfew)
+                        </label>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {["10:00 PM", "10:30 PM", "11:00 PM", "11:30 PM", "12:00 AM"].map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, last_exit_time: t })}
+                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border transition ${
+                                formData.last_exit_time === t
+                                  ? "bg-black text-white border-black"
+                                  : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-400"
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* AMENITIES */}

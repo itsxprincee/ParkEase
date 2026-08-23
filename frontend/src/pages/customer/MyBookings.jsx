@@ -238,14 +238,26 @@ export default function MyBookings() {
                         <p className="text-xs font-bold text-[#0a0a0a]">{b.booking_date || "Today"}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-[#a0a0a0] font-semibold uppercase mb-0.5">Time</p>
-                        <p className="text-xs font-bold text-[#0a0a0a]">{b.start_time || "10:00"} – {b.end_time || "12:00"}</p>
+                        <p className="text-[10px] text-[#a0a0a0] font-semibold uppercase mb-0.5">
+                          {b.pass_type === "DAILY_PASS" ? "Curfew" : "Time"}
+                        </p>
+                        <p className="text-xs font-bold text-[#0a0a0a]">
+                          {b.pass_type === "DAILY_PASS" ? `Before ${b.last_exit_rule || "11:00 PM"}` : `${b.start_time || "10:00"} – ${b.end_time || "12:00"}`}
+                        </p>
                       </div>
                       <div>
                         <p className="text-[10px] text-[#a0a0a0] font-semibold uppercase mb-0.5">Vehicle</p>
                         <p className="text-xs font-bold text-[#0a0a0a] truncate">{b.vehicle_number || "–"}</p>
                       </div>
                     </div>
+
+                    {/* Daily pass badge */}
+                    {b.pass_type === "DAILY_PASS" && (
+                      <div className="p-2.5 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[11px] font-bold text-[#05944f] flex items-center justify-between">
+                        <span>🎟️ Unlimited Day Pass {b.entry_count > 0 ? `· Entry #${b.entry_count}` : ""}</span>
+                        <span>{b.is_inside ? "🟢 Inside Deck" : "⚪ Out (Pass Active)"}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#f0f0f0]">
                       <div className="flex items-center gap-1.5">

@@ -252,6 +252,70 @@ try:
                     print(f"SUCCESS: '{col_name}' column added to 'parking_slots'")
 
         # -------------------------------------------------
+        # AUTO-MIGRATE PARKING_LOCATIONS TABLE (DAILY PASS)
+        # -------------------------------------------------
+        parking_columns = connection.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = :database_name
+                AND TABLE_NAME = 'parking_locations'
+                """
+            ),
+            {"database_name": DB_NAME},
+        ).fetchall()
+
+        if parking_columns:
+            parking_col_names = [c.COLUMN_NAME for c in parking_columns]
+            parking_expected = {
+                "pricing_type": "VARCHAR(50) NOT NULL DEFAULT 'HOURLY'",
+                "daily_rate": "FLOAT NOT NULL DEFAULT 10.0",
+                "allow_multi_entry": "BOOLEAN NOT NULL DEFAULT 1",
+                "last_exit_time": "VARCHAR(50) NOT NULL DEFAULT '11:00 PM'",
+            }
+            for col_name, col_def in parking_expected.items():
+                if col_name not in parking_col_names:
+                    print(f"Auto-migrating: Adding '{col_name}' to 'parking_locations'...")
+                    connection.execute(
+                        text(f"ALTER TABLE parking_locations ADD COLUMN {col_name} {col_def}")
+                    )
+                    connection.commit()
+                    print(f"SUCCESS: '{col_name}' added to 'parking_locations'")
+
+        # -------------------------------------------------
+        # AUTO-MIGRATE BOOKINGS TABLE (MULTI-ENTRY PASS)
+        # -------------------------------------------------
+        booking_columns = connection.execute(
+            text(
+                """
+                SELECT COLUMN_NAME
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = :database_name
+                AND TABLE_NAME = 'bookings'
+                """
+            ),
+            {"database_name": DB_NAME},
+        ).fetchall()
+
+        if booking_columns:
+            booking_col_names = [c.COLUMN_NAME for c in booking_columns]
+            booking_expected = {
+                "pass_type": "VARCHAR(50) NOT NULL DEFAULT 'HOURLY'",
+                "entry_count": "INT NOT NULL DEFAULT 0",
+                "is_inside": "BOOLEAN NOT NULL DEFAULT 0",
+                "last_exit_rule": "VARCHAR(50) NULL DEFAULT NULL",
+            }
+            for col_name, col_def in booking_expected.items():
+                if col_name not in booking_col_names:
+                    print(f"Auto-migrating: Adding '{col_name}' to 'bookings'...")
+                    connection.execute(
+                        text(f"ALTER TABLE bookings ADD COLUMN {col_name} {col_def}")
+                    )
+                    connection.commit()
+                    print(f"SUCCESS: '{col_name}' added to 'bookings'")
+
+        # -------------------------------------------------
         # ENSURE CASCADE DELETION ON FOREIGN KEYS
         # -------------------------------------------------
         try:

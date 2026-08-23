@@ -7,20 +7,18 @@ import {
   FiUploadCloud,
   FiCheckCircle,
   FiAlertCircle,
-  FiCompass,
-  FiZap,
-  FiShield,
-  FiInfo,
   FiDollarSign,
-  FiVideo,
   FiClock,
+  FiVideo,
+  FiShield,
+  FiZap,
   FiKey,
   FiCheck,
   FiTrash2,
   FiTrendingUp,
   FiCamera,
   FiArrowRight,
-  FiCrosshair,
+  FiEye,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -58,9 +56,17 @@ const CITY_PRESETS = [
   { name: "Pune (Koregaon)", lat: "18.5362", lng: "73.8939" },
 ];
 
+const STEPS = [
+  { id: 1, title: "Identity & Location", desc: "Name, address & exact map pin" },
+  { id: 2, title: "Capacity & Pricing", desc: "Slots, rates & amenities" },
+  { id: 3, title: "Photo & Preview", desc: "Entrance photo & live preview" },
+];
+
 export default function AddParking() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
+  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -68,7 +74,11 @@ export default function AddParking() {
     latitude: "19.0760",
     longitude: "72.8777",
     total_slots: "25",
+    pricing_type: "HOURLY", // "HOURLY" | "DAILY_PASS" | "BOTH"
     hourly_rate: "50",
+    daily_rate: "10",
+    allow_multi_entry: true,
+    last_exit_time: "11:00 PM",
     has_ev: true,
     has_cctv: true,
     has_security_guard: true,
@@ -80,7 +90,6 @@ export default function AddParking() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -106,45 +115,45 @@ export default function AddParking() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      showToast("Geolocation is not supported by your browser.", "error");
-      return;
-    }
-    setIsLocating(true);
-    showToast("Requesting high-accuracy GPS coordinates...", "success");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setFormData((prev) => ({
-          ...prev,
-          latitude: pos.coords.latitude.toFixed(6),
-          longitude: pos.coords.longitude.toFixed(6),
-        }));
-        setIsLocating(false);
-        showToast("GPS coordinates pinned successfully!", "success");
-      },
-      (err) => {
-        setIsLocating(false);
-        console.error("GPS error:", err);
-        showToast("Unable to fetch GPS. You can type coordinates manually.", "error");
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
-
   // Projected earnings calculation
   const projectedRevenue = useMemo(() => {
     const slots = parseInt(formData.total_slots, 10) || 0;
-    const rate = parseFloat(formData.hourly_rate) || 0;
-    const dailyEst = Math.round(slots * rate * 8 * 0.75); // 8 hours at 75% occupancy
+    const isDaily = formData.pricing_type === "DAILY_PASS";
+    const dailyPrice = isDaily
+      ? parseFloat(formData.daily_rate) || 10
+      : (parseFloat(formData.hourly_rate) || 0) * 8;
+    const dailyEst = Math.round(slots * dailyPrice * 0.75); // 75% occupancy
     const monthlyEst = dailyEst * 30;
     return { dailyEst, monthlyEst };
-  }, [formData.total_slots, formData.hourly_rate]);
+  }, [formData.total_slots, formData.hourly_rate, formData.daily_rate, formData.pricing_type]);
+
+  const handleNextStep = () => {
+    if (currentStep === 1) {
+      if (!formData.name.trim()) {
+        return showToast("Please enter the facility name.", "error");
+      }
+      if (!formData.address.trim()) {
+        return showToast("Please enter the street address.", "error");
+      }
+    }
+    if (currentStep === 2) {
+      if (!formData.total_slots || parseInt(formData.total_slots, 10) < 1) {
+        return showToast("Please specify at least 1 parking slot.", "error");
+      }
+    }
+    setCurrentStep((prev) => Math.min(3, prev + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePrevStep = () => {
+    setCurrentStep((prev) => Math.max(1, prev - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!formData.name.trim() || !formData.address.trim()) {
-      return showToast("Please fill in the facility name and street address.", "error");
+      return showToast("Please complete facility name and address.", "error");
     }
 
     try {
@@ -155,7 +164,11 @@ export default function AddParking() {
       submitData.append("latitude", formData.latitude);
       submitData.append("longitude", formData.longitude);
       submitData.append("total_slots", formData.total_slots);
+      submitData.append("pricing_type", formData.pricing_type);
       submitData.append("hourly_rate", formData.hourly_rate || "0");
+      submitData.append("daily_rate", formData.daily_rate || "10");
+      submitData.append("allow_multi_entry", formData.allow_multi_entry);
+      submitData.append("last_exit_time", formData.last_exit_time || "11:00 PM");
       submitData.append("has_ev", formData.has_ev);
       submitData.append("has_cctv", formData.has_cctv);
       submitData.append("has_security_guard", formData.has_security_guard);
@@ -170,7 +183,7 @@ export default function AddParking() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      showToast("Facility registered! Submitted for approval.", "success");
+      showToast("Facility registered successfully! Ready for bookings.", "success");
       setTimeout(() => navigate("/owner"), 800);
     } catch (error) {
       console.error("Add parking error:", error);
@@ -184,226 +197,279 @@ export default function AddParking() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col font-sans selection:bg-[#0a0a0a] selection:text-white">
       <SaaSNavbar />
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Top bar navigation */}
+        {/* Top Back Nav */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-all shadow-xs"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            Back to Hub
+            Back to Dashboard
           </button>
+          <span className="text-xs text-[#737373] font-semibold">
+            Step {currentStep} of 3
+          </span>
         </div>
 
-        {/* Main form container */}
-        <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
-          {/* Header */}
-          <div className="p-6 sm:p-8 border-b border-[#f0f0f0] bg-gradient-to-r from-white via-white to-[#f7f7f7]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#0a0a0a] text-white text-[11px] font-bold mb-3">
-                  <FiMapPin className="w-3 h-3 text-[#05944f]" />
-                  Facility Onboarding
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
-                  List Your Parking Facility
-                </h1>
-                <p className="text-sm text-[#737373] mt-1 max-w-xl font-medium">
-                  Connect your garage, lot, or private deck to thousands of drivers. Verified listings go live within 24 hours.
-                </p>
-              </div>
+        {/* STEPPER PROGRESS BAR */}
+        <div className="bg-white rounded-3xl border border-[#e0e0e0] p-4 sm:p-6 shadow-xs">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {STEPS.map((step) => {
+              const isDone = currentStep > step.id;
+              const isActive = currentStep === step.id;
 
-              {/* Revenue projection widget */}
-              <div className="p-4 rounded-2xl bg-[#0a0a0a] text-white shrink-0 sm:w-64 border border-[#262626]">
-                <div className="flex items-center gap-1.5 text-xs text-[#a0a0a0] font-semibold">
-                  <FiTrendingUp className="w-3.5 h-3.5 text-[#05944f]" />
-                  Estimated Monthly Potential
+              return (
+                <div
+                  key={step.id}
+                  onClick={() => {
+                    if (isDone) setCurrentStep(step.id);
+                  }}
+                  className={`flex items-center gap-3 p-2.5 sm:p-3 rounded-2xl transition-all ${
+                    isActive
+                      ? "bg-[#0a0a0a] text-white shadow-sm"
+                      : isDone
+                      ? "bg-[#f0fdf4] text-[#05944f] cursor-pointer hover:bg-[#dcfce7]"
+                      : "bg-[#f7f7f7] text-[#737373]"
+                  }`}
+                >
+                  <div
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 ${
+                      isActive
+                        ? "bg-white text-[#0a0a0a]"
+                        : isDone
+                        ? "bg-[#05944f] text-white"
+                        : "bg-[#e0e0e0] text-[#737373]"
+                    }`}
+                  >
+                    {isDone ? <FiCheck className="w-4 h-4" /> : step.id}
+                  </div>
+                  <div className="hidden sm:block min-w-0">
+                    <p className="text-xs font-bold truncate leading-tight">{step.title}</p>
+                    <p className={`text-[10px] truncate mt-0.5 ${isActive ? "text-[#a0a0a0]" : "text-[#737373]"}`}>
+                      {step.desc}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-2xl font-black text-white mt-1">
-                  ₹{projectedRevenue.monthlyEst.toLocaleString("en-IN")}
-                </p>
-                <p className="text-[10px] text-[#737373] mt-0.5">
-                  Based on {formData.total_slots} spots @ ₹{formData.hourly_rate || 0}/hr
-                </p>
-              </div>
-            </div>
+              );
+            })}
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8">
-            {/* 1. GENERAL INFORMATION */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                  1. Facility Identity & Location
-                </h3>
+        {/* MAIN FORM CONTENT CARD */}
+        <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          {/* ========================================================================= */}
+          {/* STEP 1: IDENTITY & EXACT LOCATION PIN                                     */}
+          {/* ========================================================================= */}
+          {currentStep === 1 && (
+            <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#f0f4ff] border border-[#bfdbfe] text-[#276ef1] text-[11px] font-bold">
+                  <FiMapPin className="w-3 h-3" /> Step 1: Location & Coordinates
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[#0a0a0a]">
+                  Facility Identity & Entrance Pin
+                </h2>
+                <p className="text-xs sm:text-sm text-[#737373]">
+                  Provide your facility name, street address, and pin the exact entrance for driver navigation.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5 sm:col-span-2">
+              {/* Form Inputs */}
+              <div className="space-y-4 pt-2">
+                <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
                     Facility Name *
                   </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
-                      <FiMapPin className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Metro Grand Tower Parking Deck"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="pe-input pe-input-icon-left text-sm"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Metro Grand Hub Parking"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="pe-input text-sm"
+                  />
                 </div>
 
-                <div className="space-y-1.5 sm:col-span-2">
+                <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Full Street Address *
+                    Street Address & Landmark *
                   </label>
                   <textarea
                     required
                     rows={2}
-                    placeholder="e.g. Plot 42, Sector 18, Cyber Hub, Near Gate No. 3 Metro Station"
+                    placeholder="e.g. Plot 42, Sector 18, Near Gate 2 Metro Station"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="pe-input text-sm resize-none"
                   />
                 </div>
               </div>
-            </div>
 
-            {/* 2. GEOGRAPHIC COORDINATES & PRESETS */}
-            <div className="space-y-4 pt-6 border-t border-[#f0f0f0]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                    2. Geographic Coordinates & Pin Location
-                  </h3>
-                  <p className="text-xs text-[#737373] mt-0.5">
-                    Drag the pin, search your landmark, or click anywhere on the map to set your exact entrance.
-                  </p>
+              {/* Location Picker Map */}
+              <div className="space-y-3 pt-4 border-t border-[#f0f0f0]">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                    Pin Exact Entrance on Map
+                  </label>
+                  {/* City presets */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] text-[#737373] font-medium">Presets:</span>
+                    {CITY_PRESETS.map((city) => (
+                      <button
+                        key={city.name}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            latitude: city.lat,
+                            longitude: city.lng,
+                          }));
+                          showToast(`Location set to ${city.name}`, "success");
+                        }}
+                        className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-[#f0f0f0] text-[#545454] hover:bg-[#0a0a0a] hover:text-white transition-all"
+                      >
+                        {city.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <LocationPickerMap
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  onLocationChange={(lat, lng) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      latitude: lat,
+                      longitude: lng,
+                    }));
+                  }}
+                />
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-2.5 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                    <span className="text-[#737373] block text-[10px] uppercase font-bold">Latitude</span>
+                    <span className="font-mono font-bold text-[#0a0a0a]">{formData.latitude}</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
+                    <span className="text-[#737373] block text-[10px] uppercase font-bold">Longitude</span>
+                    <span className="font-mono font-bold text-[#0a0a0a]">{formData.longitude}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* City presets */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] font-semibold text-[#737373]">City Presets:</span>
-                {CITY_PRESETS.map((city) => (
-                  <button
-                    key={city.name}
-                    type="button"
-                    onClick={() => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        latitude: city.lat,
-                        longitude: city.lng,
-                      }));
-                      showToast(`Pinned to ${city.name}`, "success");
-                    }}
-                    className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#f0f0f0] text-[#545454] hover:bg-[#e0e0e0] hover:text-[#0a0a0a] transition-colors"
-                  >
-                    {city.name}
-                  </button>
-                ))}
-              </div>
-
-              {/* Interactive Map */}
-              <LocationPickerMap
-                latitude={formData.latitude}
-                longitude={formData.longitude}
-                onLocationChange={(lat, lng) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    latitude: lat,
-                    longitude: lng,
-                  }));
-                }}
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Exact Latitude (Decimal)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.latitude}
-                    onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                    className="pe-input text-sm font-mono"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Exact Longitude (Decimal)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.longitude}
-                    onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                    className="pe-input text-sm font-mono"
-                  />
-                </div>
+              {/* Navigation Button */}
+              <div className="pt-6 border-t border-[#f0f0f0] flex justify-end">
+                <Button size="md" iconRight={FiArrowRight} onClick={handleNextStep}>
+                  Next: Capacity & Rates
+                </Button>
               </div>
             </div>
+          )}
 
-            {/* 3. CAPACITY & PRICING */}
-            <div className="space-y-4 pt-6 border-t border-[#f0f0f0]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                  3. Capacity & Pricing Model
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, hourly_rate: "0" })}
-                  className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-colors ${
-                    formData.hourly_rate === "0"
-                      ? "bg-[#0a0a0a] text-white border-[#0a0a0a]"
-                      : "bg-[#f0f0f0] text-[#545454] border-transparent hover:border-[#a0a0a0]"
-                  }`}
-                >
-                  Set as Free Parking
-                </button>
+          {/* ========================================================================= */}
+          {/* STEP 2: CAPACITY, PRICING & AMENITIES                                     */}
+          {/* ========================================================================= */}
+          {currentStep === 2 && (
+            <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#f0fdf4] border border-[#86efac] text-[#05944f] text-[11px] font-bold">
+                  <FiDollarSign className="w-3 h-3" /> Step 2: Pricing & Rules
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[#0a0a0a]">
+                  Pricing Model, Day Pass & Gate Curfew
+                </h2>
+                <p className="text-xs sm:text-sm text-[#737373]">
+                  Choose between hourly billing, flat daily passes with unlimited entry & exit, or both.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              {/* Pricing Type Selector */}
+              <div className="space-y-2 pt-2">
+                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                  Select Pricing Model
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    {
+                      id: "HOURLY",
+                      title: "⏱️ Hourly Billing",
+                      desc: "Pay per hour (e.g. ₹50/hr)",
+                    },
+                    {
+                      id: "DAILY_PASS",
+                      title: "🎟️ Flat Day Pass (e.g. ₹10/day)",
+                      desc: "Unlimited entry & exit all day",
+                    },
+                    {
+                      id: "BOTH",
+                      title: "⚡ Both Options",
+                      desc: "Driver chooses hourly or day pass",
+                    },
+                  ].map((mode) => (
+                    <div
+                      key={mode.id}
+                      onClick={() => setFormData({ ...formData, pricing_type: mode.id })}
+                      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all select-none ${
+                        formData.pricing_type === mode.id
+                          ? "bg-[#0a0a0a] text-white border-[#0a0a0a] shadow-xs"
+                          : "bg-white text-[#0a0a0a] border-[#e0e0e0] hover:border-[#a0a0a0]"
+                      }`}
+                    >
+                      <p className="text-xs font-black">{mode.title}</p>
+                      <p className={`text-[11px] mt-1 ${formData.pricing_type === mode.id ? "text-[#a0a0a0]" : "text-[#737373]"}`}>
+                        {mode.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rates and Capacity Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                {/* Total Slots */}
+                <div className="space-y-2">
                   <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
                     Total Slot Capacity *
                   </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
-                      <FiLayers className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      required
-                      value={formData.total_slots}
-                      onChange={(e) => setFormData({ ...formData, total_slots: e.target.value })}
-                      className="pe-input pe-input-icon-left text-sm"
-                    />
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    required
+                    value={formData.total_slots}
+                    onChange={(e) => setFormData({ ...formData, total_slots: e.target.value })}
+                    className="pe-input text-sm font-bold"
+                  />
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    {["10", "25", "50", "100", "200"].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, total_slots: s })}
+                        className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                          formData.total_slots === s
+                            ? "bg-[#0a0a0a] text-white border-[#0a0a0a]"
+                            : "bg-[#f7f7f7] text-[#545454] border-[#e0e0e0] hover:border-[#a0a0a0]"
+                        }`}
+                      >
+                        {s} Spots
+                      </button>
+                    ))}
                   </div>
-                  <p className="text-[11px] text-[#737373]">Auto-generates parking slot IDs (e.g. A1, A2, A3...)</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-                    Hourly Rate (₹ / hr) *
-                  </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
-                      <FiDollarSign className="w-4 h-4" />
-                    </div>
+                {/* Hourly Rate (if HOURLY or BOTH) */}
+                {(formData.pricing_type === "HOURLY" || formData.pricing_type === "BOTH") && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                      Hourly Rate (₹ / hr) *
+                    </label>
                     <input
                       type="number"
                       min="0"
@@ -412,186 +478,381 @@ export default function AddParking() {
                       required
                       value={formData.hourly_rate}
                       onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-                      className="pe-input pe-input-icon-left text-sm"
+                      className="pe-input text-sm font-bold"
                     />
-                  </div>
-                  <p className="text-[11px] text-[#737373]">Set 0 for free community or customer parking</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. SECURITY & AMENITIES */}
-            <div className="space-y-4 pt-6 border-t border-[#f0f0f0]">
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                  4. Security & Facility Amenities
-                </h3>
-                <p className="text-xs text-[#737373] mt-0.5">
-                  Enable all verified equipment and services provided at your location.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
-                  {
-                    key: "has_cctv",
-                    label: "24/7 CCTV Cameras",
-                    desc: "Continuous HD surveillance",
-                    icon: FiVideo,
-                  },
-                  {
-                    key: "has_security_guard",
-                    label: "On-site Security Guard",
-                    desc: "Personnel stationed at entrance",
-                    icon: FiShield,
-                  },
-                  {
-                    key: "has_ev",
-                    label: "EV Fast Chargers",
-                    desc: "Electric vehicle charging ports",
-                    icon: FiZap,
-                  },
-                  {
-                    key: "has_covered_roof",
-                    label: "Covered / Indoor Parking",
-                    desc: "Weather & sun protection",
-                    icon: FiLayers,
-                  },
-                  {
-                    key: "is_24_7",
-                    label: "24/7 Open Access",
-                    desc: "Round-the-clock entry & exit",
-                    icon: FiClock,
-                  },
-                  {
-                    key: "has_valet",
-                    label: "Valet Assistance",
-                    desc: "Staff parking & retrieval",
-                    icon: FiKey,
-                  },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const active = formData[item.key];
-                  return (
-                    <div
-                      key={item.key}
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          [item.key]: !prev[item.key],
-                        }))
-                      }
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 select-none ${
-                        active
-                          ? "bg-[#0a0a0a] border-[#0a0a0a] text-white shadow-sm"
-                          : "bg-white border-[#e0e0e0] hover:border-[#a0a0a0] text-[#0a0a0a]"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          active ? "bg-white/15 text-white" : "bg-[#f0f0f0] text-[#0a0a0a]"
-                        }`}
-                      >
-                        {active ? <FiCheck className="w-4 h-4 text-[#05944f]" /> : <Icon className="w-4 h-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate">{item.label}</p>
-                        <p className={`text-[10px] mt-0.5 ${active ? "text-[#a0a0a0]" : "text-[#737373]"}`}>
-                          {item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 5. FACILITY PHOTO */}
-            <div className="space-y-3 pt-6 border-t border-[#f0f0f0]">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#737373]">
-                5. Facility Entrance Photo
-              </h3>
-
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-                  imagePreview
-                    ? "border-[#0a0a0a] bg-white"
-                    : "border-[#d0d0d0] hover:border-[#0a0a0a] bg-[#f7f7f7]"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                />
-
-                {imagePreview ? (
-                  <div className="space-y-3">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="max-h-56 rounded-xl mx-auto object-cover shadow-sm"
-                    />
-                    <div className="flex items-center justify-center gap-3">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fileInputRef.current?.click();
-                        }}
-                        className="text-xs text-[#276ef1] font-bold hover:underline"
-                      >
-                        Change Photo
-                      </button>
-                      <span className="text-[#e0e0e0]">·</span>
-                      <button
-                        type="button"
-                        onClick={handleRemoveImage}
-                        className="text-xs text-[#e11900] font-bold hover:underline inline-flex items-center gap-1"
-                      >
-                        <FiTrash2 className="w-3.5 h-3.5" />
-                        Remove
-                      </button>
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      {[
+                        { label: "Free (0)", val: "0" },
+                        { label: "₹30/hr", val: "30" },
+                        { label: "₹50/hr", val: "50" },
+                        { label: "₹100/hr", val: "100" },
+                      ].map((r) => (
+                        <button
+                          key={r.val}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, hourly_rate: r.val })}
+                          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                            formData.hourly_rate === r.val
+                              ? "bg-[#0a0a0a] text-white border-[#0a0a0a]"
+                              : "bg-[#f7f7f7] text-[#545454] border-[#e0e0e0] hover:border-[#a0a0a0]"
+                          }`}
+                        >
+                          {r.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-2 py-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white border border-[#e0e0e0] flex items-center justify-center mx-auto shadow-sm">
-                      <FiCamera className="w-6 h-6 text-[#0a0a0a]" />
+                )}
+
+                {/* Daily Pass Rate (if DAILY_PASS or BOTH) */}
+                {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-[#05944f] uppercase tracking-wide">
+                      Flat Day Pass Rate (₹ / whole day) *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5000"
+                      step="1"
+                      required
+                      value={formData.daily_rate}
+                      onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
+                      className="pe-input text-sm font-bold border-[#86efac] focus:border-[#05944f]"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      {[
+                        { label: "₹10/day", val: "10" },
+                        { label: "₹20/day", val: "20" },
+                        { label: "₹50/day", val: "50" },
+                        { label: "₹100/day", val: "100" },
+                      ].map((r) => (
+                        <button
+                          key={r.val}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, daily_rate: r.val })}
+                          className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                            formData.daily_rate === r.val
+                              ? "bg-[#05944f] text-white border-[#05944f]"
+                              : "bg-[#f0fdf4] text-[#05944f] border-[#86efac] hover:bg-[#dcfce7]"
+                          }`}
+                        >
+                          {r.label}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-xs font-bold text-[#0a0a0a]">
-                      Upload high-res photo of your entrance or parking deck
-                    </p>
-                    <p className="text-[11px] text-[#737373]">
-                      PNG, JPG, WEBP up to 10MB
-                    </p>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* ACTION BUTTONS */}
-            <div className="pt-6 border-t border-[#f0f0f0] flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/owner")}
-                className="px-5 py-3 rounded-xl bg-white border border-[#e0e0e0] text-[#0a0a0a] text-xs font-bold hover:border-[#0a0a0a] transition-colors"
-              >
-                Cancel
-              </button>
-              <Button
-                type="submit"
-                size="lg"
-                loading={loading}
-                iconRight={FiArrowRight}
-              >
-                Register & Publish Facility
-              </Button>
+              {/* Multi-Entry & Curfew Rule Settings (when Day Pass enabled) */}
+              {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
+                <div className="p-5 rounded-3xl bg-[#f0fdf4] border border-[#86efac] space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-black text-[#05944f] uppercase tracking-wider">
+                        Unlimited Multi-Entry & Gate Curfew Rule
+                      </h4>
+                      <p className="text-xs text-[#545454] mt-0.5">
+                        Allow vehicles to enter and exit multiple times during the day until the last exit timing.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Multi-Entry Toggle */}
+                    <div
+                      onClick={() => setFormData({ ...formData, allow_multi_entry: !formData.allow_multi_entry })}
+                      className="p-3.5 rounded-2xl bg-white border border-[#86efac] flex items-center justify-between cursor-pointer shadow-xs"
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-[#0a0a0a]">Unlimited In / Out Entry</p>
+                        <p className="text-[10px] text-[#737373]">QR code stays valid after exit</p>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
+                          formData.allow_multi_entry ? "bg-[#05944f] text-white" : "bg-[#f0f0f0] text-[#737373]"
+                        }`}
+                      >
+                        {formData.allow_multi_entry ? <FiCheck className="w-3.5 h-3.5" /> : "✕"}
+                      </div>
+                    </div>
+
+                    {/* Last Exit Time */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-[#0a0a0a]">
+                        Last Exit Timing (Curfew Rule)
+                      </label>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {["10:00 PM", "10:30 PM", "11:00 PM", "11:30 PM", "12:00 AM"].map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, last_exit_time: t })}
+                            className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                              formData.last_exit_time === t
+                                ? "bg-[#0a0a0a] text-white border-[#0a0a0a]"
+                                : "bg-white text-[#545454] border-[#e0e0e0] hover:border-[#a0a0a0]"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Monthly Revenue Estimate Banner */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0a0a0a] text-white flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 text-xs text-[#a0a0a0] font-semibold">
+                    <FiTrendingUp className="w-3.5 h-3.5 text-[#05944f]" />
+                    Estimated Monthly Potential
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-white">
+                    ₹{projectedRevenue.monthlyEst.toLocaleString("en-IN")}
+                    <span className="text-xs text-[#a0a0a0] font-normal ml-1.5">/ month</span>
+                  </p>
+                </div>
+                <div className="text-right text-[11px] text-[#a0a0a0] hidden sm:block">
+                  <p>Based on {formData.total_slots} spots</p>
+                  <p>
+                    {formData.pricing_type === "DAILY_PASS"
+                      ? `@ ₹${formData.daily_rate}/day pass`
+                      : `@ ₹${formData.hourly_rate}/hr`}{" "}
+                    (75% occupancy)
+                  </p>
+                </div>
+              </div>
+
+              {/* Amenities Selector */}
+              <div className="space-y-3 pt-4 border-t border-[#f0f0f0]">
+                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                  Verified Facility Amenities
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {[
+                    { key: "has_cctv", label: "24/7 CCTV", desc: "HD camera monitoring", icon: FiVideo },
+                    { key: "has_security_guard", label: "Security Guard", desc: "Gate guard stationed", icon: FiShield },
+                    { key: "has_ev", label: "EV Fast Chargers", desc: "Charging ports available", icon: FiZap },
+                    { key: "has_covered_roof", label: "Covered Roof", desc: "Indoor / weather protected", icon: FiLayers },
+                    { key: "is_24_7", label: "24/7 Open", desc: "Round-the-clock entry", icon: FiClock },
+                    { key: "has_valet", label: "Valet Staff", desc: "Assisted car parking", icon: FiKey },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const active = formData[item.key];
+
+                    return (
+                      <div
+                        key={item.key}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            [item.key]: !prev[item.key],
+                          }))
+                        }
+                        className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 select-none ${
+                          active
+                            ? "bg-[#0a0a0a] border-[#0a0a0a] text-white shadow-xs"
+                            : "bg-white border-[#e0e0e0] hover:border-[#a0a0a0] text-[#0a0a0a]"
+                        }`}
+                      >
+                        <div
+                          className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
+                            active ? "bg-white/20 text-white" : "bg-[#f0f0f0] text-[#0a0a0a]"
+                          }`}
+                        >
+                          {active ? <FiCheck className="w-3.5 h-3.5 text-[#05944f]" /> : <Icon className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold truncate">{item.label}</p>
+                          <p className={`text-[10px] mt-0.5 ${active ? "text-[#a0a0a0]" : "text-[#737373]"}`}>
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="pt-6 border-t border-[#f0f0f0] flex items-center justify-between">
+                <Button variant="outline" size="md" onClick={handlePrevStep}>
+                  Back
+                </Button>
+                <Button size="md" iconRight={FiArrowRight} onClick={handleNextStep}>
+                  Next: Photo & Preview
+                </Button>
+              </div>
             </div>
-          </form>
+          )}
+
+          {/* ========================================================================= */}
+          {/* STEP 3: PHOTO UPLOAD & LIVE DRIVER LISTING PREVIEW                       */}
+          {/* ========================================================================= */}
+          {currentStep === 3 && (
+            <div className="p-6 sm:p-8 space-y-6 animate-fade-in">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#fdf2f8] border border-[#fbcfe8] text-[#db2777] text-[11px] font-bold">
+                  <FiEye className="w-3 h-3" /> Step 3: Photo & Driver Preview
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[#0a0a0a]">
+                  Entrance Photo & Listing Preview
+                </h2>
+                <p className="text-xs sm:text-sm text-[#737373]">
+                  Review how drivers will see your facility and multi-entry pass rules in the ParkEase app.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                {/* Photo Upload Zone */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                    Entrance / Deck Photo
+                  </label>
+
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[260px] ${
+                      imagePreview
+                        ? "border-[#0a0a0a] bg-white"
+                        : "border-[#d0d0d0] hover:border-[#0a0a0a] bg-[#f7f7f7]"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+
+                    {imagePreview ? (
+                      <div className="space-y-3 w-full">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-44 rounded-2xl object-cover shadow-sm"
+                        />
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                            className="text-xs text-[#276ef1] font-bold hover:underline"
+                          >
+                            Change Photo
+                          </button>
+                          <span className="text-[#e0e0e0]">·</span>
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="text-xs text-[#e11900] font-bold hover:underline inline-flex items-center gap-1"
+                          >
+                            <FiTrash2 className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 py-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white border border-[#e0e0e0] flex items-center justify-center mx-auto shadow-sm">
+                          <FiCamera className="w-6 h-6 text-[#0a0a0a]" />
+                        </div>
+                        <p className="text-xs font-bold text-[#0a0a0a]">
+                          Click to upload parking photo
+                        </p>
+                        <p className="text-[11px] text-[#737373]">
+                          High-res photo increases driver bookings by 40%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* LIVE DRIVER CARD PREVIEW */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                    <FiEye className="w-3.5 h-3.5 text-[#05944f]" />
+                    Live Driver Card Preview
+                  </div>
+
+                  <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_4px_16px_rgba(0,0,0,0.08)] overflow-hidden">
+                    <div className="relative h-40 bg-[#0a0a0a]">
+                      {imagePreview ? (
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-white/50">
+                          <FiCamera className="w-8 h-8 mb-1" />
+                          <span className="text-xs font-semibold">Photo will appear here</span>
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                        <Badge variant="success" size="sm" dot>
+                          Instant Booking
+                        </Badge>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-black/75 text-white backdrop-blur-md border border-white/20">
+                          {formData.pricing_type === "DAILY_PASS"
+                            ? `₹${formData.daily_rate}/day`
+                            : formData.pricing_type === "BOTH"
+                            ? `₹${formData.hourly_rate}/hr · ₹${formData.daily_rate}/day`
+                            : formData.hourly_rate === "0"
+                            ? "FREE"
+                            : `₹${formData.hourly_rate}/hr`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <h4 className="font-bold text-[#0a0a0a] text-sm truncate">
+                        {formData.name || "My Parking Facility"}
+                      </h4>
+                      <p className="text-xs text-[#737373] flex items-center gap-1 truncate">
+                        <FiMapPin className="w-3 h-3 shrink-0" />
+                        {formData.address || "Street Address Location"}
+                      </p>
+
+                      {/* Multi-entry pass tag */}
+                      {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
+                        <div className="p-2.5 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[11px] font-bold text-[#05944f] flex items-center justify-between">
+                          <span>🎟️ Unlimited In/Out Day Pass (₹{formData.daily_rate})</span>
+                          <span>Curfew: {formData.last_exit_time}</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-2 border-t border-[#f0f0f0] text-xs font-semibold">
+                        <span className="text-[#05944f]">⚡ {formData.total_slots} Slots Available</span>
+                        <span className="text-[#737373]">{formData.has_ev ? "EV Charging" : "Standard"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation & Submit Buttons */}
+              <div className="pt-6 border-t border-[#f0f0f0] flex items-center justify-between">
+                <Button variant="outline" size="md" onClick={handlePrevStep}>
+                  Back
+                </Button>
+                <Button
+                  size="lg"
+                  loading={loading}
+                  icon={FiCheckCircle}
+                  onClick={handleSubmit}
+                >
+                  Publish Parking Facility
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

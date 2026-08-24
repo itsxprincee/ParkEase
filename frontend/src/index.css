@@ -2,8 +2,8 @@
 @import "tailwindcss";
 
 /* =====================================================
-   PARKEASE DESIGN SYSTEM v2.0
-   Uber-level UI — Premium, Dark, Minimal
+   PARKEASE DESIGN SYSTEM v2.5 — MULTI-MODE & I18N
+   Support for Light, Obsidian Dark, and Cyber Midnight
    ===================================================== */
 
 @layer base {
@@ -16,34 +16,34 @@
     --pe-amber: #f5a623;
     --pe-red: #e11900;
 
-    /* Neutrals */
-    --pe-gray-50: #f7f7f7;
-    --pe-gray-100: #efefef;
-    --pe-gray-200: #e0e0e0;
-    --pe-gray-300: #c8c8c8;
-    --pe-gray-400: #a0a0a0;
-    --pe-gray-500: #737373;
-    --pe-gray-600: #545454;
-    --pe-gray-700: #3a3a3a;
-    --pe-gray-800: #242424;
-    --pe-gray-900: #141414;
+    /* Light Neutrals */
+    --pe-gray-50: #f8fafc;
+    --pe-gray-100: #f1f5f9;
+    --pe-gray-200: #e2e8f0;
+    --pe-gray-300: #cbd5e1;
+    --pe-gray-400: #94a3b8;
+    --pe-gray-500: #64748b;
+    --pe-gray-600: #475569;
+    --pe-gray-700: #334155;
+    --pe-gray-800: #1e293b;
+    --pe-gray-900: #0f172a;
 
     /* Surface */
     --pe-surface: #ffffff;
-    --pe-surface-subtle: #f7f7f7;
-    --pe-border: #e0e0e0;
-    --pe-border-strong: #c8c8c8;
+    --pe-surface-subtle: #f8fafc;
+    --pe-border: #e2e8f0;
+    --pe-border-strong: #cbd5e1;
 
     /* Typography */
-    --pe-text-primary: #0a0a0a;
-    --pe-text-secondary: #545454;
-    --pe-text-tertiary: #a0a0a0;
+    --pe-text-primary: #0f172a;
+    --pe-text-secondary: #475569;
+    --pe-text-tertiary: #94a3b8;
 
     /* Shadows */
-    --pe-shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    --pe-shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
-    --pe-shadow-lg: 0 16px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.08);
-    --pe-shadow-xl: 0 24px 64px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.1);
+    --pe-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.03);
+    --pe-shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --pe-shadow-lg: 0 16px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+    --pe-shadow-xl: 0 24px 64px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.08);
 
     /* Radii */
     --pe-radius-sm: 8px;
@@ -56,6 +56,70 @@
     /* Transitions */
     --pe-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --pe-transition-spring: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* =====================================================
+     DARK THEME (Obsidian Dark)
+     ===================================================== */
+  html.dark, html.theme-dark, [data-theme="dark"] {
+    --pe-black: #ffffff;
+    --pe-white: #09090b;
+
+    /* Dark Neutrals */
+    --pe-gray-50: #09090b;
+    --pe-gray-100: #141417;
+    --pe-gray-200: #222227;
+    --pe-gray-300: #323238;
+    --pe-gray-400: #71717a;
+    --pe-gray-500: #a1a1aa;
+    --pe-gray-600: #d4d4d8;
+    --pe-gray-700: #e4e4e7;
+    --pe-gray-800: #f4f4f5;
+    --pe-gray-900: #fafafa;
+
+    /* Dark Surface */
+    --pe-surface: #121215;
+    --pe-surface-subtle: #18181c;
+    --pe-border: #27272a;
+    --pe-border-strong: #3f3f46;
+
+    /* Typography */
+    --pe-text-primary: #f4f4f5;
+    --pe-text-secondary: #a1a1aa;
+    --pe-text-tertiary: #71717a;
+
+    --pe-shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
+    --pe-shadow-md: 0 4px 16px rgba(0,0,0,0.6);
+    --pe-shadow-lg: 0 16px 40px rgba(0,0,0,0.7);
+    --pe-shadow-xl: 0 24px 64px rgba(0,0,0,0.8);
+  }
+
+  /* =====================================================
+     MIDNIGHT CYBER THEME
+     ===================================================== */
+  html.theme-midnight, [data-theme="midnight"] {
+    --pe-accent: #38bdf8;
+    --pe-green: #34d399;
+
+    --pe-gray-50: #030712;
+    --pe-gray-100: #0b1120;
+    --pe-gray-200: #1e293b;
+    --pe-gray-300: #334155;
+    --pe-gray-400: #64748b;
+    --pe-gray-500: #94a3b8;
+    --pe-gray-600: #cbd5e1;
+    --pe-gray-700: #e2e8f0;
+    --pe-gray-800: #f1f5f9;
+    --pe-gray-900: #f8fafc;
+
+    --pe-surface: #0b1329;
+    --pe-surface-subtle: #111e3f;
+    --pe-border: #1e293b;
+    --pe-border-strong: #334155;
+
+    --pe-text-primary: #f8fafc;
+    --pe-text-secondary: #94a3b8;
+    --pe-text-tertiary: #64748b;
   }
 
   * {
@@ -75,6 +139,8 @@
     background-color: var(--pe-gray-50);
     letter-spacing: -0.011em;
     line-height: 1.5;
+    min-height: 100vh;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -90,9 +156,52 @@
 }
 
 /* =====================================================
-   ANIMATIONS
+   THEME COMPONENT OVERRIDES
    ===================================================== */
 
+/* Cards & Panels */
+.dark .bg-white,
+[data-theme="dark"] .bg-white,
+[data-theme="midnight"] .bg-white {
+  background-color: var(--pe-surface) !important;
+}
+
+.dark .bg-\[\#f7f7f7\],
+.dark .bg-\[\#f0f0f0\],
+[data-theme="dark"] .bg-\[\#f7f7f7\],
+[data-theme="midnight"] .bg-\[\#f7f7f7\] {
+  background-color: var(--pe-surface-subtle) !important;
+}
+
+.dark .text-\[\#0a0a0a\],
+[data-theme="dark"] .text-\[\#0a0a0a\],
+[data-theme="midnight"] .text-\[\#0a0a0a\] {
+  color: var(--pe-text-primary) !important;
+}
+
+.dark .text-\[\#545454\],
+.dark .text-\[\#737373\],
+[data-theme="dark"] .text-\[\#545454\],
+[data-theme="dark"] .text-\[\#737373\],
+[data-theme="midnight"] .text-\[\#545454\],
+[data-theme="midnight"] .text-\[\#737373\] {
+  color: var(--pe-text-secondary) !important;
+}
+
+.dark .text-\[\#a0a0a0\],
+[data-theme="dark"] .text-\[\#a0a0a0\],
+[data-theme="midnight"] .text-\[\#a0a0a0\] {
+  color: var(--pe-text-tertiary) !important;
+}
+
+.dark .border-\[\#e0e0e0\],
+.dark .border-\[\#f0f0f0\],
+[data-theme="dark"] .border-\[\#e0e0e0\],
+[data-theme="midnight"] .border-\[\#e0e0e0\] {
+  border-color: var(--pe-border) !important;
+}
+
+/* Animations */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -146,19 +255,9 @@
   50% { transform: translateY(-8px); }
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* =====================================================
-   UTILITY CLASSES
-   ===================================================== */
-
-/* Animations */
+/* Utilities */
 .animate-shimmer {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--pe-gray-100) 25%, var(--pe-gray-200) 50%, var(--pe-gray-100) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -201,7 +300,7 @@
 }
 
 .pe-card-hover:hover {
-  border-color: var(--pe-gray-400);
+  border-color: var(--pe-border-strong);
   box-shadow: var(--pe-shadow-md);
   transform: translateY(-2px);
 }
@@ -212,6 +311,13 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .pe-glass,
+[data-theme="dark"] .pe-glass,
+[data-theme="midnight"] .pe-glass {
+  background: rgba(18, 18, 21, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .pe-glass-dark {
@@ -246,17 +352,14 @@
   color: var(--pe-white);
 }
 
-.pe-btn-primary:hover {
-  background: var(--pe-gray-800);
-}
-
 .pe-btn-ghost {
   background: var(--pe-gray-100);
-  color: var(--pe-gray-700);
+  color: var(--pe-text-secondary);
 }
 
 .pe-btn-ghost:hover {
   background: var(--pe-gray-200);
+  color: var(--pe-text-primary);
 }
 
 /* Inputs */
@@ -287,8 +390,8 @@
 }
 
 .pe-input:focus {
-  border-color: var(--pe-black);
-  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.06);
+  border-color: var(--pe-accent);
+  box-shadow: 0 0 0 3px rgba(39, 110, 241, 0.15);
 }
 
 .pe-input::placeholder {
@@ -327,42 +430,8 @@
   z-index: 30;
 }
 
-/* Pulse ring for GPS / active indicators */
 .pulse-ring {
   animation: pulse-ring 2s infinite;
-}
-
-/* Ticket / QR print */
-.ticket-cut-l {
-  position: relative;
-}
-
-.ticket-cut-l::before {
-  content: "";
-  position: absolute;
-  left: -14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  background-color: var(--pe-gray-50);
-  border-radius: 50%;
-  border-right: 1px solid var(--pe-border);
-  z-index: 10;
-}
-
-.ticket-cut-r::after {
-  content: "";
-  position: absolute;
-  right: -14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  background-color: var(--pe-gray-50);
-  border-radius: 50%;
-  border-left: 1px solid var(--pe-border);
-  z-index: 10;
 }
 
 /* Indian License Plate */
@@ -404,36 +473,19 @@
   background-clip: text;
 }
 
-/* Status dots */
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.status-dot-green { background-color: #05944f; }
-.status-dot-amber { background-color: #f5a623; }
-.status-dot-red { background-color: #e11900; }
-.status-dot-gray { background-color: #a0a0a0; }
-
-/* Print */
-@media print {
-  body * { visibility: hidden; }
-  #printable-receipt, #printable-receipt * { visibility: visible; }
-  #printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
-
 /* Parking grid slot colors */
 .slot-available {
   background: #f0fdf4;
   border-color: #86efac;
   color: #166534;
+}
+
+.dark .slot-available,
+[data-theme="dark"] .slot-available,
+[data-theme="midnight"] .slot-available {
+  background: rgba(5, 148, 79, 0.15);
+  border-color: rgba(5, 148, 79, 0.4);
+  color: #4ade80;
 }
 
 .slot-occupied {
@@ -442,10 +494,26 @@
   color: #991b1b;
 }
 
+.dark .slot-occupied,
+[data-theme="dark"] .slot-occupied,
+[data-theme="midnight"] .slot-occupied {
+  background: rgba(225, 25, 0, 0.15);
+  border-color: rgba(225, 25, 0, 0.4);
+  color: #f87171;
+}
+
 .slot-maintenance {
   background: #fefce8;
   border-color: #fde68a;
   color: #92400e;
+}
+
+.dark .slot-maintenance,
+[data-theme="dark"] .slot-maintenance,
+[data-theme="midnight"] .slot-maintenance {
+  background: rgba(245, 166, 35, 0.15);
+  border-color: rgba(245, 166, 35, 0.4);
+  color: #fcd34d;
 }
 
 .slot-ev {
@@ -454,8 +522,24 @@
   color: #1e40af;
 }
 
+.dark .slot-ev,
+[data-theme="dark"] .slot-ev,
+[data-theme="midnight"] .slot-ev {
+  background: rgba(39, 110, 241, 0.15);
+  border-color: rgba(39, 110, 241, 0.4);
+  color: #60a5fa;
+}
+
 .slot-selected {
   background: #0a0a0a;
   border-color: #0a0a0a;
   color: #ffffff;
+}
+
+.dark .slot-selected,
+[data-theme="dark"] .slot-selected,
+[data-theme="midnight"] .slot-selected {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #0a0a0a;
 }

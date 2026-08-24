@@ -107,23 +107,21 @@ export default function ScanQR() {
     try {
       setLoading(true);
       const res = await API.get(`/booking/verify/${idToVerify}`);
-      setVerifiedBooking(res.data);
+      const data = res.data?.booking || res.data;
+      setVerifiedBooking(data);
       playChime("success");
-      showToast("Pass verified!", "success");
+      showToast("Pass verified successfully!", "success");
     } catch (_) {
-      setVerifiedBooking({
-        id: idToVerify,
-        parking_name: "ParkEase Hub",
-        slot_number: "A-1",
-        vehicle_number: "MH-01-AB-1234",
-        status: "ACTIVE",
-        booking_date: "Today",
-        start_time: "10:00 AM",
-        end_time: "12:00 PM",
-        total_amount: 105,
-      });
-      playChime("success");
-      showToast("Pass verified!", "success");
+      try {
+        const res = await API.get(`/booking/${idToVerify}`);
+        const data = res.data?.booking || res.data;
+        setVerifiedBooking(data);
+        playChime("success");
+        showToast("Pass verified!", "success");
+      } catch (e) {
+        showToast("Invalid or expired booking pass.", "error");
+        playChime("error");
+      }
     } finally {
       setLoading(false);
     }
@@ -139,26 +137,55 @@ export default function ScanQR() {
     if (!verifiedBooking) return;
     try {
       setActionLoading(true);
-      await API.post(`/booking/check-in/${verifiedBooking.id}`);
-    } catch (_) {}
-    showToast("✅ Entry allowed — gate opened!", "success");
-    setVerifiedBooking((prev) => ({ ...prev, status: "PARKED" }));
-    setActionLoading(false);
+      const res = await API.post(`/booking/entry/${verifiedBooking.id}`);
+      playChime("success");
+      showToast(res.data?.message || "✅ Vehicle checked in — barrier gate opened!", "success");
+      setVerifiedBooking((prev) => ({
+        ...prev,
+        status: "ACTIVE",
+        is_inside: true,
+        entry_count: (prev?.entry_count || 0) + 1,
+      }));
+    } catch (err) {
+      showToast(err?.response?.data?.detail || "Check-in failed.", "error");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleCheckOut = async () => {
     if (!verifiedBooking) return;
     try {
       setActionLoading(true);
-      await API.post(`/booking/check-out/${verifiedBooking.id}`);
-    } catch (_) {}
-    showToast("✅ Vehicle checked out — slot released!", "success");
-    setVerifiedBooking(null);
-    setActionLoading(false);
+      const res = await API.post(`/booking/exit/${verifiedBooking.id}`);
+      playChime("success");
+      showToast(res.data?.message || "✅ Vehicle check-out completed — slot released!", "success");
+      if (verifiedBooking.pass_type === "DAILY_PASS") {
+        setVerifiedBooking((prev) => ({
+          ...prev,
+          is_inside: false,
+          status: "ACTIVE",
+        }));
+      } else {
+        setVerifiedBooking((prev) => ({
+          ...prev,
+          is_inside: false,
+          status: "COMPLETED",
+        }));
+      }
+    } catch (err) {
+      showToast(err?.response?.data?.detail || "Check-out failed.", "error");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
+  const isDaily = verifiedBooking?.pass_type === "DAILY_PASS";
+  const isInside = verifiedBooking?.is_inside || (verifiedBooking?.status === "ACTIVE" && verifiedBooking?.entry_count > 0);
+  const statusUpper = String(verifiedBooking?.status || "BOOKED").toUpperCase();
+
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-[#f7f7f7] flex flex-col font-sans">
       <SaaSNavbar />
       <Toast toast={toast} />
 
@@ -167,30 +194,30 @@ export default function ScanQR() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-all shadow-xs"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            Facility Hub
+            Operations Hub
           </button>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-all shadow-xs"
           >
             {soundEnabled ? <FiVolume2 className="w-4 h-4 text-[#05944f]" /> : <FiVolumeX className="w-4 h-4 text-[#a0a0a0]" />}
-            {soundEnabled ? "Sound On" : "Sound Off"}
+            {soundEnabled ? "Audio Alert On" : "Audio Off"}
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* SCANNER PANEL */}
-          <div className="bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
             <div className="border-b border-[#f0f0f0] pb-3">
-              <h2 className="text-base font-bold text-[#0a0a0a]">Live QR Scanner</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Scan customer passes at entry / exit gates</p>
+              <h2 className="text-base font-black text-[#0a0a0a]">Gate Scanner Terminal</h2>
+              <p className="text-xs text-[#737373] mt-0.5">Scan driver digital pass at barrier entry & exit gates</p>
             </div>
 
             {/* Camera viewport */}
-            <div className="relative bg-[#0a0a0a] rounded-2xl overflow-hidden min-h-[280px] flex items-center justify-center border border-[#1a1a1a]">
+            <div className="relative bg-[#0a0a0a] rounded-3xl overflow-hidden min-h-[300px] flex items-center justify-center border border-[#1a1a1a]">
               <div id="reader" ref={readerDivRef} className="w-full h-full" />
 
               {scanning && (
@@ -198,17 +225,17 @@ export default function ScanQR() {
                   <div className="scan-laser-line" />
                   <div className="absolute inset-6 pointer-events-none border-2 border-white/30 rounded-2xl flex flex-col justify-between p-3 z-20">
                     <div className="flex justify-between">
-                      <span className="w-6 h-6 border-t-2 border-l-2 border-white rounded-tl-lg" />
-                      <span className="w-6 h-6 border-t-2 border-r-2 border-white rounded-tr-lg" />
+                      <span className="w-6 h-6 border-t-2 border-l-2 border-[#05944f] rounded-tl-lg" />
+                      <span className="w-6 h-6 border-t-2 border-r-2 border-[#05944f] rounded-tr-lg" />
                     </div>
                     <div className="text-center">
-                      <span className="px-3 py-1 rounded-full bg-black/70 text-[10px] font-bold text-white uppercase tracking-wider">
-                        Align QR inside frame
+                      <span className="px-3 py-1 rounded-full bg-black/80 text-[10px] font-black text-[#05944f] uppercase tracking-wider border border-[#05944f]/30">
+                        Align Pass QR In Center
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="w-6 h-6 border-b-2 border-l-2 border-white rounded-bl-lg" />
-                      <span className="w-6 h-6 border-b-2 border-r-2 border-white rounded-br-lg" />
+                      <span className="w-6 h-6 border-b-2 border-l-2 border-[#05944f] rounded-bl-lg" />
+                      <span className="w-6 h-6 border-b-2 border-r-2 border-[#05944f] rounded-br-lg" />
                     </div>
                   </div>
                 </>
@@ -216,9 +243,14 @@ export default function ScanQR() {
 
               {!scanning && (
                 <div className="text-center p-8 space-y-3">
-                  <FiCamera className="w-14 h-14 text-[#3a3a3a] mx-auto" />
-                  <p className="text-xs text-[#545454] max-w-xs">
-                    Activate camera to scan digital QR passes
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto text-white">
+                    <FiCamera className="w-8 h-8" />
+                  </div>
+                  <p className="text-xs font-bold text-white">
+                    Camera is currently idle
+                  </p>
+                  <p className="text-[11px] text-[#737373] max-w-xs mx-auto">
+                    Activate the optical scanner or look up passes manually below
                   </p>
                 </div>
               )}
@@ -228,7 +260,7 @@ export default function ScanQR() {
               <Button variant="danger" fullWidth onClick={stopScanner}>Stop Scanner</Button>
             ) : (
               <Button icon={FiCamera} fullWidth size="lg" onClick={startScanner}>
-                Activate Camera
+                Start Live Camera
               </Button>
             )}
 
@@ -236,13 +268,13 @@ export default function ScanQR() {
             <div className="pt-3 border-t border-[#f0f0f0]">
               <form onSubmit={handleManualSearch} className="flex gap-2">
                 <div className="relative flex-1">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#a0a0a0] pointer-events-none" />
+                  <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Enter pass # manually..."
+                    placeholder="Enter booking ID (e.g. 1042)..."
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
-                    className="pe-input pl-9 text-sm"
+                    className="pe-input pl-10 text-xs font-mono font-bold"
                   />
                 </div>
                 <Button type="submit" loading={loading} size="md">Lookup</Button>
@@ -251,89 +283,112 @@ export default function ScanQR() {
           </div>
 
           {/* VERIFICATION PANEL */}
-          <div className="bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
+          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
             <div className="border-b border-[#f0f0f0] pb-3">
-              <h2 className="text-base font-bold text-[#0a0a0a]">Gate Verification</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Live inspection of scanned pass</p>
+              <h2 className="text-base font-black text-[#0a0a0a]">Pass Authorization</h2>
+              <p className="text-xs text-[#737373] mt-0.5">Real-time gate inspection & bay release</p>
             </div>
 
             {!verifiedBooking ? (
-              <div className="py-16 text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#f0f0f0] flex items-center justify-center mx-auto">
-                  <FiShield className="w-8 h-8 text-[#d0d0d0]" />
+              <div className="py-20 text-center space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-[#f7f7f7] border border-[#e0e0e0] flex items-center justify-center mx-auto">
+                  <FiShield className="w-8 h-8 text-[#a0a0a0]" />
                 </div>
-                <p className="text-xs text-[#a0a0a0] font-medium max-w-xs mx-auto">
-                  Scan a QR pass or enter a booking ID to verify authenticity
+                <h4 className="text-sm font-bold text-[#0a0a0a]">Awaiting Pass Scan</h4>
+                <p className="text-xs text-[#737373] font-medium max-w-xs mx-auto">
+                  Point camera at customer QR ticket or enter booking number to verify validity.
                 </p>
               </div>
             ) : (
               <div className="space-y-4 animate-fade-in">
                 {/* Status strip */}
-                <div className="p-4 rounded-xl bg-[#f0fdf4] border border-[#86efac] flex items-center justify-between">
+                <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] flex items-center justify-between">
                   <div className="space-y-1">
-                    <Badge variant="success" dot>
-                      {verifiedBooking.status || "VALID"}
-                    </Badge>
-                    <h3 className="text-sm font-bold text-[#0a0a0a]">Pass #{verifiedBooking.id}</h3>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="success" dot>
+                        {statusUpper}
+                      </Badge>
+                      {isDaily && (
+                        <span className="text-[10px] font-black bg-[#05944f] text-white px-2 py-0.5 rounded-full">
+                          🎟️ Full-Day Pass
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-sm font-black text-[#0a0a0a]">Pass #{verifiedBooking.id}</h3>
                   </div>
-                  <span className="text-2xl font-black text-[#0a0a0a] bg-white px-3 py-1.5 rounded-xl border border-[#e0e0e0]">
+                  <span className="text-2xl font-black text-[#0a0a0a] bg-white px-3.5 py-1.5 rounded-xl border border-[#86efac] font-mono">
                     Slot {verifiedBooking.slot_number || "A-1"}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-[#f7f7f7] border border-[#f0f0f0]">
-                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Vehicle</p>
-                    <div className="license-plate text-xs">
-                      <div className="license-plate-ind"><span>🇮🇳</span><span>IND</span></div>
-                      <span>{verifiedBooking.vehicle_number || "MH-01-AB-1234"}</span>
-                    </div>
+                {/* Day Pass Multi-Entry & Curfew Warning */}
+                {isDaily && (
+                  <div className="p-3.5 rounded-xl bg-[#fffbeb] border border-[#fde68a] text-xs text-[#b45309] space-y-1">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <FiCheckCircle className="w-4 h-4 text-[#b45309]" />
+                      Unlimited In/Out Entries Allowed
+                    </p>
+                    <p className="text-[11px] text-[#92400e]">
+                      Gate Curfew: Vehicle must complete final exit before <strong>{verifiedBooking.last_exit_rule || "11:00 PM"}</strong>.
+                    </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#f7f7f7] border border-[#f0f0f0]">
-                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Time Window</p>
-                    <p className="text-xs font-bold text-[#0a0a0a]">
-                      {verifiedBooking.start_time || "10:00"} – {verifiedBooking.end_time || "12:00"}
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0]">
+                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Vehicle License</p>
+                    <span className="font-mono text-xs font-black text-[#0a0a0a] bg-[#e0e0e0] px-2.5 py-1 rounded-lg">
+                      {verifiedBooking.vehicle_number || "MH-01-AB-1234"}
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0]">
+                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Inside State</p>
+                    <p className="text-xs font-black text-[#0a0a0a]">
+                      {isInside ? "🟢 Parked Inside Deck" : "⚪ Outside Gate"}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#f7f7f7] border border-[#f0f0f0] space-y-2 text-xs">
+                <div className="p-4 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0] space-y-2 text-xs">
                   {[
-                    { label: "Facility", value: verifiedBooking.parking_name },
-                    { label: "Date", value: verifiedBooking.booking_date },
-                    { label: "Total Paid", value: `₹${verifiedBooking.total_amount || 105}` },
+                    { label: "Customer", value: verifiedBooking.customer_name || "Verified Driver" },
+                    { label: "Facility", value: verifiedBooking.parking_name || "ParkEase Hub" },
+                    { label: "Entries Count", value: `${verifiedBooking.entry_count || 1} time(s)` },
+                    { label: "Amount Paid", value: `₹${verifiedBooking.amount || verifiedBooking.total_amount || 15}` },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
                       <span className="text-[#737373]">{label}</span>
-                      <span className="font-semibold text-[#0a0a0a]">{value}</span>
+                      <span className="font-bold text-[#0a0a0a]">{value}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 pt-2">
                   <Button
                     variant="primary"
+                    size="lg"
                     fullWidth
                     loading={actionLoading}
                     onClick={handleCheckIn}
                   >
-                    ↑ Allow Entry
+                    ↑ Check In (Entry)
                   </Button>
                   <Button
                     variant="outline"
+                    size="lg"
                     fullWidth
                     loading={actionLoading}
                     onClick={handleCheckOut}
                   >
-                    ↓ Release Exit
+                    ↓ {isDaily ? "Temporary Exit" : "Check Out (Exit)"}
                   </Button>
                 </div>
 
                 <button
                   onClick={() => setVerifiedBooking(null)}
-                  className="w-full text-xs text-[#737373] hover:text-[#0a0a0a] font-medium transition-colors text-center pt-1"
+                  className="w-full text-xs text-[#737373] hover:text-[#0a0a0a] font-bold transition-colors text-center pt-2"
                 >
-                  Clear & Scan Next
+                  Clear & Scan Next Vehicle
                 </button>
               </div>
             )}

@@ -74,6 +74,7 @@ function numericDistance(userCoords, parking) {
 function ParkingListCard({ parking, userCoords, onClick }) {
   const available = parking.available_slots ?? parking.available ?? parking.total_slots ?? 12;
   const isFree = (parking.hourly_rate ?? -1) === 0;
+  const hasDaily = parking.pricing_type === "DAILY_PASS" || parking.pricing_type === "BOTH" || (parking.daily_rate && parking.daily_rate > 0);
   const distance = userCoords
     ? calcDistance(userCoords.lat, userCoords.lng, parking.latitude, parking.longitude)
     : null;
@@ -82,23 +83,30 @@ function ParkingListCard({ parking, userCoords, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-3.5 rounded-xl border border-[#e0e0e0] hover:border-[#0a0a0a] bg-white hover:bg-[#f7f7f7] transition-all duration-150 flex items-center justify-between group active:scale-[0.99]"
+      className="w-full text-left p-4 rounded-2xl border border-[#e0e0e0] hover:border-[#0a0a0a] bg-white hover:bg-[#f7f7f7] transition-all duration-150 flex items-center justify-between group active:scale-[0.99] shadow-xs"
     >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-11 h-11 rounded-xl bg-[#f0f0f0] group-hover:bg-[#e8e8e8] flex items-center justify-center text-xl shrink-0 transition-colors">
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div className="w-12 h-12 rounded-2xl bg-[#f0f0f0] group-hover:bg-[#e0e0e0] flex items-center justify-center text-2xl shrink-0 transition-colors">
           {parking.has_ev ? "⚡" : "🅿️"}
         </div>
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-[#0a0a0a] truncate">
-            {parking.name || "ParkEase Facility"}
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-[#0a0a0a] truncate">
+              {parking.name || "ParkEase Facility"}
+            </p>
+            {hasDaily && (
+              <span className="text-[10px] font-black bg-[#f0fdf4] text-[#05944f] px-2 py-0.5 rounded-full border border-[#86efac] shrink-0">
+                🎟️ ₹{parking.daily_rate || 10}/day
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
             <span
-              className={`text-[11px] font-semibold ${
-                isLow ? "text-[#e11900]" : "text-[#737373]"
+              className={`text-[11px] font-bold ${
+                isLow ? "text-[#e11900]" : "text-[#05944f]"
               }`}
             >
-              {available} spots
+              {available} spots available
             </span>
             {distance && (
               <>
@@ -146,16 +154,14 @@ export default function CustomerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  const loadDashboard = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       const stored = localStorage.getItem("user");
       if (stored) {
-        try { setUser(JSON.parse(stored)); } catch (_) {}
+        try {
+          setUser(JSON.parse(stored));
+        } catch (_) {}
       }
 
       const [parkingRes, bookingRes] = await Promise.allSettled([
@@ -164,24 +170,37 @@ export default function CustomerDashboard() {
       ]);
 
       if (parkingRes.status === "fulfilled") {
-        const d = parkingRes.value.data;
-        setParkingLocations(
-          Array.isArray(d) ? d : Array.isArray(d?.locations) ? d.locations : []
-        );
+        const raw = parkingRes.value.data;
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.parking_locations)
+          ? raw.parking_locations
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : [];
+        setParkingLocations(list);
       }
+
       if (bookingRes.status === "fulfilled") {
-        const d = bookingRes.value.data;
-        setBookings(Array.isArray(d) ? d : d?.bookings || []);
+        const raw = bookingRes.value.data;
+        const list = Array.isArray(raw) ? raw : raw?.bookings || [];
+        setBookings(list);
       }
     } catch (_) {
+      showToast("Unable to load parking locations.", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleLocateNearest = () => {
     if (!navigator.geolocation) {
-      return showToast("Geolocation not supported.", "error");
+      showToast("Geolocation is not supported by your browser.", "error");
+      return;
     }
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -190,42 +209,45 @@ export default function CustomerDashboard() {
         setUserCoords(coords);
         setSelectedFilter("NEARBY");
         setIsLocating(false);
-        showToast("📍 GPS detected — nearest first!", "success");
+        showToast("📍 Location detected! Showing nearest parking.", "success");
       },
       () => {
+        setIsLocating(false);
         setUserCoords({ lat: 19.076, lng: 72.8777 });
         setSelectedFilter("NEARBY");
-        setIsLocating(false);
-        showToast("📍 Using city GPS for nearest sort.", "success");
+        showToast("📍 Using City Center reference coordinates.", "info");
       },
-      { timeout: 8000, enableHighAccuracy: true }
+      { timeout: 8000 }
     );
   };
 
   const getUserName = () => {
     if (!user) return "Driver";
-    return user.name || user.full_name || user.username || user.email?.split("@")[0] || "Driver";
+    return user.name || user.full_name || user.username || "Driver";
   };
 
-  const activeBookings = bookings.filter((b) => {
-    const s = b.status?.toLowerCase();
-    return s === "active" || s === "booked" || s === "confirmed" || s === "upcoming";
-  });
-  const latestActive = activeBookings[0];
+  const latestActive = bookings.find(
+    (b) => b.status === "ACTIVE" || b.status === "CONFIRMED" || b.status === "BOOKED"
+  );
 
   const filteredParking = parkingLocations
     .filter((p) => {
       const q = search.toLowerCase();
-      const matches =
-        p.name?.toLowerCase().includes(q) ||
-        p.location?.toLowerCase().includes(q) ||
-        p.address?.toLowerCase().includes(q);
-      if (!matches) return false;
-      if (selectedFilter === "EV") return p.has_ev || p.ev_charging;
-      if (selectedFilter === "FREE") return (p.hourly_rate ?? -1) === 0;
-      if (selectedFilter === "SECURITY") return p.has_security_guard;
-      if (selectedFilter === "CCTV") return p.has_cctv;
-      return true;
+      const matchSearch =
+        !search ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.address && p.address.toLowerCase().includes(q)) ||
+        (p.location && p.location.toLowerCase().includes(q));
+
+      let matchFilter = true;
+      if (selectedFilter === "FREE") matchFilter = (p.hourly_rate ?? 0) === 0;
+      if (selectedFilter === "EV") matchFilter = Boolean(p.has_ev);
+      if (selectedFilter === "DAILY_PASS") {
+        matchFilter = p.pricing_type === "DAILY_PASS" || p.pricing_type === "BOTH" || (p.daily_rate && p.daily_rate > 0);
+      }
+      if (selectedFilter === "SECURITY") matchFilter = Boolean(p.has_cctv || p.is_covered);
+
+      return matchSearch && matchFilter;
     })
     .sort((a, b) => {
       if (selectedFilter === "NEARBY" && userCoords) {

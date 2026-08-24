@@ -11,12 +11,13 @@ from app.models.parking import ParkingLocation
 from app.models.booking import Booking
 from app.models.review import Review
 
-# Create Database Tables
+# Create Database Tables & Seed Demo Data
 try:
     Base.metadata.create_all(bind=engine)
+    import seeder
+    seeder.seed_demo_data()
 except Exception as db_err:
-    print(f"\n[WARNING] Could not connect to MySQL server: {db_err}")
-    print("[TIP] Make sure your MySQL Server (or XAMPP MySQL) is started.\n")
+    print(f"\n[WARNING] DB init message: {db_err}\n")
 
 # =========================================================
 # CREATE FASTAPI APPLICATION

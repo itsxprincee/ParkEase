@@ -358,6 +358,59 @@ export default function Login() {
                 </Button>
               </form>
 
+              {/* 1-Tap Quick Demo Logins */}
+              <div className="mt-6 pt-5 border-t border-zinc-200 space-y-2.5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 text-center">
+                  1-Tap Instant Demo Access
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignInEmail("customer@parkease.io");
+                      setSignInPassword("password123");
+                    }}
+                    className="p-2 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 text-left transition-all active:scale-95 group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-1.5 text-zinc-900 font-bold text-xs">
+                      <FiTruck className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Driver</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">customer@</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignInEmail("owner@parkease.io");
+                      setSignInPassword("password123");
+                    }}
+                    className="p-2 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 text-left transition-all active:scale-95 group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-1.5 text-zinc-900 font-bold text-xs">
+                      <FiLayers className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Owner</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">owner@</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSignInEmail("admin@parkease.io");
+                      setSignInPassword("password123");
+                    }}
+                    className="p-2 rounded-xl bg-white border border-zinc-200 hover:border-zinc-900 hover:bg-zinc-50 text-left transition-all active:scale-95 group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-1.5 text-zinc-900 font-bold text-xs">
+                      <FiShield className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Admin</span>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">admin@</p>
+                  </button>
+                </div>
+              </div>
+
               <p className="mt-6 text-center text-sm text-[#737373]">
                 Don't have an account?{" "}
                 <button

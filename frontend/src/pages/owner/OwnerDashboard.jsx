@@ -260,34 +260,33 @@ export default function OwnerDashboard() {
         {/* ========================================================================= */}
         {/* EXECUTIVE KPI RIBBON (4 STRIPE/LINEAR STYLE CARDS)                        */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* 1. Parked Inside */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">          {/* 1. Active Inside */}
           <div
             onClick={() => {
               setActiveTab("VEHICLES");
               setVehicleFilter("INSIDE");
             }}
-            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white ${
+            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
               activeTab === "VEHICLES" && vehicleFilter === "INSIDE"
                 ? "border-[#05944f] ring-4 ring-[#05944f]/10 shadow-sm"
-                : "border-[#e0e0e0] hover:border-[#a0a0a0] shadow-xs"
+                : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#737373]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Parked (Inside)
               </span>
-              <div className="w-7 h-7 rounded-xl bg-[#f0fdf4] text-[#05944f] flex items-center justify-center font-bold">
+              <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#05944f] flex items-center justify-center font-bold">
                 <FiLogIn className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-[#0a0a0a] tracking-tight">{enteredCount}</span>
-              <span className="text-xs font-bold text-[#05944f] bg-[#f0fdf4] px-2 py-0.5 rounded-md border border-[#86efac]">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{enteredCount}</span>
+              <span className="text-xs font-bold text-[#05944f] bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
                 Active Inside
               </span>
             </div>
-            <div className="mt-3 w-full bg-[#f0f0f0] h-1.5 rounded-full overflow-hidden">
+            <div className="mt-3 w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-[#05944f] h-full rounded-full transition-all duration-500"
                 style={{ width: `${totalSlots > 0 ? (enteredCount / totalSlots) * 100 : 0}%` }}
@@ -301,27 +300,27 @@ export default function OwnerDashboard() {
               setActiveTab("VEHICLES");
               setVehicleFilter("BOOKED");
             }}
-            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white ${
+            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
               activeTab === "VEHICLES" && vehicleFilter === "BOOKED"
                 ? "border-[#276ef1] ring-4 ring-[#276ef1]/10 shadow-sm"
-                : "border-[#e0e0e0] hover:border-[#a0a0a0] shadow-xs"
+                : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#737373]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Booked (Reserved)
               </span>
-              <div className="w-7 h-7 rounded-xl bg-[#f0f4ff] text-[#276ef1] flex items-center justify-center font-bold">
+              <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#276ef1] flex items-center justify-center font-bold">
                 <FiClock className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-[#0a0a0a] tracking-tight">{bookedCount}</span>
-              <span className="text-xs font-bold text-[#276ef1] bg-[#f0f4ff] px-2 py-0.5 rounded-md border border-[#bfdbfe]">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{bookedCount}</span>
+              <span className="text-xs font-bold text-[#276ef1] bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
                 Arriving
               </span>
             </div>
-            <div className="mt-3 w-full bg-[#f0f0f0] h-1.5 rounded-full overflow-hidden">
+            <div className="mt-3 w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-[#276ef1] h-full rounded-full transition-all duration-500"
                 style={{ width: `${totalSlots > 0 ? (bookedCount / totalSlots) * 100 : 0}%` }}
@@ -332,34 +331,34 @@ export default function OwnerDashboard() {
           {/* 3. Available Slots */}
           <div
             onClick={() => setActiveTab("FACILITIES")}
-            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white ${
+            className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
               activeTab === "FACILITIES"
-                ? "border-[#0a0a0a] ring-4 ring-black/10 shadow-sm"
-                : "border-[#e0e0e0] hover:border-[#a0a0a0] shadow-xs"
+                ? "border-zinc-900 dark:border-white ring-4 ring-zinc-900/10 dark:ring-white/10 shadow-sm"
+                : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#737373]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Available Bays
               </span>
-              <div className="w-7 h-7 rounded-xl bg-[#f0f0f0] text-[#0a0a0a] flex items-center justify-center font-bold">
+              <div className="w-7 h-7 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white flex items-center justify-center font-bold">
                 <FiLayers className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-[#0a0a0a] tracking-tight">{availableSlots}</span>
-              <span className="text-xs font-semibold text-[#737373]">of {totalSlots}</span>
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{availableSlots}</span>
+              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">of {totalSlots}</span>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[11px] text-[#737373] font-medium">
+            <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
               <span>Occupancy rate</span>
-              <span className="font-bold text-[#0a0a0a]">{occupancyPercentage}%</span>
+              <span className="font-bold text-zinc-900 dark:text-white">{occupancyPercentage}%</span>
             </div>
           </div>
 
           {/* 4. Total Earnings */}
-          <div className="p-5 rounded-3xl bg-[#0a0a0a] text-white border border-[#262626] shadow-xs">
+          <div className="p-5 rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-white border border-zinc-800 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#a0a0a0]">
+              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
                 Gross Earnings
               </span>
               <div className="w-7 h-7 rounded-xl bg-white/10 text-[#05944f] flex items-center justify-center font-bold">
@@ -371,7 +370,7 @@ export default function OwnerDashboard() {
                 ₹{totalRevenue.toLocaleString("en-IN")}
               </span>
             </div>
-            <div className="mt-3 text-[11px] text-[#a0a0a0] flex items-center justify-between font-medium">
+            <div className="mt-3 text-[11px] text-zinc-400 flex items-center justify-between font-medium">
               <span>Today's volume</span>
               <span className="font-bold text-white">₹{todayRevenue.toLocaleString("en-IN")}</span>
             </div>
@@ -382,9 +381,9 @@ export default function OwnerDashboard() {
         {/* SAAS SEGMENTED TABS & FILTERS                                             */}
         {/* ========================================================================= */}
         <div className="space-y-4">
-          <div className="bg-white p-2 rounded-2xl border border-[#e0e0e0] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
+          <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
             {/* Segmented Tab Controls */}
-            <div className="flex items-center gap-1 bg-[#f0f0f0] p-1 rounded-xl">
+            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
               <button
                 onClick={() => {
                   setActiveTab("VEHICLES");
@@ -392,36 +391,36 @@ export default function OwnerDashboard() {
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "VEHICLES"
-                    ? "bg-white text-[#0a0a0a] shadow-xs"
-                    : "text-[#737373] hover:text-[#0a0a0a]"
+                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 <FiActivity className="w-3.5 h-3.5 text-[#05944f]" />
-                <span>Live Vehicles Feed ({liveBookings.length})</span>
+                <span>Live Feed ({liveBookings.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("FACILITIES")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "FACILITIES"
-                    ? "bg-white text-[#0a0a0a] shadow-xs"
-                    : "text-[#737373] hover:text-[#0a0a0a]"
+                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 <FiGrid className="w-3.5 h-3.5" />
-                <span>Facility Hub ({parkingList.length})</span>
+                <span>Facilities ({parkingList.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("ANALYTICS")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "ANALYTICS"
-                    ? "bg-white text-[#0a0a0a] shadow-xs"
-                    : "text-[#737373] hover:text-[#0a0a0a]"
+                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 <FiBarChart2 className="w-3.5 h-3.5 text-[#276ef1]" />
-                <span>Occupancy Matrix</span>
+                <span>Occupancy</span>
               </button>
             </div>
 

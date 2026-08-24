@@ -545,6 +545,77 @@
 }
 
 /* =====================================================
+   LEAFLET CUSTOM MAP ICONS & POPUP STYLING
+   ===================================================== */
+.leaflet-div-icon,
+.custom-parking-marker,
+.custom-user-marker,
+.custom-entrance-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25) !important;
+  padding: 4px !important;
+}
+
+.dark .custom-popup .leaflet-popup-content-wrapper,
+[data-theme="dark"] .custom-popup .leaflet-popup-content-wrapper,
+[data-theme="midnight"] .custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(18, 18, 22, 0.96) !important;
+  border: 1px solid rgba(63, 63, 70, 0.6) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7) !important;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.96) !important;
+}
+
+.dark .custom-popup .leaflet-popup-tip,
+[data-theme="dark"] .custom-popup .leaflet-popup-tip,
+[data-theme="midnight"] .custom-popup .leaflet-popup-tip {
+  background: rgba(18, 18, 22, 0.96) !important;
+}
+
+.custom-popup .leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+}
+
+.custom-popup .leaflet-popup-close-button:hover {
+  color: #0f172a !important;
+}
+
+.dark .custom-popup .leaflet-popup-close-button:hover,
+[data-theme="dark"] .custom-popup .leaflet-popup-close-button:hover,
+[data-theme="midnight"] .custom-popup .leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+
+@keyframes pe-radar-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.animate-pe-radar {
+  animation: pe-radar-pulse 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+/* =====================================================
    GOOGLE TRANSLATE SEAMLESS ENGINE OVERRIDES
    ===================================================== */
 .goog-te-banner-frame,

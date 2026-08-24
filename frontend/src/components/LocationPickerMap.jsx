@@ -17,19 +17,18 @@ import {
 // Custom pin marker icon
 const customPinIcon = L.divIcon({
   html: `
-    <div class="relative flex items-center justify-center -translate-x-1/2 -translate-y-full">
-      <div class="w-10 h-10 rounded-2xl bg-[#0a0a0a] text-white flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.35)] border-2 border-white ring-4 ring-black/10 transform transition-transform hover:scale-110">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#05944f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
+    <div class="relative flex flex-col items-center select-none cursor-grab active:cursor-grabbing transform transition-transform hover:scale-105">
+      <div class="px-2.5 py-1.5 rounded-2xl bg-zinc-950 text-white flex items-center gap-1.5 shadow-[0_12px_24px_rgba(0,0,0,0.35)] border-2 border-white ring-4 ring-black/10">
+        <span class="text-xs">🅿️</span>
+        <span class="text-[11px] font-black whitespace-nowrap tracking-tight">Facility Entrance</span>
       </div>
-      <div class="w-2 h-2 rounded-full bg-[#0a0a0a] absolute -bottom-1 ring-2 ring-white"></div>
+      <div class="w-3 h-3 bg-zinc-950 rotate-45 -mt-1.5 border-r-2 border-b-2 border-white"></div>
+      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white mt-0.5 shadow-md"></div>
     </div>
   `,
   className: "custom-entrance-pin",
-  iconSize: [40, 48],
-  iconAnchor: [20, 48],
+  iconSize: [130, 48],
+  iconAnchor: [65, 48],
 });
 
 // Auto pan when center coordinates change

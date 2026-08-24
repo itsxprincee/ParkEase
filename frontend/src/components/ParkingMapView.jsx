@@ -17,7 +17,10 @@ import {
   FiCheckCircle,
   FiArrowRight,
   FiCompass,
-  FiMaximize2,
+  FiPlus,
+  FiMinus,
+  FiCrosshair,
+  FiLayers,
 } from "react-icons/fi";
 import Badge from "./Badge";
 import Button from "./Button";
@@ -27,10 +30,50 @@ function MapRecenter({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
     if (center && center[0] && center[1]) {
-      map.setView(center, zoom || map.getZoom(), { animate: true });
+      map.flyTo(center, zoom || map.getZoom(), { animate: true, duration: 1.0 });
     }
   }, [center, zoom, map]);
   return null;
+}
+
+// Custom Glassmorphism Zoom & Map Controls Widget
+function CustomMapControls({ onCenterMe, hasUserCoords, onFitAll }) {
+  const map = useMap();
+
+  return (
+    <div className="absolute right-4 bottom-24 z-20 flex flex-col items-center gap-1.5 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl p-1.5 rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.18)] border border-zinc-200/80 dark:border-zinc-700/80">
+      <button
+        type="button"
+        onClick={() => map.zoomIn()}
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-all active:scale-90"
+        title="Zoom In"
+      >
+        <FiPlus className="w-4 h-4" />
+      </button>
+      <div className="w-5 h-px bg-zinc-200 dark:bg-zinc-700" />
+      <button
+        type="button"
+        onClick={() => map.zoomOut()}
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-all active:scale-90"
+        title="Zoom Out"
+      >
+        <FiMinus className="w-4 h-4" />
+      </button>
+      {hasUserCoords && (
+        <>
+          <div className="w-5 h-px bg-zinc-200 dark:bg-zinc-700" />
+          <button
+            type="button"
+            onClick={onCenterMe}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-all active:scale-90"
+            title="Center on My GPS Location"
+          >
+            <FiCrosshair className="w-4 h-4" />
+          </button>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function ParkingMapView({
@@ -43,7 +86,7 @@ export default function ParkingMapView({
 }) {
   const [selectedParking, setSelectedParking] = useState(null);
 
-  // Default center: User location -> Nearest parking -> Default city center (19.0760, 72.8777)
+  // Default center: User location -> Nearest parking -> Default city center
   const defaultCenter = useMemo(() => {
     if (userCoords && userCoords.lat && userCoords.lng) {
       return [Number(userCoords.lat), Number(userCoords.lng)];
@@ -54,7 +97,7 @@ export default function ParkingMapView({
         Number(parkingLocations[0].longitude),
       ];
     }
-    return [19.076, 72.8777];
+    return [19.0864, 72.8890];
   }, [userCoords, parkingLocations]);
 
   // Find the nearest facility id if user coordinates exist
@@ -85,33 +128,56 @@ export default function ParkingMapView({
     return nearestId;
   }, [userCoords, parkingLocations]);
 
-  // Create custom modern HTML pin icon for each parking lot
+  // Create ultra-modern interactive map pins
   const createParkingIcon = (parking) => {
     const isNearest = parking.id === nearestParkingId;
     const isFree = (parking.hourly_rate ?? -1) === 0;
     const isSelected = selectedParking?.id === parking.id;
-    const rateLabel = isFree ? "FREE" : `₹${parking.hourly_rate ?? 50}`;
+    const rateLabel = isFree ? "FREE" : `₹${parking.hourly_rate ?? 50}/hr`;
+    const availableSlots = parking.available_slots ?? parking.available ?? 8;
 
     const iconHtml = `
-      <div class="relative group cursor-pointer transform transition-transform ${
-        isSelected ? "scale-125 z-50" : isNearest ? "scale-110 z-40" : "scale-100 z-10"
+      <div class="relative flex flex-col items-center cursor-pointer select-none transform transition-all duration-200 ${
+        isSelected
+          ? "scale-115 -translate-y-2 z-50"
+          : isNearest
+          ? "scale-105 -translate-y-1 z-40 hover:scale-110"
+          : "scale-100 hover:scale-105 z-20"
       }">
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg border transition-all ${
+        ${
+          isNearest
+            ? `<div class="mb-0.5 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black tracking-wider uppercase shadow-md flex items-center gap-1 animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                <span>Nearest</span>
+              </div>`
+            : ""
+        }
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.18)] border-2 transition-all backdrop-blur-md ${
           isSelected
-            ? "bg-black text-white border-black ring-4 ring-black/20"
-            : isFree
-            ? "bg-emerald-600 text-white border-emerald-600"
+            ? "bg-zinc-950 text-white border-blue-500 ring-4 ring-blue-500/25 shadow-blue-500/20"
             : isNearest
-            ? "bg-black text-white border-black ring-2 ring-emerald-400"
-            : "bg-white text-black border-neutral-300 hover:border-black"
+            ? "bg-zinc-950 text-white border-emerald-500 ring-4 ring-emerald-500/20"
+            : "bg-white text-zinc-900 border-zinc-200 hover:border-zinc-950 hover:bg-zinc-50"
         }">
-          <span class="text-[11px] font-black leading-none">${rateLabel}</span>
-          <span class="w-1.5 h-1.5 rounded-full ${
-            isFree ? "bg-white" : isNearest ? "bg-emerald-400" : "bg-black"
-          }"></span>
+          <div class="w-5 h-5 rounded-lg ${
+            parking.has_ev ? "bg-amber-400 text-zinc-950" : isSelected || isNearest ? "bg-zinc-800 text-white" : "bg-zinc-100 text-zinc-900"
+          } flex items-center justify-center text-xs font-black shrink-0">
+            ${parking.has_ev ? "⚡" : "🅿️"}
+          </div>
+          <div class="flex flex-col leading-tight text-left">
+            <span class="text-[11px] font-black tracking-tight whitespace-nowrap">${rateLabel}</span>
+            <span class="text-[9px] font-bold ${
+              isSelected || isNearest ? "text-zinc-300" : "text-emerald-600"
+            } whitespace-nowrap">${availableSlots} spots</span>
+          </div>
         </div>
-        <div class="w-2 h-2 rotate-45 mx-auto -mt-1 border-r border-b ${
-          isSelected || isNearest ? "bg-black border-black" : isFree ? "bg-emerald-600 border-emerald-600" : "bg-white border-neutral-300"
+        <!-- Pointer Tip -->
+        <div class="w-2.5 h-2.5 rotate-45 -mt-1.5 border-r-2 border-b-2 shadow-sm ${
+          isSelected
+            ? "bg-zinc-950 border-blue-500"
+            : isNearest
+            ? "bg-zinc-950 border-emerald-500"
+            : "bg-white border-zinc-200"
         }"></div>
       </div>
     `;
@@ -119,18 +185,19 @@ export default function ParkingMapView({
     return L.divIcon({
       html: iconHtml,
       className: "custom-parking-marker",
-      iconSize: [60, 40],
-      iconAnchor: [30, 40],
-      popupAnchor: [0, -42],
+      iconSize: [110, 52],
+      iconAnchor: [55, 52],
+      popupAnchor: [0, -54],
     });
   };
 
-  // User location marker icon
+  // User location marker icon with pulsating GPS radar
   const userIcon = useMemo(() => {
     const userHtml = `
-      <div class="relative flex items-center justify-center">
-        <div class="w-8 h-8 rounded-full bg-black/20 animate-ping absolute"></div>
-        <div class="w-6 h-6 rounded-full bg-black border-2 border-white shadow-lg flex items-center justify-center text-white text-[10px] font-bold">
+      <div class="relative flex items-center justify-center pointer-events-none" style="width:44px; height:44px;">
+        <div class="absolute inset-0 rounded-full bg-blue-500/30 animate-pe-radar"></div>
+        <div class="absolute w-8 h-8 rounded-full bg-blue-500/20"></div>
+        <div class="relative w-7 h-7 rounded-full bg-blue-600 border-2 border-white shadow-[0_4px_12px_rgba(37,99,235,0.6)] flex items-center justify-center text-white text-xs font-black">
           🚗
         </div>
       </div>
@@ -138,50 +205,41 @@ export default function ParkingMapView({
     return L.divIcon({
       html: userHtml,
       className: "custom-user-marker",
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+      popupAnchor: [0, -24],
     });
   }, []);
 
   return (
     <div className="relative isolate z-0 w-full h-[540px] lg:h-[620px] rounded-3xl overflow-hidden bg-neutral-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-      {/* FLOATING MAP CONTROLS */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto">
+      {/* FLOATING MAP TOP BAR CONTROLS */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none gap-2">
+        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
+          {/* Find Nearest Button */}
           <button
             type="button"
             onClick={onLocateUser}
             disabled={isLocating}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-black shadow-md transition active:scale-95 disabled:opacity-50 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-bold shadow-md transition-all active:scale-95 disabled:opacity-50 ${
               userCoords
-                ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white"
-                : "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-white"
+                ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-zinc-950/20"
+                : "bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md text-zinc-900 dark:text-white border-zinc-200/80 dark:border-zinc-700/80 hover:border-zinc-900 dark:hover:border-white"
             }`}
           >
-            <FiCompass className={`w-4 h-4 ${isLocating ? "animate-spin text-blue-500" : ""}`} />
-            <span>{isLocating ? "Locating..." : userCoords ? "📍 GPS Active" : "📍 Find Nearest"}</span>
+            <FiCompass className={`w-4 h-4 ${isLocating ? "animate-spin text-blue-500" : userCoords ? "text-emerald-400" : "text-blue-500"}`} />
+            <span>{isLocating ? "Detecting GPS..." : userCoords ? "GPS Active" : "Find Nearest"}</span>
           </button>
-          <span className="hidden sm:inline-flex px-3 py-2 rounded-xl bg-zinc-900/90 dark:bg-zinc-800/90 backdrop-blur-md text-white text-xs font-bold border border-white/10 shadow-md">
-            🗺️ {parkingLocations.length} Lots Live
-          </span>
+
+          {/* Live Lots Status Pill */}
+          <div className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md text-zinc-900 dark:text-white text-xs font-bold border border-zinc-200/80 dark:border-zinc-700/80 shadow-md">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span>{parkingLocations.length} Lots Live</span>
+          </div>
         </div>
 
+        {/* Jump to Nearest Quick Pill */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          {userCoords && (
-            <button
-              type="button"
-              onClick={() => {
-                if (userCoords) {
-                  setSelectedParking(null);
-                }
-              }}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md text-zinc-900 dark:text-white text-xs font-bold border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
-              title="Center Map on My Location"
-            >
-              <span>🚗 Center on Me</span>
-            </button>
-          )}
-
           {nearestParkingId && (
             <button
               type="button"
@@ -189,10 +247,10 @@ export default function ParkingMapView({
                 const nearest = parkingLocations.find((p) => p.id === nearestParkingId);
                 if (nearest) setSelectedParking(nearest);
               }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold shadow-md hover:shadow-blue-500/25 transition active:scale-95"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-black shadow-md hover:shadow-blue-500/25 transition-all active:scale-95"
             >
               <span>⚡ Jump to Nearest</span>
-              <FiArrowRight />
+              <FiArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -202,6 +260,7 @@ export default function ParkingMapView({
       <MapContainer
         center={defaultCenter}
         zoom={userCoords ? 14 : 12}
+        zoomControl={false}
         scrollWheelZoom={true}
         className="w-full h-full z-0"
       >
@@ -212,6 +271,16 @@ export default function ParkingMapView({
               : defaultCenter
           }
           zoom={selectedParking ? 15 : userCoords ? 14 : 12}
+        />
+
+        {/* Custom Map Zoom and Center Controls */}
+        <CustomMapControls
+          hasUserCoords={Boolean(userCoords?.lat && userCoords?.lng)}
+          onCenterMe={() => {
+            if (userCoords?.lat && userCoords?.lng) {
+              setSelectedParking(null);
+            }
+          }}
         />
 
         {/* Clean CartoDB Positron / OSM Tiles */}
@@ -238,10 +307,10 @@ export default function ParkingMapView({
               center={[Number(userCoords.lat), Number(userCoords.lng)]}
               radius={800}
               pathOptions={{
-                color: "#6366f1",
-                fillColor: "#6366f1",
-                fillOpacity: 0.08,
-                weight: 1,
+                color: "#2563eb",
+                fillColor: "#3b82f6",
+                fillOpacity: 0.1,
+                weight: 1.5,
               }}
             />
           </>
@@ -273,7 +342,7 @@ export default function ParkingMapView({
 
                   <div>
                     {isNearest && (
-                      <span className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider block">
+                      <span className="text-[9px] font-extrabold text-emerald-600 uppercase tracking-wider block">
                         📍 Nearest Parking Spot
                       </span>
                     )}
@@ -297,7 +366,7 @@ export default function ParkingMapView({
                   <button
                     type="button"
                     onClick={() => onBookParking && onBookParking(parking)}
-                    className="w-full py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold text-center transition"
+                    className="w-full py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold text-center transition shadow-sm"
                   >
                     Reserve Spot Now &rarr;
                   </button>

@@ -14,6 +14,11 @@ import {
   FiZap,
   FiCalendar,
   FiKey,
+  FiGlobe,
+  FiMoon,
+  FiSun,
+  FiSliders,
+  FiCheck,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -21,6 +26,8 @@ import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import { CardSkeleton } from "../../components/Skeleton";
+import { useTheme } from "../../context/ThemeContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -29,8 +36,8 @@ function Toast({ toast }) {
       <div
         className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${
           toast.type === "error"
-            ? "bg-white text-[#e11900] border-[#fca5a5]"
-            : "bg-white text-[#05944f] border-[#86efac]"
+            ? "bg-white dark:bg-zinc-900 text-[#e11900] border-red-200 dark:border-red-900/50"
+            : "bg-white dark:bg-zinc-900 text-[#05944f] border-green-200 dark:border-green-900/50"
         }`}
       >
         {toast.type === "error" ? (
@@ -46,7 +53,10 @@ function Toast({ toast }) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("PROFILE"); // PROFILE, VEHICLES, SECURITY
+  const { theme, setTheme, THEMES } = useTheme();
+  const { language, setLanguage, LANGUAGES, currentLanguage, t } = useLanguage();
+
+  const [activeTab, setActiveTab] = useState("PROFILE"); // PROFILE, VEHICLES, PREFERENCES, SECURITY
 
   const [user, setUser] = useState(null);
   const [vehicles, setVehicles] = useState([]);
@@ -138,20 +148,26 @@ export default function Profile() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) return showToast("Passwords do not match.", "error");
-    if (newPassword.length < 6) return showToast("Password must be at least 6 characters.", "error");
+    if (newPassword.length < 6) {
+      showToast("New password must be at least 6 characters", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("Passwords do not match", "error");
+      return;
+    }
     try {
       setSavingPassword(true);
-      await API.post("/auth/change-password", {
+      await API.put("/auth/change-password", {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      showToast("Password changed successfully!", "success");
+      showToast("Password updated successfully!", "success");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error) {
-      showToast(error?.response?.data?.detail || "Failed to change password.", "error");
+    } catch (err) {
+      showToast(err?.response?.data?.detail || "Failed to update password", "error");
     } finally {
       setSavingPassword(false);
     }
@@ -159,65 +175,75 @@ export default function Profile() {
 
   const handleAddVehicle = async (e) => {
     e.preventDefault();
-    if (!newVehicle.vehicle_number.trim()) {
-      return showToast("Please enter a vehicle license plate number.", "error");
+    const plate = newVehicle.vehicle_number.trim().toUpperCase();
+    if (!plate) {
+      showToast("License plate number is required", "error");
+      return;
     }
-
     try {
       setAddingVehicle(true);
-      const res = await API.post("/vehicles/", newVehicle);
-      const added = res.data?.vehicle || res.data;
-      setVehicles((prev) => [...prev, added]);
-      showToast("Vehicle added to your fleet!", "success");
+      const res = await API.post("/vehicles", {
+        vehicle_number: plate,
+        vehicle_type: newVehicle.vehicle_type,
+        vehicle_name: newVehicle.vehicle_name || `${newVehicle.vehicle_type} (${plate.slice(-4)})`,
+      });
+      setVehicles((prev) => [res.data, ...prev]);
       setShowAddVehicleModal(false);
       setNewVehicle({ vehicle_number: "", vehicle_type: "Car", vehicle_name: "" });
+      showToast("Vehicle registered to your fleet!", "success");
     } catch (err) {
-      showToast(err?.response?.data?.detail || "Failed to add vehicle.", "error");
+      showToast(err?.response?.data?.detail || "Failed to add vehicle", "error");
     } finally {
       setAddingVehicle(false);
     }
   };
 
-  const handleDeleteVehicle = async (vehId) => {
+  const handleDeleteVehicle = async (vId) => {
     try {
-      setDeletingVehicleId(vehId);
-      await API.delete(`/vehicles/${vehId}`);
-      setVehicles((prev) => prev.filter((v) => v.id !== vehId));
-      showToast("Vehicle removed from fleet.", "success");
+      setDeletingVehicleId(vId);
+      await API.delete(`/vehicles/${vId}`);
+      setVehicles((prev) => prev.filter((v) => v.id !== vId));
+      showToast("Vehicle removed from fleet", "success");
     } catch (err) {
-      showToast(err?.response?.data?.detail || "Failed to delete vehicle.", "error");
+      showToast(err?.response?.data?.detail || "Failed to remove vehicle", "error");
     } finally {
       setDeletingVehicleId(null);
     }
   };
 
-  const initials = name ? name.slice(0, 2).toUpperCase() : "DR";
+  const initials = (name || user?.username || "DR").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
       <SaaSNavbar />
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Top Header Profile Card */}
-        <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#276ef1] to-[#05944f] flex items-center justify-center text-white font-black text-2xl shrink-0 shadow-sm">
               {initials}
             </div>
             <div className="text-center sm:text-left space-y-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl font-black text-[#0a0a0a] tracking-tight">
+                <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
                   {name || "Driver Account"}
                 </h1>
                 <Badge variant="success" size="sm" dot>
                   Verified Driver
                 </Badge>
               </div>
-              <p className="text-sm text-[#737373]">{email || "user@parkease.io"}</p>
-              <p className="text-xs text-[#a0a0a0]">
-                Fleet: {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} registered
-              </p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">{email || "user@parkease.io"}</p>
+              <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+                <span>Fleet: {vehicles.length} registered</span>
+                <span>•</span>
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                  {currentLanguage.flag} {currentLanguage.native}
+                </span>
+                <span>•</span>
+                <span className="capitalize">{theme} mode</span>
+              </div>
             </div>
           </div>
 
@@ -234,9 +260,10 @@ export default function Profile() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-[#e0e0e0] pb-2">
+        <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
           {[
             { id: "PROFILE", label: "Profile & Contact", icon: FiUser },
+            { id: "PREFERENCES", label: `${t("appearance", "Mode & Language")} (${currentLanguage.native})`, icon: FiSliders },
             { id: "VEHICLES", label: `My Fleet (${vehicles.length})`, icon: FiTruck },
             { id: "SECURITY", label: "Security & Access", icon: FiShield },
           ].map((tab) => {
@@ -245,10 +272,10 @@ export default function Profile() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "bg-[#0a0a0a] text-white shadow-xs"
-                    : "bg-white text-[#545454] border border-[#e0e0e0] hover:border-[#a0a0a0]"
+                    ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
+                    : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -260,17 +287,17 @@ export default function Profile() {
 
         {/* TAB 1: PROFILE DETAILS */}
         {activeTab === "PROFILE" && (
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-[#f0f0f0] pb-4">
-              <h3 className="text-lg font-black text-[#0a0a0a]">Personal Information</h3>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Update your driver contact details and notifications preferences
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-white">Personal Information</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Update your driver contact details and profile preferences
               </p>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-xl">
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   Full Name *
                 </label>
                 <input
@@ -283,7 +310,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   Email Address *
                 </label>
                 <input
@@ -296,7 +323,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   Phone Number
                 </label>
                 <input
@@ -310,20 +337,122 @@ export default function Profile() {
 
               <div className="pt-2">
                 <Button type="submit" icon={FiSave} loading={savingProfile} size="lg">
-                  Save Changes
+                  {t("save", "Save Changes")}
                 </Button>
               </div>
             </form>
           </div>
         )}
 
-        {/* TAB 2: MY VEHICLES FLEET */}
+        {/* TAB 2: APPEARANCE & INDIAN LANGUAGES */}
+        {activeTab === "PREFERENCES" && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Theme Mode Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
+              <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                    <FiSliders className="w-5 h-5 text-blue-500" />
+                    {t("appearance", "Appearance & Display Mode")}
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Choose between Light, Obsidian Dark, Cyber Midnight, or Auto System themes
+                  </p>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 capitalize">
+                  Current: {theme}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {THEMES.map((tItem) => {
+                  const isActive = theme === tItem.id;
+                  return (
+                    <button
+                      key={tItem.id}
+                      onClick={() => {
+                        setTheme(tItem.id);
+                        showToast(`Switched to ${tItem.label} theme!`, "success");
+                      }}
+                      className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between h-32 ${
+                        isActive
+                          ? "border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-2 ring-blue-500/20"
+                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 bg-zinc-50/50 dark:bg-zinc-800/30"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl">{tItem.icon}</span>
+                        {isActive && <FiCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-zinc-900 dark:text-white">{tItem.label}</p>
+                        <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{tItem.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Indian Languages Card */}
+            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
+              <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                    <FiGlobe className="w-5 h-5 text-emerald-500" />
+                    {t("selectLanguage", "Indian Languages (भारतीय भाषाएं)")}
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Select your preferred Indian regional or national language for all dashboards
+                  </p>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">
+                  {currentLanguage.flag} {currentLanguage.native}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {LANGUAGES.map((lang) => {
+                  const isActive = language === lang.code;
+                  return (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        showToast(`Language changed to ${lang.native} (${lang.name})`, "success");
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left transition-all duration-150 flex items-center justify-between ${
+                        isActive
+                          ? "border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-500/20"
+                          : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 bg-zinc-50/50 dark:bg-zinc-800/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{lang.flag}</span>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-bold text-zinc-900 dark:text-white">{lang.native}</span>
+                            <span className="text-xs text-zinc-400 dark:text-zinc-500">({lang.name})</span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{lang.region}</p>
+                        </div>
+                      </div>
+                      {isActive && <FiCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: MY VEHICLES FLEET */}
         {activeTab === "VEHICLES" && (
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
               <div>
-                <h3 className="text-lg font-black text-[#0a0a0a]">Registered Fleet</h3>
-                <p className="text-xs text-[#737373] mt-0.5">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white">Registered Fleet</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   Vehicles linked to your account for 1-tap booking and automatic gate pass sync
                 </p>
               </div>
@@ -338,11 +467,11 @@ export default function Profile() {
 
             {vehicles.length === 0 ? (
               <div className="py-12 text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#f0f0f0] flex items-center justify-center mx-auto text-[#a0a0a0]">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-zinc-400">
                   <FiTruck className="w-8 h-8" />
                 </div>
-                <h4 className="text-sm font-bold text-[#0a0a0a]">No Vehicles Registered</h4>
-                <p className="text-xs text-[#737373] max-w-xs mx-auto">
+                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">No Vehicles Registered</h4>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto">
                   Add your car, EV, or motorcycle plate for streamlined spot reservations.
                 </p>
                 <Button size="md" onClick={() => setShowAddVehicleModal(true)}>
@@ -354,20 +483,20 @@ export default function Profile() {
                 {vehicles.map((v) => (
                   <div
                     key={v.id}
-                    className="p-5 rounded-2xl border border-[#e0e0e0] bg-[#f7f7f7] flex items-center justify-between gap-4"
+                    className="p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 flex items-center justify-between gap-4"
                   >
                     <div className="space-y-1.5 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-black text-[#0a0a0a] bg-white px-3 py-1 rounded-lg border border-[#e0e0e0]">
+                        <span className="font-mono text-sm font-black text-zinc-900 dark:text-white bg-white dark:bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
                           {v.vehicle_number}
                         </span>
                         {v.vehicle_type === "EV" && (
-                          <span className="text-[10px] font-black bg-[#f0fdf4] text-[#05944f] px-2 py-0.5 rounded-full border border-[#86efac]">
+                          <span className="text-[10px] font-black bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800">
                             ⚡ EV
                           </span>
                         )}
                       </div>
-                      <p className="text-xs font-bold text-[#545454] truncate">
+                      <p className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">
                         {v.vehicle_name || v.vehicle_type || "Standard Vehicle"}
                       </p>
                     </div>
@@ -375,7 +504,7 @@ export default function Profile() {
                     <button
                       onClick={() => handleDeleteVehicle(v.id)}
                       disabled={deletingVehicleId === v.id}
-                      className="p-2.5 rounded-xl bg-white border border-[#e0e0e0] text-[#e11900] hover:bg-[#fef2f2] transition-colors shrink-0"
+                      className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-[#e11900] hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
@@ -386,19 +515,19 @@ export default function Profile() {
           </div>
         )}
 
-        {/* TAB 3: SECURITY & PASSWORD */}
+        {/* TAB 4: SECURITY & PASSWORD */}
         {activeTab === "SECURITY" && (
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 sm:p-8 space-y-6 animate-fade-in">
-            <div className="border-b border-[#f0f0f0] pb-4">
-              <h3 className="text-lg font-black text-[#0a0a0a]">Account Security & Password</h3>
-              <p className="text-xs text-[#737373] mt-0.5">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-white">Account Security & Password</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Update your login credentials and authentication settings
               </p>
             </div>
 
             <form onSubmit={handleChangePassword} className="space-y-4 max-w-xl">
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   Current Password *
                 </label>
                 <input
@@ -411,7 +540,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   New Password *
                 </label>
                 <input
@@ -424,7 +553,7 @@ export default function Profile() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                   Confirm New Password *
                 </label>
                 <input
@@ -450,73 +579,65 @@ export default function Profile() {
       <Modal
         isOpen={showAddVehicleModal}
         onClose={() => setShowAddVehicleModal(false)}
-        title="Register Vehicle"
-        subtitle="Add a car, EV, or bike license plate to your driver profile."
+        title="Add Vehicle to Fleet"
       >
         <form onSubmit={handleAddVehicle} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
-              License Plate Number *
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+              License Plate (e.g. MH 02 AB 1234) *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. MH-02-CD-5678"
+              placeholder="MH 02 AB 1234"
               value={newVehicle.vehicle_number}
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_number: e.target.value.toUpperCase() })
               }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+              className="pe-input uppercase font-mono font-bold tracking-widest text-base"
+              autoFocus
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
-              Vehicle Nickname (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Daily Sedan / Blue Nexon EV"
-              value={newVehicle.vehicle_name}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })
-              }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
               Vehicle Type
             </label>
             <select
               value={newVehicle.vehicle_type}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })
-              }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-neutral-200 text-xs text-black font-bold focus:outline-none focus:border-black transition"
+              onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })}
+              className="pe-input text-sm font-medium"
             >
-              <option value="Car">Car (Sedan/SUV/Hatchback)</option>
-              <option value="EV">Electric Vehicle (EV)</option>
-              <option value="Bike">Motorcycle / Scooter</option>
+              <option value="Car">Car / Sedan / SUV 🚗</option>
+              <option value="EV">Electric Vehicle (EV) ⚡</option>
+              <option value="Bike">Motorcycle / Scooter 🏍️</option>
+              <option value="Truck">Truck / Commercial 🚛</option>
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-3">
-            <button
-              type="button"
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+              Nickname / Model (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. White Creta, Red Pulsar"
+              value={newVehicle.vehicle_name}
+              onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })}
+              className="pe-input text-sm"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <Button
+              variant="outline"
               onClick={() => setShowAddVehicleModal(false)}
-              className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={addingVehicle}
-              className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition shadow-sm"
-            >
-              {addingVehicle ? "Saving..." : "Save Vehicle"}
-            </button>
+              {t("cancel", "Cancel")}
+            </Button>
+            <Button type="submit" loading={addingVehicle}>
+              Register Vehicle
+            </Button>
           </div>
         </form>
       </Modal>

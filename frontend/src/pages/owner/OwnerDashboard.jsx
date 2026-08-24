@@ -32,6 +32,10 @@ import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -40,8 +44,8 @@ function Toast({ toast }) {
       <div
         className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] border text-sm font-semibold ${
           toast.type === "error"
-            ? "bg-white text-[#e11900] border-[#fca5a5]"
-            : "bg-white text-[#05944f] border-[#86efac]"
+            ? "bg-white dark:bg-zinc-900 text-[#e11900] border-red-200 dark:border-red-900/50"
+            : "bg-white dark:bg-zinc-900 text-[#05944f] border-green-200 dark:border-green-900/50"
         }`}
       >
         {toast.type === "error" ? (
@@ -57,6 +61,8 @@ function Toast({ toast }) {
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
+  const { t, currentLanguage } = useLanguage();
+  const { theme } = useTheme();
 
   const [dashboardData, setDashboardData] = useState(null);
   const [parkingList, setParkingList] = useState([]);
@@ -196,7 +202,7 @@ export default function OwnerDashboard() {
   }, [parkingList, search]);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col font-sans selection:bg-[#0a0a0a] selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col font-sans transition-colors">
       <SaaSNavbar />
       <Toast toast={toast} />
 
@@ -204,34 +210,39 @@ export default function OwnerDashboard() {
         {/* ========================================================================= */}
         {/* SAAS TOP BAR & CONTROL CENTER                                             */}
         {/* ========================================================================= */}
-        <div className="bg-white rounded-3xl border border-[#e0e0e0] p-6 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-7 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#f0fdf4] border border-[#86efac] text-[#05944f] text-[11px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#05944f] animate-pulse" />
-                Live Gate Sync Active
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {t("systemOnline", "Live Gate Sync Active")}
               </span>
-              <span className="text-xs text-[#737373] font-medium hidden sm:inline">
-                · {parkingList.length} Active Facilities Registered
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:inline">
+                · {parkingList.length} {t("totalFacilities", "Active Facilities")}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
-              Facility Operations Hub
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+              {t("dashboard", "Facility Operations Hub")}
             </h1>
-            <p className="text-xs sm:text-sm text-[#737373]">
-              Real-time vehicle check-in verification, occupancy meters, and smart gate controls.
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+              {t("realtimeSync", "Real-time vehicle check-in verification, occupancy meters, and smart gate controls.")}
             </p>
           </div>
 
-          {/* Quick Actions */}
+          {/* Quick Actions & Switchers */}
           <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+            <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+              <LanguageSwitcher />
+              <ThemeSwitcher />
+            </div>
+
             <button
               onClick={() => loadOwnerData(true)}
               disabled={refreshing}
-              className="p-2.5 sm:p-3 rounded-2xl border border-[#e0e0e0] bg-white hover:bg-[#f7f7f7] text-[#0a0a0a] transition-all shadow-xs"
+              className="p-2.5 sm:p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all shadow-xs"
               title="Refresh live stream"
             >
-              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-[#0a0a0a]" : "text-[#737373]"}`} />
+              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"}`} />
             </button>
             <Button
               variant="outline"
@@ -239,14 +250,14 @@ export default function OwnerDashboard() {
               icon={FiCamera}
               onClick={() => navigate("/owner/scan-qr")}
             >
-              Scan Gate Pass
+              {t("scanPass", "Scan Pass")}
             </Button>
             <Button
               size="md"
               icon={FiPlus}
               onClick={() => navigate("/owner/add-parking")}
             >
-              Add New Lot
+              {t("addFacility", "Add Facility")}
             </Button>
           </div>
         </div>

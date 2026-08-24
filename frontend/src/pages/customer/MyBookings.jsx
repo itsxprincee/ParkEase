@@ -125,27 +125,35 @@ export default function MyBookings() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">My Parking Passes</h1>
-            <p className="text-sm text-[#737373] mt-1">Manage your active tickets and booking history</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+              My Passes & Bookings
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Active gate passes and parking history.
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outline"
+              icon={FiRefreshCw}
+              loading={refreshing}
               onClick={() => loadBookings(true)}
-              disabled={refreshing}
-              className="p-2.5 rounded-xl border border-[#e0e0e0] bg-white hover:border-[#0a0a0a] transition-colors"
             >
-              <FiRefreshCw className={`w-4 h-4 text-[#545454] ${refreshing ? "animate-spin" : ""}`} />
-            </button>
-            <Button onClick={() => navigate("/customer/dashboard")} iconRight={FiArrowRight}>
-              Book a Spot
+              Refresh
+            </Button>
+            <Button
+              icon={FiMapPin}
+              onClick={() => navigate("/customer/dashboard")}
+            >
+              Find Parking
             </Button>
           </div>
         </div>

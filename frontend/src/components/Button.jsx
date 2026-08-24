@@ -9,19 +9,19 @@ const sizeMap = {
 
 const variantMap = {
   primary:
-    "bg-[#0a0a0a] text-white hover:bg-[#242424] focus:ring-2 focus:ring-black/20 shadow-sm",
+    "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-100 focus:ring-2 focus:ring-black/20 shadow-sm",
   secondary:
-    "bg-[#f0f0f0] text-[#0a0a0a] hover:bg-[#e0e0e0] focus:ring-2 focus:ring-black/10 border border-[#e0e0e0]",
+    "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 focus:ring-2 focus:ring-black/10 border border-zinc-200 dark:border-zinc-700",
   outline:
-    "bg-white text-[#0a0a0a] border border-[#e0e0e0] hover:border-[#0a0a0a] hover:bg-[#f7f7f7] focus:ring-2 focus:ring-black/10",
+    "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 focus:ring-2 focus:ring-black/10",
   danger:
     "bg-[#e11900] text-white hover:bg-[#c51500] focus:ring-2 focus:ring-red-400/30 shadow-sm",
   success:
     "bg-[#05944f] text-white hover:bg-[#047340] focus:ring-2 focus:ring-green-400/30 shadow-sm",
   ghost:
-    "bg-transparent text-[#545454] hover:bg-[#f0f0f0] hover:text-[#0a0a0a] focus:ring-2 focus:ring-black/10",
+    "bg-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white focus:ring-2 focus:ring-black/10",
   white:
-    "bg-white text-[#0a0a0a] border border-[#e0e0e0] hover:shadow-md focus:ring-2 focus:ring-black/10 shadow-sm",
+    "bg-white text-zinc-950 border border-zinc-200 hover:shadow-md focus:ring-2 focus:ring-black/10 shadow-sm",
   accent:
     "bg-[#276ef1] text-white hover:bg-[#1d5cd4] focus:ring-2 focus:ring-blue-400/30 shadow-sm",
 };

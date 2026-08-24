@@ -11,6 +11,8 @@ import {
   FiNavigation,
   FiX,
   FiLayers,
+  FiGlobe,
+  FiSliders,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -18,6 +20,10 @@ import Modal from "../../components/Modal";
 import { CardSkeleton } from "../../components/Skeleton";
 import ParkingMapView from "../../components/ParkingMapView";
 import Button from "../../components/Button";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function Toast({ toast }) {
@@ -27,8 +33,8 @@ function Toast({ toast }) {
       <div
         className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${
           toast.type === "error"
-            ? "bg-white text-[#e11900] border-[#fca5a5]"
-            : "bg-white text-[#05944f] border-[#86efac]"
+            ? "bg-white dark:bg-zinc-900 text-[#e11900] border-red-200 dark:border-red-900/50"
+            : "bg-white dark:bg-zinc-900 text-[#05944f] border-green-200 dark:border-green-900/50"
         }`}
       >
         {toast.type === "error" ? (
@@ -72,6 +78,7 @@ function numericDistance(userCoords, parking) {
 
 // ── Parking List Card ─────────────────────────────────────────────────────────
 function ParkingListCard({ parking, userCoords, onClick }) {
+  const { t } = useLanguage();
   const available = parking.available_slots ?? parking.available ?? parking.total_slots ?? 12;
   const isFree = (parking.hourly_rate ?? -1) === 0;
   const hasDaily = parking.pricing_type === "DAILY_PASS" || parking.pricing_type === "BOTH" || (parking.daily_rate && parking.daily_rate > 0);
@@ -83,50 +90,54 @@ function ParkingListCard({ parking, userCoords, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-4 rounded-2xl border border-[#e0e0e0] hover:border-[#0a0a0a] bg-white hover:bg-[#f7f7f7] transition-all duration-150 flex items-center justify-between group active:scale-[0.99] shadow-xs"
+      className="w-full text-left p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-all duration-150 flex items-center justify-between group active:scale-[0.99] shadow-xs"
     >
       <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-12 h-12 rounded-2xl bg-[#f0f0f0] group-hover:bg-[#e0e0e0] flex items-center justify-center text-2xl shrink-0 transition-colors">
+        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 flex items-center justify-center text-2xl shrink-0 transition-colors">
           {parking.has_ev ? "⚡" : "🅿️"}
         </div>
         <div className="min-w-0 space-y-0.5">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-[#0a0a0a] truncate">
+            <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">
               {parking.name || "ParkEase Facility"}
             </p>
             {hasDaily && (
-              <span className="text-[10px] font-black bg-[#f0fdf4] text-[#05944f] px-2 py-0.5 rounded-full border border-[#86efac] shrink-0">
+              <span className="text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 shrink-0">
                 🎟️ ₹{parking.daily_rate || 10}/day
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+            {parking.address || parking.location || "City Center"}
+          </p>
+          <div className="flex items-center gap-3 text-[11px] font-medium text-zinc-400 pt-0.5">
             <span
-              className={`text-[11px] font-bold ${
-                isLow ? "text-[#e11900]" : "text-[#05944f]"
+              className={`font-bold flex items-center gap-1 ${
+                isLow ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
               }`}
             >
-              {available} spots available
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isLow ? "bg-amber-500" : "bg-emerald-500"
+                }`}
+              />
+              {available} {t("availableSlots", "slots left")}
             </span>
-            {distance && (
-              <>
-                <span className="text-[#e0e0e0]">·</span>
-                <span className="text-[11px] text-[#737373] font-medium">{distance}</span>
-              </>
-            )}
+            {distance && <span>• {distance}</span>}
+            {parking.has_ev && <span className="text-blue-600 dark:text-blue-400 font-semibold">⚡ EV Fast</span>}
           </div>
         </div>
       </div>
 
       <div className="shrink-0 text-right ml-2">
         {isFree ? (
-          <span className="text-sm font-black text-[#05944f]">FREE</span>
+          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">FREE</span>
         ) : (
           <div>
-            <span className="text-base font-black text-[#0a0a0a]">
+            <span className="text-base font-black text-zinc-900 dark:text-white">
               ₹{parking.hourly_rate ?? 50}
             </span>
-            <span className="text-[10px] text-[#a0a0a0] font-medium block">/hr</span>
+            <span className="text-[10px] text-zinc-400 font-medium block">/hr</span>
           </div>
         )}
       </div>
@@ -137,6 +148,8 @@ function ParkingListCard({ parking, userCoords, onClick }) {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function CustomerDashboard() {
   const navigate = useNavigate();
+  const { t, currentLanguage } = useLanguage();
+  const { theme } = useTheme();
 
   const [user, setUser] = useState(null);
   const [parkingLocations, setParkingLocations] = useState([]);
@@ -183,11 +196,14 @@ export default function CustomerDashboard() {
 
       if (bookingRes.status === "fulfilled") {
         const raw = bookingRes.value.data;
-        const list = Array.isArray(raw) ? raw : raw?.bookings || [];
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.bookings)
+          ? raw.bookings
+          : [];
         setBookings(list);
       }
     } catch (_) {
-      showToast("Unable to load parking locations.", "error");
     } finally {
       setLoading(false);
     }
@@ -257,15 +273,15 @@ export default function CustomerDashboard() {
     });
 
   const filters = [
-    { id: "ALL", label: "All" },
+    { id: "ALL", label: t("filterAll", "All") },
     { id: "NEARBY", label: "📍 Near Me" },
-    { id: "FREE", label: "🆓 Free" },
-    { id: "EV", label: "⚡ EV" },
-    { id: "SECURITY", label: "🛡️ Guarded" },
+    { id: "FREE", label: `🆓 ${t("filterFree", "Free")}` },
+    { id: "EV", label: `⚡ ${t("filterEV", "EV Charging")}` },
+    { id: "DAILY_PASS", label: `🎟️ ${t("filterDaily", "Daily Pass")}` },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
       <SaaSNavbar />
       <Toast toast={toast} />
 
@@ -278,7 +294,7 @@ export default function CustomerDashboard() {
           maxWidth="max-w-2xl"
         >
           <div className="space-y-4">
-            <div className="h-72 w-full rounded-xl overflow-hidden border border-[#e0e0e0]">
+            <div className="h-72 w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
               <iframe
                 title="Map"
                 width="100%"
@@ -289,7 +305,7 @@ export default function CustomerDashboard() {
               />
             </div>
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-[#737373]">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 {mapModalParking.address || mapModalParking.location}
               </p>
               <Button
@@ -310,51 +326,59 @@ export default function CustomerDashboard() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* TOP BAR */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
               Where to, {getUserName().split(" ")[0]}?
             </h1>
-            <p className="text-sm text-[#737373] font-medium mt-0.5">
-              {filteredParking.length} verified facilities near you
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+              {filteredParking.length} {t("approved", "verified")} facilities near you
             </p>
           </div>
 
-          {latestActive && (
-            <button
-              onClick={() =>
-                navigate(`/customer/qr?booking=${latestActive.id}`, {
-                  state: { booking: latestActive },
-                })
-              }
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0a0a0a] text-white text-xs font-bold hover:bg-[#242424] transition-colors shadow-sm"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping shrink-0" />
-              Active Pass → Slot {latestActive.slot_number}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Quick dashboard switcher pills */}
+            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1 rounded-2xl shadow-xs">
+              <LanguageSwitcher />
+              <ThemeSwitcher />
+            </div>
+
+            {latestActive && (
+              <button
+                onClick={() =>
+                  navigate(`/customer/qr?booking=${latestActive.id}`, {
+                    state: { booking: latestActive },
+                  })
+                }
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors shadow-sm"
+              >
+                <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping shrink-0" />
+                Active Pass → Slot {latestActive.slot_number}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* SPLIT LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
           {/* LEFT: BOOKING DRAWER */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col">
+          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
 
             {/* Search + GPS inputs */}
-            <div className="p-4 border-b border-[#f0f0f0] space-y-3">
+            <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 space-y-3">
               {/* GPS row */}
-              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0]">
-                <div className="w-3 h-3 rounded-full bg-[#0a0a0a] shrink-0 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
+                <div className="w-3 h-3 rounded-full bg-zinc-900 dark:bg-white shrink-0 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-900" />
                 </div>
-                <span className="text-xs font-semibold text-[#0a0a0a] flex-1">
+                <span className="text-xs font-semibold text-zinc-900 dark:text-white flex-1">
                   {userCoords ? "📍 GPS Location Active" : "Current Location"}
                 </span>
                 <button
                   onClick={handleLocateNearest}
                   disabled={isLocating}
-                  className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white border border-[#e0e0e0] text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white hover:border-zinc-400 transition-colors"
                 >
                   {isLocating ? "Locating…" : userCoords ? "✓ Active" : "Detect GPS"}
                 </button>
@@ -362,12 +386,12 @@ export default function CustomerDashboard() {
 
               {/* Search */}
               <div className="relative flex items-center">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
                   <FiSearch className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Search parking or area..."
+                  placeholder={t("searchPlaceholder", "Search parking or area...")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pe-input pe-input-icon-left text-sm"
@@ -375,7 +399,7 @@ export default function CustomerDashboard() {
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#0a0a0a] z-10"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white z-10"
                   >
                     <FiX className="w-3.5 h-3.5" />
                   </button>
@@ -384,7 +408,7 @@ export default function CustomerDashboard() {
             </div>
 
             {/* Filter pills */}
-            <div className="px-4 py-2.5 border-b border-[#f0f0f0] flex items-center gap-1.5 overflow-x-auto">
+            <div className="px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-1.5 overflow-x-auto">
               {filters.map((f) => (
                 <button
                   key={f.id}
@@ -394,8 +418,8 @@ export default function CustomerDashboard() {
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
                     selectedFilter === f.id
-                      ? "bg-[#0a0a0a] text-white shadow-sm"
-                      : "bg-[#f0f0f0] text-[#545454] hover:bg-[#e0e0e0]"
+                      ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 shadow-sm font-bold"
+                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
                   {f.label}
@@ -413,9 +437,9 @@ export default function CustomerDashboard() {
                 </>
               ) : filteredParking.length === 0 ? (
                 <div className="text-center py-12">
-                  <FiMapPin className="w-8 h-8 mx-auto text-[#d0d0d0] mb-3" />
-                  <p className="text-sm font-semibold text-[#0a0a0a]">No parking found</p>
-                  <p className="text-xs text-[#737373] mt-1">Try adjusting your filters or search</p>
+                  <FiMapPin className="w-8 h-8 mx-auto text-zinc-400 mb-3" />
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("noDataFound", "No parking found")}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Try adjusting your filters or search</p>
                   <button
                     onClick={() => { setSearch(""); setSelectedFilter("ALL"); }}
                     className="mt-3 text-xs text-[#276ef1] font-semibold hover:underline"
@@ -438,9 +462,9 @@ export default function CustomerDashboard() {
             </div>
 
             {/* Footer stat */}
-            <div className="px-4 py-3 border-t border-[#f0f0f0] flex items-center justify-between">
-              <span className="text-xs text-[#a0a0a0] font-medium">
-                {filteredParking.length} facility{filteredParking.length !== 1 ? "ies" : ""} verified
+            <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs text-zinc-400 font-medium">
+                {filteredParking.length} {t("totalFacilities", "facilities")} {t("approved", "verified")}
               </span>
               <div className="flex items-center gap-1.5">
                 <FiShield className="w-3.5 h-3.5 text-[#05944f]" />
@@ -450,7 +474,7 @@ export default function CustomerDashboard() {
           </div>
 
           {/* RIGHT: MAP */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden min-h-[520px]">
+          <div className="lg:col-span-7 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[520px]">
             <ParkingMapView
               parkingLocations={filteredParking}
               userCoords={userCoords}

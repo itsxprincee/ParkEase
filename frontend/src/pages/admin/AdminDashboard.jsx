@@ -22,12 +22,16 @@ import { StatCard } from "../../components/Card";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 
 function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white dark:bg-zinc-900 text-[#e11900] border-red-200 dark:border-red-900/50" : "bg-white dark:bg-zinc-900 text-[#05944f] border-green-200 dark:border-green-900/50"}`}>
         {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
         {toast.message}
       </div>
@@ -36,6 +40,8 @@ function Toast({ toast }) {
 }
 
 export default function AdminDashboard() {
+  const { t, currentLanguage } = useLanguage();
+  const { theme } = useTheme();
   const [parkingList, setParkingList] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [loading, setLoading] = useState(true);
@@ -129,7 +135,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
       <SaaSNavbar />
       <Toast toast={toast} />
 
@@ -140,49 +146,55 @@ export default function AdminDashboard() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Badge variant="purple" dot>Super Admin</Badge>
-              <span className="text-xs text-[#a0a0a0] font-medium">Facility Verification</span>
+              <span className="text-xs text-zinc-400 font-medium">Facility Verification</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">
-              Verification Command Center
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+              {t("commandCenter", "Verification Command Center")}
             </h1>
-            <p className="text-sm text-[#737373] mt-1">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
               Review owner submissions and grant live booking permissions.
             </p>
           </div>
-          <Button
-            variant="outline"
-            icon={FiRefreshCw}
-            loading={refreshing}
-            onClick={() => loadData(true)}
-          >
-            Sync Queue
-          </Button>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
+              <LanguageSwitcher />
+              <ThemeSwitcher />
+            </div>
+            <Button
+              variant="outline"
+              icon={FiRefreshCw}
+              loading={refreshing}
+              onClick={() => loadData(true)}
+            >
+              Sync Queue
+            </Button>
+          </div>
         </div>
 
         {/* STAT CARDS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Pending"
+            title={t("pending", "Pending")}
             value={stats.pending ?? parkingList.filter((i) => (i.verification_status || "PENDING").toUpperCase() === "PENDING").length}
             subtitle="Needs review"
             icon={FiClock}
-            iconBg="bg-[#fffbeb]"
+            iconBg="bg-amber-50 dark:bg-amber-950/40"
             iconColor="text-[#f5a623]"
           />
           <StatCard
-            title="Approved"
+            title={t("approved", "Approved")}
             value={stats.approved ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "APPROVED").length}
             subtitle="Live on platform"
             icon={FiCheckCircle}
-            iconBg="bg-[#f0fdf4]"
+            iconBg="bg-emerald-50 dark:bg-emerald-950/40"
             iconColor="text-[#05944f]"
           />
           <StatCard
-            title="Rejected"
+            title={t("rejected", "Rejected")}
             value={stats.rejected ?? parkingList.filter((i) => (i.verification_status || "").toUpperCase() === "REJECTED").length}
             subtitle="Denied compliance"
             icon={FiXCircle}
-            iconBg="bg-[#fef2f2]"
+            iconBg="bg-red-50 dark:bg-red-950/40"
             iconColor="text-[#e11900]"
           />
           <StatCard
@@ -190,24 +202,24 @@ export default function AdminDashboard() {
             value={stats.total ?? parkingList.length}
             subtitle="All applications"
             icon={FiShield}
-            iconBg="bg-[#f0f4ff]"
+            iconBg="bg-blue-50 dark:bg-blue-950/40"
             iconColor="text-[#276ef1]"
           />
         </div>
 
         {/* SEARCH & TABS */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-1 bg-[#e8e8e8] p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
+          <div className="flex items-center gap-1 bg-zinc-200/70 dark:bg-zinc-850 p-1 rounded-xl overflow-x-auto w-full sm:w-auto">
             {[
-              { id: "pending", label: "Pending" },
-              { id: "approved", label: "Approved" },
-              { id: "rejected", label: "Rejected" },
-              { id: "all", label: "All" },
+              { id: "pending", label: t("pending", "Pending") },
+              { id: "approved", label: t("approved", "Approved") },
+              { id: "rejected", label: t("rejected", "Rejected") },
+              { id: "all", label: t("filterAll", "All") },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${activeTab === tab.id ? "bg-white text-[#0a0a0a] shadow-sm" : "text-[#737373] hover:text-[#0a0a0a]"}`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${activeTab === tab.id ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm font-bold" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"}`}
               >
                 {tab.label}
               </button>

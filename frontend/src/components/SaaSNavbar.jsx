@@ -131,7 +131,7 @@ export default function SaaSNavbar() {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 transition-all duration-200 ${
+        className={`sticky top-0 z-[1000] transition-all duration-200 ${
           scrolled
             ? "bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-800 shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
             : "bg-zinc-950 border-b border-zinc-900"

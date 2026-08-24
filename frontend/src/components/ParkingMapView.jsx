@@ -144,24 +144,24 @@ export default function ParkingMapView({
   }, []);
 
   return (
-    <div className="relative w-full h-[540px] lg:h-[620px] rounded-2xl overflow-hidden bg-neutral-100">
+    <div className="relative isolate z-0 w-full h-[540px] lg:h-[620px] rounded-3xl overflow-hidden bg-neutral-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
       {/* FLOATING MAP CONTROLS */}
-      <div className="absolute top-4 left-4 right-4 z-[400] flex items-center justify-between pointer-events-none">
+      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
           <button
             type="button"
             onClick={onLocateUser}
             disabled={isLocating}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-black shadow-sm transition active:scale-95 disabled:opacity-50 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-black shadow-md transition active:scale-95 disabled:opacity-50 ${
               userCoords
-                ? "bg-black text-white border-black"
-                : "bg-white text-black border-neutral-200 hover:border-black"
+                ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white"
+                : "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-white"
             }`}
           >
-            <FiCompass className={`w-4 h-4 ${isLocating ? "animate-spin" : ""}`} />
+            <FiCompass className={`w-4 h-4 ${isLocating ? "animate-spin text-blue-500" : ""}`} />
             <span>{isLocating ? "Locating..." : userCoords ? "📍 GPS Active" : "📍 Find Nearest"}</span>
           </button>
-          <span className="hidden sm:inline-flex px-3 py-2 rounded-2xl bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold border border-white/10 shadow-lg">
+          <span className="hidden sm:inline-flex px-3 py-2 rounded-xl bg-zinc-900/90 dark:bg-zinc-800/90 backdrop-blur-md text-white text-xs font-bold border border-white/10 shadow-md">
             🗺️ {parkingLocations.length} Lots Live
           </span>
         </div>
@@ -175,7 +175,7 @@ export default function ParkingMapView({
                   setSelectedParking(null);
                 }
               }}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-md text-indigo-700 text-xs font-bold border border-slate-200 shadow-lg hover:bg-slate-50 transition"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md text-zinc-900 dark:text-white text-xs font-bold border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
               title="Center Map on My Location"
             >
               <span>🚗 Center on Me</span>
@@ -189,7 +189,7 @@ export default function ParkingMapView({
                 const nearest = parkingLocations.find((p) => p.id === nearestParkingId);
                 if (nearest) setSelectedParking(nearest);
               }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-xs font-extrabold shadow-xl hover:shadow-indigo-500/25 transition active:scale-95"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-extrabold shadow-md hover:shadow-blue-500/25 transition active:scale-95"
             >
               <span>⚡ Jump to Nearest</span>
               <FiArrowRight />
@@ -310,23 +310,23 @@ export default function ParkingMapView({
 
       {/* SELECTED PARKING BOTTOM PREVIEW CARD ON MAP */}
       {selectedParking && (
-        <div className="absolute bottom-4 left-4 right-4 z-[400] max-w-lg mx-auto animate-slide-up">
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-neutral-200 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="absolute bottom-4 left-4 right-4 z-30 max-w-lg mx-auto animate-slide-up">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center font-black text-2xl shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-black text-2xl shrink-0">
                 {selectedParking.has_ev ? "⚡" : "🚗"}
               </div>
 
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-emerald-600">
+                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
                     {selectedParking.available_slots ?? 12} spots free
                   </span>
                 </div>
-                <h4 className="text-sm font-black text-black mt-0.5 line-clamp-1">
+                <h4 className="text-sm font-black text-zinc-900 dark:text-white mt-0.5 line-clamp-1">
                   {selectedParking.name}
                 </h4>
-                <p className="text-xs text-neutral-500 line-clamp-1 font-medium">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 font-medium">
                   {selectedParking.address || selectedParking.location || "City Location"}
                 </p>
               </div>
@@ -341,7 +341,7 @@ export default function ParkingMapView({
                     "_blank"
                   )
                 }
-                className="p-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black transition"
+                className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white transition"
                 title="Google Maps Navigation"
               >
                 <FiNavigation className="w-4 h-4" />
@@ -350,7 +350,7 @@ export default function ParkingMapView({
               <button
                 type="button"
                 onClick={() => onBookParking && onBookParking(selectedParking)}
-                className="flex-1 sm:flex-initial py-3 px-5 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition flex items-center justify-center gap-2 shadow-sm"
+                className="flex-1 sm:flex-initial py-3 px-5 rounded-xl bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-black transition flex items-center justify-center gap-2 shadow-sm"
               >
                 <span>Reserve {(selectedParking.hourly_rate ?? -1) === 0 ? "FREE" : `₹${selectedParking.hourly_rate ?? 50}/hr`}</span>
                 <FiArrowRight className="w-3.5 h-3.5" />

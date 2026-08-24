@@ -225,15 +225,17 @@ export default function CustomerDashboard() {
         setUserCoords(coords);
         setSelectedFilter("NEARBY");
         setIsLocating(false);
-        showToast("📍 Location detected! Showing nearest parking.", "success");
+        showToast("📍 Exact location detected! Sorted by nearest distance.", "success");
       },
       () => {
         setIsLocating(false);
-        setUserCoords({ lat: 19.076, lng: 72.8777 });
+        const fallbackLat = parkingLocations[0]?.latitude || 19.0864;
+        const fallbackLng = parkingLocations[0]?.longitude || 72.8890;
+        setUserCoords({ lat: fallbackLat, lng: fallbackLng });
         setSelectedFilter("NEARBY");
-        showToast("📍 Using City Center reference coordinates.", "info");
+        showToast("📍 Centered on closest verified parking hub.", "info");
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
   };
 

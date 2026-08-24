@@ -337,12 +337,6 @@ export default function CustomerDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Quick dashboard switcher pills */}
-            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1 rounded-2xl shadow-xs">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
-            </div>
-
             {latestActive && (
               <button
                 onClick={() =>

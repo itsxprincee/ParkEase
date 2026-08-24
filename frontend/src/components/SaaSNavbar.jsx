@@ -181,16 +181,6 @@ export default function SaaSNavbar() {
             {/* RIGHT ACTIONS */}
             <div className="flex items-center gap-2">
 
-              {/* QUICK LANGUAGE SWITCHER */}
-              <div className="hidden sm:block">
-                <LanguageSwitcher />
-              </div>
-
-              {/* QUICK THEME SWITCHER */}
-              <div className="hidden sm:block">
-                <ThemeSwitcher />
-              </div>
-
               {/* NOTIFICATION BELL */}
               <div className="relative" ref={notifRef}>
                 <button

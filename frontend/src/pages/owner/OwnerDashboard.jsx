@@ -229,13 +229,8 @@ export default function OwnerDashboard() {
             </p>
           </div>
 
-          {/* Quick Actions & Switchers */}
+          {/* Quick Actions */}
           <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-            <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
-            </div>
-
             <button
               onClick={() => loadOwnerData(true)}
               disabled={refreshing}

@@ -156,10 +156,6 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
-            </div>
             <Button
               variant="outline"
               icon={FiRefreshCw}

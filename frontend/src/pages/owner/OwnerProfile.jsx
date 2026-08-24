@@ -165,10 +165,10 @@ export default function OwnerProfile() {
             })}
           </div>
 
-          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <h4 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-2">
+          <div className="notranslate pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <h4 className="notranslate text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-2">
               <FiGlobe className="w-4 h-4 text-emerald-500" />
-              {t("selectLanguage", "Indian Languages (भारतीय भाषाएं)")}
+              Indian Languages (Default: English)
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {LANGUAGES.map((lang) => {

@@ -263,7 +263,7 @@ export default function Profile() {
         <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
           {[
             { id: "PROFILE", label: "Profile & Contact", icon: FiUser },
-            { id: "PREFERENCES", label: `${t("appearance", "Mode & Language")} (${currentLanguage.native})`, icon: FiSliders },
+            { id: "PREFERENCES", label: `Mode & Language (${currentLanguage.name})`, icon: FiSliders },
             { id: "VEHICLES", label: `My Fleet (${vehicles.length})`, icon: FiTruck },
             { id: "SECURITY", label: "Security & Access", icon: FiShield },
           ].map((tab) => {
@@ -395,19 +395,19 @@ export default function Profile() {
             </div>
 
             {/* Indian Languages Card */}
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
+            <div className="notranslate bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
               <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
                     <FiGlobe className="w-5 h-5 text-emerald-500" />
-                    {t("selectLanguage", "Indian Languages (भारतीय भाषाएं)")}
+                    Indian Languages
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Select your preferred Indian regional or national language for all dashboards
+                    Select your preferred language (Default: English)
                   </p>
                 </div>
                 <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">
-                  {currentLanguage.flag} {currentLanguage.native}
+                  {currentLanguage.flag} {currentLanguage.native} ({currentLanguage.name})
                 </span>
               </div>
 

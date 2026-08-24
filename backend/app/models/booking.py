@@ -6,7 +6,8 @@ from sqlalchemy import (
     String,
     ForeignKey,
     DateTime,
-    Float
+    Float,
+    Boolean
 )
 from sqlalchemy.orm import relationship
 

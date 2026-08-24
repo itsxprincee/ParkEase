@@ -543,3 +543,34 @@
   border-color: #ffffff;
   color: #0a0a0a;
 }
+
+/* =====================================================
+   GOOGLE TRANSLATE SEAMLESS ENGINE OVERRIDES
+   ===================================================== */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element,
+.skiptranslate:not(.allowed-translate) {
+  display: none !important;
+}

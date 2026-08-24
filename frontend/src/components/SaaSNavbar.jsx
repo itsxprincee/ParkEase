@@ -200,33 +200,16 @@ export default function SaaSNavbar() {
                       <span className="w-2 h-2 rounded-full bg-[#05944f]" />
                     </div>
                     <div className="divide-y divide-zinc-50 dark:divide-zinc-800/50">
-                      {[
-                        {
-                          icon: FiCheckCircle,
-                          title: t("systemOnline", "System Online"),
-                          desc: t("realtimeSync", "Real-time slot sync is active."),
-                          time: "Just now",
-                          color: "text-[#05944f]",
-                        },
-                        {
-                          icon: FiZap,
-                          title: "Multi-Language Active",
-                          desc: `${currentLanguage.native} (${currentLanguage.name}) enabled.`,
-                          time: "1m ago",
-                          color: "text-[#276ef1]",
-                        },
-                      ].map((n, i) => (
-                        <div key={i} className="px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                          <div className="flex items-start gap-3">
-                            <n.icon className={`w-4 h-4 mt-0.5 shrink-0 ${n.color}`} />
-                            <div>
-                              <p className="text-xs font-semibold text-zinc-900 dark:text-white">{n.title}</p>
-                              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{n.desc}</p>
-                              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">{n.time}</p>
-                            </div>
+                      <div className="px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <FiCheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-[#05944f]" />
+                          <div>
+                            <p className="text-xs font-semibold text-zinc-900 dark:text-white">System Online</p>
+                            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">Real-time slot sync is active.</p>
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">Just now</p>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -261,13 +244,13 @@ export default function SaaSNavbar() {
                     </div>
 
                     {/* Quick Mode Switcher in Profile Menu */}
-                    <div className="px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">
+                    <div className="notranslate px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="notranslate text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
                           <FiSliders className="w-3 h-3 text-blue-500" />
-                          {t("appearance", "Mode & Theme")}
+                          Mode & Theme
                         </span>
-                        <span className="text-[10px] text-zinc-400 capitalize font-medium">{theme}</span>
+                        <span className="notranslate text-[10px] text-zinc-400 capitalize font-medium">{theme}</span>
                       </div>
                       <div className="grid grid-cols-4 gap-1">
                         {THEMES.map((tItem) => {
@@ -276,7 +259,7 @@ export default function SaaSNavbar() {
                             <button
                               key={tItem.id}
                               onClick={() => setTheme(tItem.id)}
-                              className={`py-1.5 px-1 rounded-lg text-center transition-all ${
+                              className={`notranslate py-1.5 px-1 rounded-lg text-center transition-all ${
                                 isActive
                                   ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 font-bold shadow-xs"
                                   : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
@@ -291,11 +274,11 @@ export default function SaaSNavbar() {
                     </div>
 
                     {/* Quick Language Selector in Profile Menu */}
-                    <div className="px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+                    <div className="notranslate px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="notranslate text-[11px] font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
                           <FiGlobe className="w-3 h-3 text-emerald-500" />
-                          {t("language", "Language / भाषा")}
+                          Language
                         </span>
                       </div>
                       <div className="pt-0.5">

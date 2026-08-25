@@ -17,13 +17,11 @@ import {
   FiLogOut,
   FiClock,
   FiActivity,
-  FiUser,
-  FiArrowRight,
   FiCheck,
-  FiTrendingUp,
-  FiBarChart2,
-  FiShield,
   FiTruck,
+  FiBarChart2,
+  FiTrendingUp,
+  FiUser,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -32,10 +30,7 @@ import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { useLanguage } from "../../context/LanguageContext";
-import { useTheme } from "../../context/ThemeContext";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -61,8 +56,7 @@ function Toast({ toast }) {
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
-  const { t, currentLanguage } = useLanguage();
-  const { theme } = useTheme();
+  const { t } = useLanguage();
 
   const [dashboardData, setDashboardData] = useState(null);
   const [parkingList, setParkingList] = useState([]);
@@ -70,7 +64,7 @@ export default function OwnerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
 
-  // Active view: 'VEHICLES' (Live Gate Feed) | 'FACILITIES' | 'ANALYTICS'
+  // Active View Tab: 'VEHICLES' | 'FACILITIES' | 'ANALYTICS'
   const [activeTab, setActiveTab] = useState("VEHICLES");
   const [vehicleFilter, setVehicleFilter] = useState("ALL"); // 'ALL' | 'INSIDE' | 'BOOKED' | 'EXITED'
   const [selectedFacility, setSelectedFacility] = useState("ALL");
@@ -163,7 +157,6 @@ export default function OwnerDashboard() {
   const availableSlots = dashboardData?.available_slots ?? Math.max(0, totalSlots - enteredCount - bookedCount);
   const totalRevenue = dashboardData?.total_revenue ?? 0;
   const todayRevenue = dashboardData?.today_revenue ?? 0;
-  const occupancyPercentage = totalSlots > 0 ? Math.round(((enteredCount + bookedCount) / totalSlots) * 100) : 0;
 
   // Filtered live vehicles feed
   const liveBookings = dashboardData?.live_bookings || [];
@@ -178,25 +171,25 @@ export default function OwnerDashboard() {
 
       if (search.trim()) {
         const q = search.toLowerCase();
-        const matches =
-          b.customer_name?.toLowerCase().includes(q) ||
-          b.vehicle_number?.toLowerCase().includes(q) ||
-          b.parking_name?.toLowerCase().includes(q) ||
-          b.slot_number?.toLowerCase().includes(q);
-        if (!matches) return false;
+        const matchPlate = b.vehicle_number && b.vehicle_number.toLowerCase().includes(q);
+        const matchDriver = b.customer_name && b.customer_name.toLowerCase().includes(q);
+        const matchSlot = b.slot_number && String(b.slot_number).toLowerCase().includes(q);
+        const matchFacility = b.parking_name && b.parking_name.toLowerCase().includes(q);
+        return matchPlate || matchDriver || matchSlot || matchFacility;
       }
       return true;
     });
   }, [liveBookings, selectedFacility, vehicleFilter, search]);
 
-  // Facilities list filter
+  // Filtered facilities
   const filteredFacilities = useMemo(() => {
-    return parkingList.filter((item) => {
+    return parkingList.filter((p) => {
+      if (!search.trim()) return true;
       const q = search.toLowerCase();
       return (
-        item.name?.toLowerCase().includes(q) ||
-        item.address?.toLowerCase().includes(q) ||
-        item.location?.toLowerCase().includes(q)
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.address && p.address.toLowerCase().includes(q)) ||
+        (p.location && p.location.toLowerCase().includes(q))
       );
     });
   }, [parkingList, search]);
@@ -206,38 +199,38 @@ export default function OwnerDashboard() {
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        
         {/* ========================================================================= */}
-        {/* SAAS TOP BAR & CONTROL CENTER                                             */}
+        {/* HEADER BAR                                                                */}
         {/* ========================================================================= */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-7 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1.5">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 p-6 sm:p-7 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {t("systemOnline", "Live Gate Sync Active")}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live System Active
               </span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:inline">
-                · {parkingList.length} {t("totalFacilities", "Active Facilities")}
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                · {parkingList.length} Facilities Online
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-              {t("dashboard", "Facility Operations Hub")}
+              Facility Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-              {t("realtimeSync", "Real-time vehicle check-in verification, occupancy meters, and smart gate controls.")}
+              Live gate operations, vehicle check-ins, and slot occupancy.
             </p>
           </div>
 
-          {/* Quick Actions */}
           <div className="flex items-center gap-2.5 flex-wrap shrink-0">
             <button
               onClick={() => loadOwnerData(true)}
               disabled={refreshing}
-              className="p-2.5 sm:p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all shadow-xs"
-              title="Refresh live stream"
+              className="p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white transition-all shadow-xs active:scale-95"
+              title="Refresh Data"
             >
-              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400"}`} />
+              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-blue-600" : "text-zinc-500 dark:text-zinc-400"}`} />
             </button>
             <Button
               variant="outline"
@@ -245,22 +238,23 @@ export default function OwnerDashboard() {
               icon={FiCamera}
               onClick={() => navigate("/owner/scan-qr")}
             >
-              {t("scanPass", "Scan Pass")}
+              Scan Pass
             </Button>
             <Button
               size="md"
               icon={FiPlus}
               onClick={() => navigate("/owner/add-parking")}
             >
-              {t("addFacility", "Add Facility")}
+              Add Facility
             </Button>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* EXECUTIVE KPI RIBBON (4 STRIPE/LINEAR STYLE CARDS)                        */}
+        {/* 4 SUMMARY STAT CARDS                                                      */}
         {/* ========================================================================= */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">          {/* 1. Active Inside */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Card 1 */}
           <div
             onClick={() => {
               setActiveTab("VEHICLES");
@@ -268,33 +262,27 @@ export default function OwnerDashboard() {
             }}
             className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
               activeTab === "VEHICLES" && vehicleFilter === "INSIDE"
-                ? "border-[#05944f] ring-4 ring-[#05944f]/10 shadow-sm"
+                ? "border-emerald-500 ring-4 ring-emerald-500/10 shadow-sm"
                 : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Parked (Inside)
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                Parked Inside
               </span>
-              <div className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#05944f] flex items-center justify-center font-bold">
-                <FiLogIn className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center font-bold">
+                <FiLogIn className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
+            <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{enteredCount}</span>
-              <span className="text-xs font-bold text-[#05944f] bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
-                Active Inside
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                Active
               </span>
-            </div>
-            <div className="mt-3 w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-[#05944f] h-full rounded-full transition-all duration-500"
-                style={{ width: `${totalSlots > 0 ? (enteredCount / totalSlots) * 100 : 0}%` }}
-              />
             </div>
           </div>
 
-          {/* 2. Booked (Awaiting) */}
+          {/* Card 2 */}
           <div
             onClick={() => {
               setActiveTab("VEHICLES");
@@ -302,33 +290,27 @@ export default function OwnerDashboard() {
             }}
             className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
               activeTab === "VEHICLES" && vehicleFilter === "BOOKED"
-                ? "border-[#276ef1] ring-4 ring-[#276ef1]/10 shadow-sm"
+                ? "border-blue-500 ring-4 ring-blue-500/10 shadow-sm"
                 : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-xs"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Booked (Reserved)
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                Arriving Soon
               </span>
-              <div className="w-7 h-7 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#276ef1] flex items-center justify-center font-bold">
-                <FiClock className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center font-bold">
+                <FiClock className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
+            <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{bookedCount}</span>
-              <span className="text-xs font-bold text-[#276ef1] bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800">
-                Arriving
+              <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md">
+                Booked
               </span>
-            </div>
-            <div className="mt-3 w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-[#276ef1] h-full rounded-full transition-all duration-500"
-                style={{ width: `${totalSlots > 0 ? (bookedCount / totalSlots) * 100 : 0}%` }}
-              />
             </div>
           </div>
 
-          {/* 3. Available Slots */}
+          {/* Card 3 */}
           <div
             onClick={() => setActiveTab("FACILITIES")}
             className={`p-5 rounded-3xl border-2 transition-all cursor-pointer bg-white dark:bg-zinc-900 ${
@@ -338,99 +320,83 @@ export default function OwnerDashboard() {
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Available Bays
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                Available Slots
               </span>
-              <div className="w-7 h-7 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white flex items-center justify-center font-bold">
-                <FiLayers className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white flex items-center justify-center font-bold">
+                <FiLayers className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
+            <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">{availableSlots}</span>
-              <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">of {totalSlots}</span>
-            </div>
-            <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-              <span>Occupancy rate</span>
-              <span className="font-bold text-zinc-900 dark:text-white">{occupancyPercentage}%</span>
+              <span className="text-xs text-zinc-400">of {totalSlots} total</span>
             </div>
           </div>
 
-          {/* 4. Total Earnings */}
+          {/* Card 4 */}
           <div className="p-5 rounded-3xl bg-zinc-950 dark:bg-zinc-900 text-white border border-zinc-800 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                Gross Earnings
+              <span className="text-xs font-bold text-zinc-400">
+                Revenue
               </span>
-              <div className="w-7 h-7 rounded-xl bg-white/10 text-[#05944f] flex items-center justify-center font-bold">
-                <FiDollarSign className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-xl bg-white/10 text-emerald-400 flex items-center justify-center font-bold">
+                <FiDollarSign className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline gap-2">
+            <div className="mt-3 flex items-baseline gap-2">
               <span className="text-3xl font-black text-white tracking-tight">
                 ₹{totalRevenue.toLocaleString("en-IN")}
               </span>
-            </div>
-            <div className="mt-3 text-[11px] text-zinc-400 flex items-center justify-between font-medium">
-              <span>Today's volume</span>
-              <span className="font-bold text-white">₹{todayRevenue.toLocaleString("en-IN")}</span>
+              <span className="text-xs font-bold text-emerald-400">
+                +₹{todayRevenue} today
+              </span>
             </div>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* SAAS SEGMENTED TABS & FILTERS                                             */}
+        {/* TAB CONTROLS & FILTER BAR                                                 */}
         {/* ========================================================================= */}
         <div className="space-y-4">
           <div className="bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
-            {/* Segmented Tab Controls */}
+            
+            {/* Tab Pills */}
             <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
               <button
                 onClick={() => {
                   setActiveTab("VEHICLES");
                   setVehicleFilter("ALL");
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "VEHICLES"
                     ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
                     : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiActivity className="w-3.5 h-3.5 text-[#05944f]" />
-                <span>Live Feed ({liveBookings.length})</span>
+                <FiActivity className="w-4 h-4 text-emerald-500" />
+                <span>Live Gate Feed ({liveBookings.length})</span>
               </button>
 
               <button
                 onClick={() => setActiveTab("FACILITIES")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold transition-all ${
                   activeTab === "FACILITIES"
                     ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
                     : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiGrid className="w-3.5 h-3.5" />
-                <span>Facilities ({parkingList.length})</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab("ANALYTICS")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === "ANALYTICS"
-                    ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                }`}
-              >
-                <FiBarChart2 className="w-3.5 h-3.5 text-[#276ef1]" />
-                <span>Occupancy</span>
+                <FiGrid className="w-4 h-4 text-blue-500" />
+                <span>My Facilities ({parkingList.length})</span>
               </button>
             </div>
 
-            {/* Filter by facility & search */}
+            {/* Search & Facility Selector */}
             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              {activeTab === "VEHICLES" && (
+              {parkingList.length > 1 && (
                 <select
                   value={selectedFacility}
                   onChange={(e) => setSelectedFacility(e.target.value)}
-                  className="pe-input text-xs font-semibold py-2 px-3 sm:w-44 bg-[#f7f7f7] border-0"
+                  className="pe-input text-xs font-semibold py-2 px-3 sm:w-44 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl"
                 >
                   <option value="ALL">All Facilities</option>
                   {parkingList.map((p) => (
@@ -441,8 +407,8 @@ export default function OwnerDashboard() {
                 </select>
               )}
 
-              <div className="relative w-full sm:w-56">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#737373] pointer-events-none" />
+              <div className="relative w-full sm:w-60">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder={
@@ -452,32 +418,32 @@ export default function OwnerDashboard() {
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pe-input pe-input-icon-left text-xs bg-[#f7f7f7] border-0"
+                  className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl"
                 />
               </div>
             </div>
           </div>
 
           {/* ========================================================================= */}
-          {/* TAB 1: LIVE VEHICLE FEED (CLEAN SAAS ROWS)                                */}
+          {/* TAB 1: LIVE VEHICLES FEED (FULL WIDTH, SPACIOUS)                          */}
           {/* ========================================================================= */}
           {activeTab === "VEHICLES" && (
             <div className="space-y-3">
-              {/* Filter pills */}
+              {/* Quick Status Filter Pills */}
               <div className="flex items-center gap-2 flex-wrap">
                 {[
                   { id: "ALL", label: `All Vehicles (${liveBookings.length})` },
                   { id: "INSIDE", label: `🟢 Parked Inside (${enteredCount})` },
-                  { id: "BOOKED", label: `🔵 Booked / Arriving (${bookedCount})` },
-                  { id: "EXITED", label: `✅ Completed Exits` },
+                  { id: "BOOKED", label: `🔵 Arriving Soon (${bookedCount})` },
+                  { id: "EXITED", label: `✅ Exited` },
                 ].map((chip) => (
                   <button
                     key={chip.id}
                     onClick={() => setVehicleFilter(chip.id)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
                       vehicleFilter === chip.id
-                        ? "bg-[#0a0a0a] text-white shadow-xs"
-                        : "bg-white text-[#545454] border border-[#e0e0e0] hover:border-[#a0a0a0]"
+                        ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
+                        : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700"
                     }`}
                   >
                     {chip.label}
@@ -485,7 +451,7 @@ export default function OwnerDashboard() {
                 ))}
               </div>
 
-              {/* Feed items */}
+              {/* Vehicle Items */}
               {loading ? (
                 <div className="space-y-3">
                   <CardSkeleton />
@@ -493,16 +459,16 @@ export default function OwnerDashboard() {
                 </div>
               ) : filteredBookings.length === 0 ? (
                 <EmptyState
-                  icon={FiActivity}
-                  title="No vehicle activity"
+                  icon={FiTruck}
+                  title="No vehicle activity right now"
                   description={
                     liveBookings.length === 0
-                      ? "No driver bookings yet. When drivers reserve slots or scan gate passes, real-time cards with check-in/out controls will appear here."
-                      : "No vehicles match the selected filter."
+                      ? "No vehicles are booked or checked in yet. When drivers reserve slots, they will appear here with 1-click Check In and Check Out buttons."
+                      : "No vehicles match the selected search or status filter."
                   }
                 />
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {filteredBookings.map((b) => {
                     const isEntered = b.is_entered;
                     const isBooked = b.is_booked;
@@ -511,38 +477,30 @@ export default function OwnerDashboard() {
                     return (
                       <div
                         key={b.id}
-                        className="p-4 sm:p-5 rounded-2xl bg-white border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:border-[#a0a0a0] transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs hover:border-zinc-400 dark:hover:border-zinc-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
                       >
-                        {/* Vehicle plate + Driver details */}
+                        {/* Vehicle details */}
                         <div className="flex items-center gap-4 min-w-0">
-                          <div
-                            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
-                              isEntered
-                                ? "bg-[#f0fdf4] text-[#05944f] border-[#86efac]"
-                                : isBooked
-                                ? "bg-[#f0f4ff] text-[#276ef1] border-[#bfdbfe]"
-                                : "bg-[#f0f0f0] text-[#545454] border-[#e0e0e0]"
-                            }`}
-                          >
-                            {isEntered ? <FiLogIn className="w-5 h-5" /> : isBooked ? <FiClock className="w-5 h-5" /> : <FiCheck className="w-5 h-5" />}
+                          {/* License Plate Badge */}
+                          <div className="license-plate text-xs shrink-0 shadow-xs">
+                            <span className="license-plate-ind">IND</span>
+                            <span className="font-mono font-black">{b.vehicle_number}</span>
                           </div>
 
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-base font-black font-mono tracking-tight bg-[#0a0a0a] text-white px-2.5 py-0.5 rounded-lg">
-                                {b.vehicle_number}
-                              </span>
-                              <span className="text-xs font-bold text-[#0a0a0a] bg-[#f0f0f0] px-2 py-0.5 rounded-md">
+                              <span className="text-xs font-black text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-md">
                                 Slot {b.slot_number}
                               </span>
-                              <span className="text-xs text-[#737373] font-medium">
+                              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                                {b.customer_name}
+                              </span>
+                              <span className="text-xs text-zinc-400">
                                 ({b.vehicle_type || "Car"})
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-2 text-xs text-[#737373] flex-wrap">
-                              <span className="font-bold text-[#0a0a0a]">{b.customer_name}</span>
-                              <span>·</span>
+                            <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
                               <span className="truncate max-w-xs">{b.parking_name}</span>
                               <span>·</span>
                               <span>{b.start_time} - {b.end_time}</span>
@@ -550,74 +508,50 @@ export default function OwnerDashboard() {
                           </div>
                         </div>
 
-                        {/* Status + 1-Click Action Buttons */}
+                        {/* Status & 1-Click Gate Action */}
                         <div className="flex items-center gap-3 self-end md:self-center shrink-0 flex-wrap">
-                          {b.pass_type === "DAILY_PASS" && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#f0fdf4] text-[#05944f] text-[11px] font-bold border border-[#86efac]">
-                              🎟️ Day Pass (Entry #{b.entry_count || 1}) · Curfew {b.last_exit_rule || "11:00 PM"}
-                            </span>
-                          )}
-
                           {isEntered && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f0fdf4] text-[#05944f] text-xs font-black border border-[#86efac]">
-                              <span className="w-2 h-2 rounded-full bg-[#05944f] animate-pulse" />
-                              Parked Inside
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              Inside Bay
                             </span>
                           )}
 
                           {isBooked && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f0f4ff] text-[#276ef1] text-xs font-black border border-[#bfdbfe]">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-800">
                               <FiClock className="w-3.5 h-3.5" />
-                              Booked (Arriving)
-                            </span>
-                          )}
-
-                          {!isEntered && !isBooked && b.pass_type === "DAILY_PASS" && b.status === "ACTIVE" && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fffbeb] text-[#b45309] text-xs font-bold border border-[#fde68a]">
-                              ⚪ Out (Pass Active)
+                              Arriving
                             </span>
                           )}
 
                           {isCompleted && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f0f0f0] text-[#737373] text-xs font-semibold">
-                              <FiCheck className="w-3.5 h-3.5 text-[#05944f]" />
-                              Completed Exit
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-semibold">
+                              <FiCheck className="w-3.5 h-3.5 text-emerald-500" />
+                              Exited
                             </span>
                           )}
 
-                          {/* 1-Click Entry / Re-Entry Button */}
-                          {(isBooked || (!isEntered && b.pass_type === "DAILY_PASS" && b.status === "ACTIVE")) && (
+                          {/* 1-Click Check In */}
+                          {isBooked && (
                             <button
                               onClick={() => handleMarkEntry(b.id)}
                               disabled={actionLoading[b.id] === "entry"}
-                              className="px-4 py-2 rounded-xl bg-[#0a0a0a] hover:bg-[#262626] disabled:opacity-50 text-white text-xs font-black transition-colors shadow-xs flex items-center gap-1.5"
+                              className="px-4 py-2 rounded-xl bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-50 text-white dark:text-zinc-950 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
                             >
-                              <FiLogIn className="w-3.5 h-3.5 text-[#05944f]" />
-                              <span>
-                                {actionLoading[b.id] === "entry"
-                                  ? "Checking in..."
-                                  : b.entry_count > 0
-                                  ? "Re-Enter Vehicle"
-                                  : "Check In Vehicle"}
-                              </span>
+                              <FiLogIn className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>{actionLoading[b.id] === "entry" ? "Checking In..." : "Check In"}</span>
                             </button>
                           )}
 
-                          {/* 1-Click Exit Button */}
+                          {/* 1-Click Check Out */}
                           {isEntered && (
                             <button
                               onClick={() => handleMarkExit(b.id)}
                               disabled={actionLoading[b.id] === "exit"}
-                              className="px-4 py-2 rounded-xl bg-[#e11900] hover:bg-[#c51500] disabled:opacity-50 text-white text-xs font-black transition-colors shadow-xs flex items-center gap-1.5"
+                              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
                             >
                               <FiLogOut className="w-3.5 h-3.5" />
-                              <span>
-                                {actionLoading[b.id] === "exit"
-                                  ? "Checking out..."
-                                  : b.pass_type === "DAILY_PASS"
-                                  ? "Temporary Exit"
-                                  : "Check Out Vehicle"}
-                              </span>
+                              <span>{actionLoading[b.id] === "exit" ? "Checking Out..." : "Check Out"}</span>
                             </button>
                           )}
                         </div>
@@ -630,7 +564,7 @@ export default function OwnerDashboard() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 2: FACILITY HUB (CLEAN DECK CARDS)                                   */}
+          {/* TAB 2: MY FACILITIES (CLEAN 3-COL GRID)                                   */}
           {/* ========================================================================= */}
           {activeTab === "FACILITIES" && (
             <div className="space-y-4">
@@ -643,8 +577,8 @@ export default function OwnerDashboard() {
               ) : filteredFacilities.length === 0 ? (
                 <EmptyState
                   icon={FiGrid}
-                  title="No facilities found"
-                  description="List your parking facility to start receiving automated bookings and digital pass verification."
+                  title="No facilities listed"
+                  description="List your parking lot to start accepting digital bookings and QR gate passes."
                   actionLabel="Add Facility"
                   onAction={() => navigate("/owner/add-parking")}
                 />
@@ -654,21 +588,15 @@ export default function OwnerDashboard() {
                     const status = (p.verification_status || p.status || "PENDING").toUpperCase();
                     const isApproved = status === "APPROVED" || Boolean(p.is_approved);
                     const isRejected = status === "REJECTED";
-                    const total = p.total_slots || 20;
                     const isFree = (p.hourly_rate ?? -1) === 0;
-
-                    const breakdown = dashboardData?.facilities?.find((f) => f.id === p.id);
-                    const facilityEntered = breakdown?.entered_count ?? 0;
-                    const facilityBooked = breakdown?.booked_count ?? 0;
-                    const facilityAvailable = breakdown?.available_slots ?? Math.max(0, total - facilityEntered - facilityBooked);
 
                     return (
                       <div
                         key={p.id}
-                        className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:border-[#a0a0a0] transition-all overflow-hidden flex flex-col group"
+                        className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xs hover:border-zinc-400 dark:hover:border-zinc-700 transition-all overflow-hidden flex flex-col group"
                       >
-                        {/* Image */}
-                        <div className="relative h-44 bg-[#0a0a0a] overflow-hidden">
+                        {/* Image banner */}
+                        <div className="relative h-40 bg-zinc-950 overflow-hidden">
                           {p.image_url || p.image ? (
                             <img
                               src={p.image_url || p.image}
@@ -676,9 +604,9 @@ export default function OwnerDashboard() {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0a0a0a] to-[#1a1a2e]">
-                              <FiGrid className="w-8 h-8 text-[#545454] mb-2" />
-                              <span className="text-xs font-semibold text-[#737373]">Parking Facility</span>
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-950">
+                              <FiGrid className="w-8 h-8 text-zinc-600 mb-1" />
+                              <span className="text-xs font-semibold text-zinc-400">Parking Facility</span>
                             </div>
                           )}
 
@@ -690,7 +618,7 @@ export default function OwnerDashboard() {
                             >
                               {isApproved ? "Active" : isRejected ? "Rejected" : "In Review"}
                             </Badge>
-                            <span className="px-2.5 py-1 rounded-full text-xs font-black bg-black/70 text-white backdrop-blur-md border border-white/20">
+                            <span className="px-2.5 py-1 rounded-full text-xs font-black bg-black/80 text-white backdrop-blur-md border border-white/20">
                               {isFree ? "FREE" : `₹${p.hourly_rate ?? 50}/hr`}
                             </span>
                           </div>
@@ -699,22 +627,20 @@ export default function OwnerDashboard() {
                         {/* Content */}
                         <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                           <div>
-                            <h3 className="font-bold text-base text-[#0a0a0a] line-clamp-1">{p.name}</h3>
-                            <p className="text-xs text-[#737373] flex items-start gap-1 mt-1 line-clamp-1">
-                              <FiMapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <h3 className="font-bold text-base text-zinc-900 dark:text-white line-clamp-1">{p.name}</h3>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-start gap-1 mt-1 line-clamp-1">
+                              <FiMapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-400" />
                               {p.address || p.location || "City Location"}
                             </p>
 
-                            {/* Occupancy pill */}
-                            <div className="mt-3.5 p-3 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0] flex items-center justify-between text-xs font-bold">
-                              <span className="text-[#05944f]">🟢 {facilityEntered} Inside</span>
-                              <span className="text-[#276ef1]">🔵 {facilityBooked} Booked</span>
-                              <span className="text-[#0a0a0a]">{facilityAvailable} Free</span>
+                            <div className="mt-3 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                              <span className="text-zinc-700 dark:text-zinc-300">Total Capacity:</span>
+                              <span className="text-zinc-900 dark:text-white">{p.total_slots || 12} Bays</span>
                             </div>
                           </div>
 
-                          {/* Action Buttons */}
-                          <div className="pt-2 border-t border-[#f0f0f0] space-y-2">
+                          {/* Quick Action Grid */}
+                          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 variant="secondary"
@@ -737,14 +663,14 @@ export default function OwnerDashboard() {
                             <div className="flex items-center justify-between pt-1">
                               <button
                                 onClick={() => navigate(`/owner/edit-parking/${p.id}`)}
-                                className="flex items-center gap-1 text-xs font-semibold text-[#545454] hover:text-[#0a0a0a]"
+                                className="flex items-center gap-1 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
                               >
                                 <FiEdit2 className="w-3 h-3" />
                                 Edit Info
                               </button>
                               <button
                                 onClick={() => setDeleteModal({ open: true, id: p.id, name: p.name })}
-                                className="flex items-center gap-1 text-xs font-semibold text-[#e11900] hover:text-[#c51500]"
+                                className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-700 transition-colors"
                               >
                                 <FiTrash2 className="w-3 h-3" />
                                 Remove
@@ -759,67 +685,6 @@ export default function OwnerDashboard() {
               )}
             </div>
           )}
-
-          {/* ========================================================================= */}
-          {/* TAB 3: OCCUPANCY & ANALYTICS MATRIX                                       */}
-          {/* ========================================================================= */}
-          {activeTab === "ANALYTICS" && (
-            <div className="bg-white rounded-3xl border border-[#e0e0e0] p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)] space-y-6">
-              <div>
-                <h3 className="text-base font-black text-[#0a0a0a] tracking-tight">
-                  Facility Utilization Breakdown
-                </h3>
-                <p className="text-xs text-[#737373] mt-0.5">
-                  Detailed distribution of parked, reserved, and available slot inventory across all decks.
-                </p>
-              </div>
-
-              <div className="divide-y divide-[#f0f0f0]">
-                {(dashboardData?.facilities || []).map((f) => {
-                  const tot = f.total_slots || 1;
-                  const enteredPct = Math.round((f.entered_count / tot) * 100);
-                  const bookedPct = Math.round((f.booked_count / tot) * 100);
-                  const availPct = Math.max(0, 100 - enteredPct - bookedPct);
-
-                  return (
-                    <div key={f.id} className="py-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-sm text-[#0a0a0a]">{f.name}</p>
-                          <p className="text-xs text-[#737373]">{f.address}</p>
-                        </div>
-                        <span className="text-xs font-black px-3 py-1 rounded-full bg-[#0a0a0a] text-white">
-                          {f.occupancy_rate}% Occupancy
-                        </span>
-                      </div>
-
-                      {/* Stacked bar */}
-                      <div className="w-full bg-[#f0f0f0] h-3 rounded-full overflow-hidden flex shadow-inner">
-                        <div
-                          className="bg-[#05944f] h-full transition-all duration-500"
-                          style={{ width: `${enteredPct}%` }}
-                          title={`${f.entered_count} inside`}
-                        />
-                        <div
-                          className="bg-[#276ef1] h-full transition-all duration-500"
-                          style={{ width: `${bookedPct}%` }}
-                          title={`${f.booked_count} booked`}
-                        />
-                      </div>
-
-                      {/* Legend */}
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#737373]">
-                        <span className="text-[#05944f]">🟢 {f.entered_count} Parked ({enteredPct}%)</span>
-                        <span className="text-[#276ef1]">🔵 {f.booked_count} Booked ({bookedPct}%)</span>
-                        <span className="text-[#0a0a0a]">⚡ {f.available_slots} Available ({availPct}%)</span>
-                        <span>Total: {f.total_slots} slots</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </main>
 
@@ -831,12 +696,12 @@ export default function OwnerDashboard() {
         maxWidth="max-w-sm"
       >
         <div className="text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#fef2f2] flex items-center justify-center mx-auto">
-            <FiTrash2 className="w-6 h-6 text-[#e11900]" />
+          <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto">
+            <FiTrash2 className="w-6 h-6 text-red-600" />
           </div>
           <div>
-            <p className="font-bold text-[#0a0a0a]">Delete "{deleteModal.name}"?</p>
-            <p className="text-sm text-[#737373] mt-1">
+            <p className="font-bold text-zinc-900 dark:text-white">Delete "{deleteModal.name}"?</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
               This will remove the facility and all associated parking slot records.
             </p>
           </div>

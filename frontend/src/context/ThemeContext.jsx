@@ -22,7 +22,7 @@ export function ThemeProvider({ children }) {
     return "light"; // Default to clean light background
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState("dark");
+  const [resolvedTheme, setResolvedTheme] = useState("light");
 
   useEffect(() => {
     const root = document.documentElement;

@@ -335,43 +335,40 @@ export default function CustomerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO SEARCH BANNER — JET BLACK OBSIDIAN SEARCH HUB
+            1. HERO SEARCH BANNER — VIBRANT EMERALD-CYAN GRADIENT
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-9 shadow-2xl border border-emerald-400/30">
           {/* Subtle Grid Accent */}
           <div
-            className="absolute inset-0 opacity-[0.04]"
+            className="absolute inset-0 opacity-[0.08]"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+                "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
               backgroundSize: "36px 36px",
             }}
           />
 
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          <div className="absolute top-0 right-1/4 w-80 h-32 bg-emerald-500/10 blur-3xl pointer-events-none" />
-
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>INSTANT PASS GENERATION</span>
+            <div className="space-y-3 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
+                <span>INSTANT DIGITAL PASS GENERATION</span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
                 Where are you parking, {getUserName().split(" ")[0]}?
               </h1>
-              <p className="text-zinc-400 text-xs sm:text-sm font-medium">
+              <p className="text-emerald-50 text-xs sm:text-sm font-medium">
                 Reserve verified parking bays with live QR entry passes and fast contactless gates.
               </p>
 
               {/* Quick Destination Shortcut Tags */}
               <div className="flex items-center gap-2 flex-wrap pt-2">
-                <span className="text-xs text-zinc-500 font-bold">Quick Search:</span>
+                <span className="text-xs text-emerald-100 font-bold">Quick Search:</span>
                 {destinationShortcuts.map((tag) => (
                   <button
                     key={tag.label}
                     onClick={() => setSearch(tag.query)}
-                    className="px-3 py-1 rounded-full text-xs font-bold bg-white/[0.08] hover:bg-white/[0.15] border border-white/10 text-zinc-200 transition-all active:scale-95 cursor-pointer"
+                    className="px-3.5 py-1 rounded-full text-xs font-black bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 cursor-pointer shadow-xs"
                   >
                     {tag.label}
                   </button>
@@ -381,24 +378,24 @@ export default function CustomerDashboard() {
 
             {/* Active Pass Banner (if user has an active booking) */}
             {latestActive && (
-              <div className="shrink-0 p-4.5 rounded-2xl bg-zinc-900/90 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex items-center justify-between gap-3 max-w-md">
+              <div className="shrink-0 p-5 rounded-3xl bg-white/15 border border-white/25 shadow-2xl backdrop-blur-2xl flex items-center justify-between gap-4 max-w-md text-white">
                 <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
                     <span>ACTIVE RESERVATION</span>
                   </div>
-                  <p className="text-xs font-bold text-white line-clamp-1">
+                  <p className="text-sm font-black text-white line-clamp-1">
                     {latestActive.parking_name || "ParkEase Facility"}
                   </p>
-                  <p className="text-[11px] text-zinc-400 font-mono">Bay #{latestActive.slot_number}</p>
+                  <p className="text-xs text-emerald-100 font-mono">Bay #{latestActive.slot_number}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setFindCarModalBooking(latestActive)}
-                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/10"
+                    className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/20"
                     title="Open Walking Compass & Radar"
                   >
-                    <FiCompass className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                    <FiCompass className="w-4 h-4 animate-spin-slow" />
                     <span>Find Car</span>
                   </button>
                   <button
@@ -407,7 +404,7 @@ export default function CustomerDashboard() {
                         state: { booking: latestActive },
                       })
                     }
-                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
                   >
                     Pass
                   </button>

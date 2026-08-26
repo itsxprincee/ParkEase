@@ -23,6 +23,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import MyBookings from "./pages/customer/MyBookings";
 import MyVehicles from "./pages/customer/MyVehicles";
+import Subscriptions from "./pages/customer/Subscriptions";
 import ParkingDetails from "./pages/customer/ParkingDetails";
 import BookParking from "./pages/customer/BookParking";
 import QRCode from "./pages/customer/QRCode";
@@ -91,6 +92,15 @@ function App() {
           element={
             <ProtectedRoute>
               <MyVehicles />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customer/subscriptions"
+          element={
+            <ProtectedRoute>
+              <Subscriptions />
             </ProtectedRoute>
           }
         />

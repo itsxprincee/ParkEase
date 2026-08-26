@@ -10,6 +10,13 @@ import {
   FiSearch,
   FiVolume2,
   FiVolumeX,
+  FiLogIn,
+  FiLogOut,
+  FiRefreshCw,
+  FiClock,
+  FiLayers,
+  FiUser,
+  FiRadio,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -20,9 +27,23 @@ function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
-        {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
-        {toast.message}
+      <div
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+          toast.type === "error"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+        }`}
+      >
+        {toast.type === "error" ? (
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
+        )}
+        <span>{toast.message}</span>
       </div>
     </div>
   );
@@ -70,7 +91,7 @@ export default function ScanQR() {
       scannerRef.current = scanner;
       await scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { fps: 12, qrbox: { width: 260, height: 260 } },
         async (decodedText) => {
           handleDecodedData(decodedText);
           stopScanner();
@@ -85,13 +106,20 @@ export default function ScanQR() {
 
   const stopScanner = async () => {
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); scannerRef.current.clear(); } catch (_) {}
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (_) {}
       scannerRef.current = null;
     }
     setScanning(false);
   };
 
-  useEffect(() => { return () => { stopScanner(); }; }, []);
+  useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, []);
 
   const handleDecodedData = async (rawString) => {
     let bookingId = rawString;
@@ -139,7 +167,7 @@ export default function ScanQR() {
       setActionLoading(true);
       const res = await API.post(`/booking/entry/${verifiedBooking.id}`);
       playChime("success");
-      showToast(res.data?.message || "✅ Vehicle checked in — barrier gate opened!", "success");
+      showToast(res.data?.message || "✅ Vehicle checked in & barrier opened!", "success");
       setVerifiedBooking((prev) => ({
         ...prev,
         status: "ACTIVE",
@@ -159,7 +187,7 @@ export default function ScanQR() {
       setActionLoading(true);
       const res = await API.post(`/booking/exit/${verifiedBooking.id}`);
       playChime("success");
-      showToast(res.data?.message || "✅ Vehicle check-out completed — slot released!", "success");
+      showToast(res.data?.message || "✅ Vehicle check-out completed & bay freed!", "success");
       if (verifiedBooking.pass_type === "DAILY_PASS") {
         setVerifiedBooking((prev) => ({
           ...prev,
@@ -181,61 +209,94 @@ export default function ScanQR() {
   };
 
   const isDaily = verifiedBooking?.pass_type === "DAILY_PASS";
-  const isInside = verifiedBooking?.is_inside || (verifiedBooking?.status === "ACTIVE" && verifiedBooking?.entry_count > 0);
+  const isInside =
+    verifiedBooking?.is_inside ||
+    (verifiedBooking?.status === "ACTIVE" && verifiedBooking?.entry_count > 0);
   const statusUpper = String(verifiedBooking?.status || "BOOKED").toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Header */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        {/* Navigation Bar */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-all shadow-xs"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
-            <FiArrowLeft className="w-3.5 h-3.5" />
-            Operations Hub
+            <FiArrowLeft className="w-4 h-4" />
+            <span>Facility Hub</span>
           </button>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#e0e0e0] text-xs font-bold text-[#0a0a0a] hover:border-[#0a0a0a] transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer"
           >
-            {soundEnabled ? <FiVolume2 className="w-4 h-4 text-[#05944f]" /> : <FiVolumeX className="w-4 h-4 text-[#a0a0a0]" />}
-            {soundEnabled ? "Audio Alert On" : "Audio Off"}
+            {soundEnabled ? (
+              <FiVolume2 className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <FiVolumeX className="w-4 h-4 text-zinc-400" />
+            )}
+            <span>{soundEnabled ? "Chime Audio On" : "Audio Muted"}</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Hero Banner Box */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-xl text-white p-6 sm:p-8">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>OPTICAL GATE TERMINAL</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white">
+                Contactless Pass Scanner
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                Hold customer digital pass under scanner for automatic barrier gate entry and bay clearance.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-zinc-400 font-bold bg-white/[0.06] px-4 py-2 rounded-2xl border border-white/10">
+              <FiRadio className="w-4 h-4 text-emerald-400" />
+              <span>Camera Stream Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* SCANNER PANEL */}
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
-            <div className="border-b border-[#f0f0f0] pb-3">
-              <h2 className="text-base font-black text-[#0a0a0a]">Gate Scanner Terminal</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Scan driver digital pass at barrier entry & exit gates</p>
+          <div className="lg:col-span-6 bg-white/95 dark:bg-zinc-900/90 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-6 space-y-5 backdrop-blur-xl">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h2 className="text-base font-black text-zinc-900 dark:text-white">
+                Camera Feed
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Fast QR code recognition engine
+              </p>
             </div>
 
-            {/* Camera viewport */}
-            <div className="relative bg-[#0a0a0a] rounded-3xl overflow-hidden min-h-[300px] flex items-center justify-center border border-[#1a1a1a]">
+            {/* Camera Viewport */}
+            <div className="relative bg-zinc-950 rounded-3xl overflow-hidden min-h-[320px] flex items-center justify-center border border-zinc-800 shadow-inner">
               <div id="reader" ref={readerDivRef} className="w-full h-full" />
 
               {scanning && (
                 <>
                   <div className="scan-laser-line" />
-                  <div className="absolute inset-6 pointer-events-none border-2 border-white/30 rounded-2xl flex flex-col justify-between p-3 z-20">
+                  <div className="absolute inset-6 pointer-events-none border-2 border-white/20 rounded-2xl flex flex-col justify-between p-3 z-20">
                     <div className="flex justify-between">
-                      <span className="w-6 h-6 border-t-2 border-l-2 border-[#05944f] rounded-tl-lg" />
-                      <span className="w-6 h-6 border-t-2 border-r-2 border-[#05944f] rounded-tr-lg" />
+                      <span className="w-6 h-6 border-t-2 border-l-2 border-emerald-400 rounded-tl-lg" />
+                      <span className="w-6 h-6 border-t-2 border-r-2 border-emerald-400 rounded-tr-lg" />
                     </div>
                     <div className="text-center">
-                      <span className="px-3 py-1 rounded-full bg-black/80 text-[10px] font-black text-[#05944f] uppercase tracking-wider border border-[#05944f]/30">
-                        Align Pass QR In Center
+                      <span className="px-3.5 py-1.5 rounded-full bg-black/80 text-[10px] font-black text-emerald-400 uppercase tracking-wider border border-emerald-400/30 backdrop-blur-md">
+                        Center QR Pass Here
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="w-6 h-6 border-b-2 border-l-2 border-[#05944f] rounded-bl-lg" />
-                      <span className="w-6 h-6 border-b-2 border-r-2 border-[#05944f] rounded-br-lg" />
+                      <span className="w-6 h-6 border-b-2 border-l-2 border-emerald-400 rounded-bl-lg" />
+                      <span className="w-6 h-6 border-b-2 border-r-2 border-emerald-400 rounded-br-lg" />
                     </div>
                   </div>
                 </>
@@ -243,152 +304,168 @@ export default function ScanQR() {
 
               {!scanning && (
                 <div className="text-center p-8 space-y-3">
-                  <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto text-white">
-                    <FiCamera className="w-8 h-8" />
+                  <div className="w-16 h-16 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-zinc-400">
+                    <FiCamera className="w-8 h-8 text-zinc-300" />
                   </div>
-                  <p className="text-xs font-bold text-white">
-                    Camera is currently idle
-                  </p>
-                  <p className="text-[11px] text-[#737373] max-w-xs mx-auto">
-                    Activate the optical scanner or look up passes manually below
+                  <p className="text-xs font-bold text-white">Camera is currently standby</p>
+                  <p className="text-[11px] text-zinc-400 max-w-xs mx-auto">
+                    Activate camera to scan driver QR passes or enter reservation ID manually below
                   </p>
                 </div>
               )}
             </div>
 
             {scanning ? (
-              <Button variant="danger" fullWidth onClick={stopScanner}>Stop Scanner</Button>
-            ) : (
-              <Button icon={FiCamera} fullWidth size="lg" onClick={startScanner}>
-                Start Live Camera
+              <Button variant="danger" fullWidth onClick={stopScanner}>
+                Stop Camera
               </Button>
+            ) : (
+              <button
+                onClick={startScanner}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <FiCamera className="w-4 h-4 stroke-[2.5]" />
+                <span>Start Camera Scanner</span>
+              </button>
             )}
 
-            {/* Manual lookup */}
-            <div className="pt-3 border-t border-[#f0f0f0]">
+            {/* Manual Lookup */}
+            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
               <form onSubmit={handleManualSearch} className="flex gap-2">
                 <div className="relative flex-1">
-                  <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#a0a0a0] pointer-events-none" />
+                  <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Enter booking ID (e.g. 1042)..."
+                    placeholder="Enter Booking ID (e.g. 1042)..."
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
-                    className="pe-input pl-10 text-xs font-mono font-bold"
+                    className="pe-input pl-10 text-xs font-mono font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
                   />
                 </div>
-                <Button type="submit" loading={loading} size="md">Lookup</Button>
+                <Button type="submit" loading={loading} size="md">
+                  Verify
+                </Button>
               </form>
             </div>
           </div>
 
           {/* VERIFICATION PANEL */}
-          <div className="bg-white rounded-3xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 space-y-5">
-            <div className="border-b border-[#f0f0f0] pb-3">
-              <h2 className="text-base font-black text-[#0a0a0a]">Pass Authorization</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Real-time gate inspection & bay release</p>
+          <div className="lg:col-span-6 bg-white/95 dark:bg-zinc-900/90 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-6 space-y-5 backdrop-blur-xl">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h2 className="text-base font-black text-zinc-900 dark:text-white">
+                Pass Authorization
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Real-time validation & gate barrier triggers
+              </p>
             </div>
 
             {!verifiedBooking ? (
               <div className="py-20 text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#f7f7f7] border border-[#e0e0e0] flex items-center justify-center mx-auto">
-                  <FiShield className="w-8 h-8 text-[#a0a0a0]" />
+                <div className="w-16 h-16 rounded-3xl bg-zinc-100 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center mx-auto">
+                  <FiShield className="w-8 h-8 text-zinc-400" />
                 </div>
-                <h4 className="text-sm font-bold text-[#0a0a0a]">Awaiting Pass Scan</h4>
-                <p className="text-xs text-[#737373] font-medium max-w-xs mx-auto">
-                  Point camera at customer QR ticket or enter booking number to verify validity.
+                <h4 className="text-sm font-black text-zinc-900 dark:text-white">
+                  Awaiting Pass Scan
+                </h4>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-xs mx-auto">
+                  Hold QR ticket in front of the lens or type the reservation number to inspect vehicle authorization.
                 </p>
               </div>
             ) : (
               <div className="space-y-4 animate-fade-in">
-                {/* Status strip */}
-                <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] flex items-center justify-between">
+                {/* Status Strip */}
+                <div className="p-4.5 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5">
                       <Badge variant="success" dot>
                         {statusUpper}
                       </Badge>
                       {isDaily && (
-                        <span className="text-[10px] font-black bg-[#05944f] text-white px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-black bg-emerald-500 text-black px-2.5 py-0.5 rounded-full">
                           🎟️ Full-Day Pass
                         </span>
                       )}
                     </div>
-                    <h3 className="text-sm font-black text-[#0a0a0a]">Pass #{verifiedBooking.id}</h3>
+                    <h3 className="text-sm font-black text-zinc-900 dark:text-white">
+                      Pass #{verifiedBooking.id}
+                    </h3>
                   </div>
-                  <span className="text-2xl font-black text-[#0a0a0a] bg-white px-3.5 py-1.5 rounded-xl border border-[#86efac] font-mono">
-                    Slot {verifiedBooking.slot_number || "A-1"}
+                  <span className="text-2xl font-black text-zinc-900 dark:text-white bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-2xl border border-emerald-500/30 font-mono shadow-xs">
+                    Bay {verifiedBooking.slot_number || "A-1"}
                   </span>
                 </div>
 
-                {/* Day Pass Multi-Entry & Curfew Warning */}
-                {isDaily && (
-                  <div className="p-3.5 rounded-xl bg-[#fffbeb] border border-[#fde68a] text-xs text-[#b45309] space-y-1">
-                    <p className="font-bold flex items-center gap-1.5">
-                      <FiCheckCircle className="w-4 h-4 text-[#b45309]" />
-                      Unlimited In/Out Entries Allowed
-                    </p>
-                    <p className="text-[11px] text-[#92400e]">
-                      Gate Curfew: Vehicle must complete final exit before <strong>{verifiedBooking.last_exit_rule || "11:00 PM"}</strong>.
-                    </p>
-                  </div>
-                )}
-
+                {/* License Plate & Inside State */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0]">
-                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Vehicle License</p>
-                    <span className="font-mono text-xs font-black text-[#0a0a0a] bg-[#e0e0e0] px-2.5 py-1 rounded-lg">
-                      {verifiedBooking.vehicle_number || "MH-01-AB-1234"}
-                    </span>
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase mb-1.5">
+                      Vehicle License
+                    </p>
+                    <div className="license-plate text-xs shrink-0 shadow-xs inline-flex">
+                      <span className="license-plate-ind">IND</span>
+                      <span className="font-mono font-black tracking-wider">
+                        {verifiedBooking.vehicle_number || "MH-01-AB-1234"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0]">
-                    <p className="text-[10px] font-bold text-[#a0a0a0] uppercase mb-1.5">Inside State</p>
-                    <p className="text-xs font-black text-[#0a0a0a]">
-                      {isInside ? "🟢 Parked Inside Deck" : "⚪ Outside Gate"}
+                  <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase mb-1.5">
+                      Bay Location State
+                    </p>
+                    <p className="text-xs font-black text-zinc-900 dark:text-white">
+                      {isInside ? "🟢 Parked Inside Bay" : "⚪ Outside Gate"}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#f7f7f7] border border-[#f0f0f0] space-y-2 text-xs">
+                {/* Details Table */}
+                <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2.5 text-xs">
                   {[
-                    { label: "Customer", value: verifiedBooking.customer_name || "Verified Driver" },
-                    { label: "Facility", value: verifiedBooking.parking_name || "ParkEase Hub" },
-                    { label: "Entries Count", value: `${verifiedBooking.entry_count || 1} time(s)` },
-                    { label: "Amount Paid", value: `₹${verifiedBooking.amount || verifiedBooking.total_amount || 15}` },
+                    { label: "Customer Name", value: verifiedBooking.customer_name || "Driver" },
+                    { label: "Parking Hub", value: verifiedBooking.parking_name || "ParkEase Hub" },
+                    { label: "Check-in Entries", value: `${verifiedBooking.entry_count || 1} time(s)` },
+                    {
+                      label: "Total Paid",
+                      value: `₹${verifiedBooking.amount || verifiedBooking.total_amount || 25}`,
+                    },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
-                      <span className="text-[#737373]">{label}</span>
-                      <span className="font-bold text-[#0a0a0a]">{value}</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
+                      <span className="font-bold text-zinc-900 dark:text-white">{value}</span>
                     </div>
                   ))}
                 </div>
 
+                {/* Gate Entry & Exit Actions */}
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <Button
                     variant="primary"
                     size="lg"
                     fullWidth
                     loading={actionLoading}
+                    icon={FiLogIn}
                     onClick={handleCheckIn}
                   >
-                    ↑ Check In (Entry)
+                    Check In (Open Gate)
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     fullWidth
                     loading={actionLoading}
+                    icon={FiLogOut}
                     onClick={handleCheckOut}
                   >
-                    ↓ {isDaily ? "Temporary Exit" : "Check Out (Exit)"}
+                    {isDaily ? "Temp Exit" : "Check Out (Exit)"}
                   </Button>
                 </div>
 
                 <button
                   onClick={() => setVerifiedBooking(null)}
-                  className="w-full text-xs text-[#737373] hover:text-[#0a0a0a] font-bold transition-colors text-center pt-2"
+                  className="w-full text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-bold transition-colors text-center pt-2 cursor-pointer"
                 >
-                  Clear & Scan Next Vehicle
+                  Clear & Scan Next Driver Pass
                 </button>
               </div>
             )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
@@ -11,8 +11,13 @@ import {
   FiNavigation,
   FiX,
   FiLayers,
-  FiGlobe,
+  FiArrowRight,
+  FiTrendingUp,
   FiSliders,
+  FiCompass,
+  FiCalendar,
+  FiDollarSign,
+  FiAward,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -20,35 +25,37 @@ import Modal from "../../components/Modal";
 import { CardSkeleton } from "../../components/Skeleton";
 import ParkingMapView from "../../components/ParkingMapView";
 import Button from "../../components/Button";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// ── Toast Notification ────────────────────────────────────────────────────────
 function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
       <div
-        className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
           toast.type === "error"
-            ? "bg-white dark:bg-zinc-900 text-[#e11900] border-red-200 dark:border-red-900/50"
-            : "bg-white dark:bg-zinc-900 text-[#05944f] border-green-200 dark:border-green-900/50"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
         }`}
       >
         {toast.type === "error" ? (
-          <FiAlertCircle className="w-4 h-4 shrink-0" />
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
         ) : (
-          <FiCheckCircle className="w-4 h-4 shrink-0" />
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
         )}
-        {toast.message}
+        <span>{toast.message}</span>
       </div>
     </div>
   );
 }
 
-// ── Haversine helpers ─────────────────────────────────────────────────────────
+// ── Distance Calculation ──────────────────────────────────────────────────────
 function calcDistance(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
   const R = 6371;
@@ -76,7 +83,7 @@ function numericDistance(userCoords, parking) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Parking List Card ─────────────────────────────────────────────────────────
+// ── Top-Notch Parking Card ───────────────────────────────────────────────────
 function ParkingListCard({ parking, userCoords, onClick }) {
   const { t } = useLanguage();
   const available = parking.available_slots ?? parking.available ?? parking.total_slots ?? 12;
@@ -85,71 +92,100 @@ function ParkingListCard({ parking, userCoords, onClick }) {
   const distance = userCoords
     ? calcDistance(userCoords.lat, userCoords.lng, parking.latitude, parking.longitude)
     : null;
-  const isLow = available <= 3 && available >= 0;
+  const isLow = available <= 3 && available > 0;
+  const isFull = available === 0;
 
   return (
-    <button
+    <div
       onClick={onClick}
-      className="w-full text-left p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-all duration-150 flex items-center justify-between group active:scale-[0.99] shadow-xs"
+      className="group relative p-4.5 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white/95 dark:bg-zinc-900/90 hover:bg-zinc-50/80 dark:hover:bg-zinc-850/80 transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-0.5 cursor-pointer backdrop-blur-xl"
     >
-      <div className="flex items-center gap-3.5 min-w-0">
-        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 flex items-center justify-center text-2xl shrink-0 transition-colors">
-          {parking.has_ev ? "⚡" : "🅿️"}
-        </div>
-        <div className="min-w-0 space-y-0.5">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">
-              {parking.name || "ParkEase Facility"}
-            </p>
-            {hasDaily && (
-              <span className="text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 shrink-0">
-                🎟️ ₹{parking.daily_rate || 10}/day
-              </span>
-            )}
+      <div className="flex items-start justify-between gap-3">
+        
+        {/* Left icon & details */}
+        <div className="flex items-start gap-3.5 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 flex items-center justify-center text-xl shrink-0 transition-colors shadow-xs">
+            {parking.has_ev ? "⚡" : "🅿️"}
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-            {parking.address || parking.location || "City Center"}
-          </p>
-          <div className="flex items-center gap-3 text-[11px] font-medium text-zinc-400 pt-0.5">
-            <span
-              className={`font-bold flex items-center gap-1 ${
-                isLow ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isLow ? "bg-amber-500" : "bg-emerald-500"
-                }`}
-              />
-              {available} {t("availableSlots", "slots left")}
-            </span>
-            {distance && <span>• {distance}</span>}
-            {parking.has_ev && <span className="text-blue-600 dark:text-blue-400 font-semibold">⚡ EV Fast</span>}
-          </div>
-        </div>
-      </div>
 
-      <div className="shrink-0 text-right ml-2">
-        {isFree ? (
-          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">FREE</span>
-        ) : (
-          <div>
-            <span className="text-base font-black text-zinc-900 dark:text-white">
-              ₹{parking.hourly_rate ?? 50}
-            </span>
-            <span className="text-[10px] text-zinc-400 font-medium block">/hr</span>
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate">
+                {parking.name || "ParkEase Hub"}
+              </h3>
+              {hasDaily && (
+                <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  🎟️ ₹{parking.daily_rate || 10}/day
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
+              <FiMapPin className="w-3 h-3 shrink-0 text-zinc-400" />
+              <span>{parking.address || parking.location || "City Location"}</span>
+            </p>
+
+            {/* Feature tags */}
+            <div className="flex items-center gap-2.5 text-[11px] font-semibold flex-wrap pt-0.5">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                  isFull
+                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                    : isLow
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isFull ? "bg-rose-500" : isLow ? "bg-amber-500" : "bg-emerald-500 animate-pulse"
+                  }`}
+                />
+                {isFull ? "Full" : `${available} bays left`}
+              </span>
+
+              {distance && (
+                <span className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
+                  📍 {distance}
+                </span>
+              )}
+
+              {parking.has_ev && (
+                <span className="text-sky-600 dark:text-sky-400 text-[10px] font-bold">
+                  ⚡ Fast EV
+                </span>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Right Pricing & Book Action */}
+        <div className="shrink-0 text-right space-y-1">
+          {isFree ? (
+            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">FREE</span>
+          ) : (
+            <div>
+              <span className="text-base font-black text-zinc-900 dark:text-white font-mono">
+                ₹{parking.hourly_rate ?? 50}
+              </span>
+              <span className="text-[10px] text-zinc-400 font-bold block">/hour</span>
+            </div>
+          )}
+
+          <div className="inline-flex items-center gap-1 text-[11px] font-black text-zinc-900 dark:text-white group-hover:text-emerald-500 transition-colors pt-1">
+            <span>Book</span>
+            <FiArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
       </div>
-    </button>
+    </div>
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Customer Dashboard Component ─────────────────────────────────────────
 export default function CustomerDashboard() {
   const navigate = useNavigate();
-  const { t, currentLanguage } = useLanguage();
-  const { theme } = useTheme();
+  const { t } = useLanguage();
 
   const [user, setUser] = useState(null);
   const [parkingLocations, setParkingLocations] = useState([]);
@@ -275,93 +311,109 @@ export default function CustomerDashboard() {
     });
 
   const filters = [
-    { id: "ALL", label: t("filterAll", "All") },
+    { id: "ALL", label: "🌟 All Hubs" },
     { id: "NEARBY", label: "📍 Near Me" },
-    { id: "FREE", label: `🆓 ${t("filterFree", "Free")}` },
-    { id: "EV", label: `⚡ ${t("filterEV", "EV Charging")}` },
-    { id: "DAILY_PASS", label: `🎟️ ${t("filterDaily", "Daily Pass")}` },
+    { id: "FREE", label: "🆓 Free Parking" },
+    { id: "EV", label: "⚡ EV Charging" },
+    { id: "DAILY_PASS", label: "🎟️ Daily Pass" },
+  ];
+
+  const destinationShortcuts = [
+    { label: "✈️ Airport", query: "Airport" },
+    { label: "🛍️ Mall", query: "Mall" },
+    { label: "🏢 Tech Park", query: "Tech" },
+    { label: "🚆 Station", query: "Station" },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      {/* MAP MODAL */}
-      {mapModalParking && (
-        <Modal
-          isOpen={Boolean(mapModalParking)}
-          onClose={() => setMapModalParking(null)}
-          title={mapModalParking.name}
-          maxWidth="max-w-2xl"
-        >
-          <div className="space-y-4">
-            <div className="h-72 w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
-              <iframe
-                title="Map"
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                scrolling="no"
-                src={`https://maps.google.com/maps?q=${mapModalParking.latitude || 19.076},${mapModalParking.longitude || 72.8777}&hl=en&z=15&output=embed`}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                {mapModalParking.address || mapModalParking.location}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        
+        {/* ══════════════════════════════════════════════════════════════════
+            1. HERO SEARCH BANNER — JET BLACK OBSIDIAN SEARCH HUB
+        ══════════════════════════════════════════════════════════════════ */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-8">
+          {/* Subtle Grid Accent */}
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+              backgroundSize: "36px 36px",
+            }}
+          />
+
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
+          <div className="absolute top-0 right-1/4 w-80 h-32 bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>INSTANT PASS GENERATION</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                Where are you parking, {getUserName().split(" ")[0]}?
+              </h1>
+              <p className="text-zinc-400 text-xs sm:text-sm font-medium">
+                Reserve verified parking bays with live QR entry passes and fast contactless gates.
               </p>
-              <Button
-                icon={FiNavigation}
-                onClick={() =>
-                  window.open(
-                    `https://www.google.com/maps/dir/?api=1&destination=${mapModalParking.latitude},${mapModalParking.longitude}`,
-                    "_blank"
-                  )
-                }
-              >
-                Navigate
-              </Button>
+
+              {/* Quick Destination Shortcut Tags */}
+              <div className="flex items-center gap-2 flex-wrap pt-2">
+                <span className="text-xs text-zinc-500 font-bold">Quick Search:</span>
+                {destinationShortcuts.map((tag) => (
+                  <button
+                    key={tag.label}
+                    onClick={() => setSearch(tag.query)}
+                    className="px-3 py-1 rounded-full text-xs font-bold bg-white/[0.08] hover:bg-white/[0.15] border border-white/10 text-zinc-200 transition-all active:scale-95 cursor-pointer"
+                  >
+                    {tag.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </Modal>
-      )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* TOP BAR */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-              Where to, {getUserName().split(" ")[0]}?
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
-              {filteredParking.length} {t("approved", "verified")} facilities near you
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
+            {/* Active Pass Banner (if user has an active booking) */}
             {latestActive && (
-              <button
-                onClick={() =>
-                  navigate(`/customer/qr?booking=${latestActive.id}`, {
-                    state: { booking: latestActive },
-                  })
-                }
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 text-xs font-bold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors shadow-sm"
-              >
-                <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping shrink-0" />
-                Active Pass → Slot {latestActive.slot_number}
-              </button>
+              <div className="shrink-0 p-4.5 rounded-2xl bg-zinc-900/90 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex items-center justify-between gap-4 max-w-sm">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>ACTIVE RESERVATION</span>
+                  </div>
+                  <p className="text-xs font-bold text-white line-clamp-1">
+                    {latestActive.parking_name || "ParkEase Facility"}
+                  </p>
+                  <p className="text-[11px] text-zinc-400">Slot #{latestActive.slot_number}</p>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate(`/customer/qr?booking=${latestActive.id}`, {
+                      state: { booking: latestActive },
+                    })
+                  }
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-lg transition-all active:scale-95 shrink-0 cursor-pointer"
+                >
+                  View QR Pass
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* SPLIT LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-
-          {/* LEFT: BOOKING DRAWER */}
-          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col">
-
-            {/* Search + GPS inputs */}
+        {/* ══════════════════════════════════════════════════════════════════
+            2. SPLIT LAYOUT: SEARCH DRAWER + INTERACTIVE MAP
+        ══════════════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          
+          {/* LEFT: PARKING DRAWER */}
+          <div className="lg:col-span-5 bg-white/95 dark:bg-zinc-900/90 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col backdrop-blur-xl">
+            
+            {/* Search + GPS Row */}
             <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 space-y-3">
               {/* GPS row */}
               <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
@@ -369,33 +421,31 @@ export default function CustomerDashboard() {
                   <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-900" />
                 </div>
                 <span className="text-xs font-semibold text-zinc-900 dark:text-white flex-1">
-                  {userCoords ? "📍 GPS Location Active" : "Current Location"}
+                  {userCoords ? "📍 Live GPS Enabled" : "Detect Closest Parking"}
                 </span>
                 <button
                   onClick={handleLocateNearest}
                   disabled={isLocating}
-                  className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white hover:border-zinc-400 transition-colors"
+                  className="text-[11px] font-bold px-3 py-1 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white hover:border-zinc-400 transition-all active:scale-95 cursor-pointer shadow-xs"
                 >
                   {isLocating ? "Locating…" : userCoords ? "✓ Active" : "Detect GPS"}
                 </button>
               </div>
 
-              {/* Search */}
+              {/* Search Bar */}
               <div className="relative flex items-center">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
-                  <FiSearch className="w-4 h-4" />
-                </div>
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none z-10" />
                 <input
                   type="text"
-                  placeholder={t("searchPlaceholder", "Search parking or area...")}
+                  placeholder="Search parking hub or area..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pe-input pe-input-icon-left text-sm"
+                  className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"
                 />
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white z-10"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white z-10 p-0.5"
                   >
                     <FiX className="w-3.5 h-3.5" />
                   </button>
@@ -403,7 +453,7 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            {/* Filter pills */}
+            {/* Filter Pills */}
             <div className="px-4 py-2.5 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-1.5 overflow-x-auto">
               {filters.map((f) => (
                 <button
@@ -412,9 +462,9 @@ export default function CustomerDashboard() {
                     if (f.id === "NEARBY" && !userCoords) handleLocateNearest();
                     else setSelectedFilter(f.id);
                   }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     selectedFilter === f.id
-                      ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 shadow-sm font-bold"
+                      ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
                       : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                   }`}
                 >
@@ -423,8 +473,8 @@ export default function CustomerDashboard() {
               ))}
             </div>
 
-            {/* Parking list */}
-            <div className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-340px)] min-h-[300px]">
+            {/* Parking List */}
+            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(100vh-340px)] min-h-[300px]">
               {loading ? (
                 <>
                   <CardSkeleton />
@@ -434,13 +484,16 @@ export default function CustomerDashboard() {
               ) : filteredParking.length === 0 ? (
                 <div className="text-center py-12">
                   <FiMapPin className="w-8 h-8 mx-auto text-zinc-400 mb-3" />
-                  <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("noDataFound", "No parking found")}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Try adjusting your filters or search</p>
+                  <p className="text-sm font-bold text-zinc-900 dark:text-white">No parking facilities found</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Try adjusting your filters or destination search</p>
                   <button
-                    onClick={() => { setSearch(""); setSelectedFilter("ALL"); }}
-                    className="mt-3 text-xs text-[#276ef1] font-semibold hover:underline"
+                    onClick={() => {
+                      setSearch("");
+                      setSelectedFilter("ALL");
+                    }}
+                    className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
                   >
-                    Reset filters
+                    Reset all filters
                   </button>
                 </div>
               ) : (
@@ -457,20 +510,20 @@ export default function CustomerDashboard() {
               )}
             </div>
 
-            {/* Footer stat */}
+            {/* Drawer Footer */}
             <div className="px-4 py-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
               <span className="text-xs text-zinc-400 font-medium">
-                {filteredParking.length} {t("totalFacilities", "facilities")} {t("approved", "verified")}
+                {filteredParking.length} verified parking hubs available
               </span>
-              <div className="flex items-center gap-1.5">
-                <FiShield className="w-3.5 h-3.5 text-[#05944f]" />
-                <span className="text-xs text-[#05944f] font-semibold">Instant QR Pass</span>
+              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                <FiShield className="w-3.5 h-3.5" />
+                <span>Instant QR Pass</span>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: MAP */}
-          <div className="lg:col-span-7 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden min-h-[520px]">
+          {/* RIGHT: INTERACTIVE MAP VIEW */}
+          <div className="lg:col-span-7 bg-white/95 dark:bg-zinc-900/90 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.04)] overflow-hidden min-h-[520px]">
             <ParkingMapView
               parkingLocations={filteredParking}
               userCoords={userCoords}

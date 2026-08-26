@@ -19,7 +19,7 @@ export function ThemeProvider({ children }) {
     } catch {
       // ignore
     }
-    return "dark"; // Default to sleek dark mode
+    return "light"; // Default to clean light background
   });
 
   const [resolvedTheme, setResolvedTheme] = useState("dark");

@@ -14,6 +14,8 @@ import {
   FiRefreshCw,
   FiShield,
   FiZap,
+  FiCompass,
+  FiNavigation,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -22,6 +24,7 @@ import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import FindMyCarModal from "../../components/FindMyCarModal";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -68,6 +71,7 @@ export default function MyBookings() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [invoiceModalBooking, setInvoiceModalBooking] = useState(null);
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
+  const [findCarModalBooking, setFindCarModalBooking] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -307,8 +311,17 @@ export default function MyBookings() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isActive && (
+                          <button
+                            onClick={() => setFindCarModalBooking(b)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                          >
+                            <FiCompass className="w-3.5 h-3.5 animate-spin-slow text-emerald-500" />
+                            <span>Find Car</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => setInvoiceModalBooking(b)}
                           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
@@ -427,6 +440,15 @@ export default function MyBookings() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* ─── FIND MY CAR & WALKING RADAR MODAL ─── */}
+      {findCarModalBooking && (
+        <FindMyCarModal
+          isOpen={Boolean(findCarModalBooking)}
+          onClose={() => setFindCarModalBooking(null)}
+          booking={findCarModalBooking}
+        />
       )}
     </div>
   );

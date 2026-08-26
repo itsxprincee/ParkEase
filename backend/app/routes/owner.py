@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import get_db
 from app.models.parking import ParkingLocation, ParkingSlot
@@ -248,14 +248,121 @@ def get_owner_live_dashboard(
     entered_count = len([b for b in all_bookings if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"]])
     completed_count = len([b for b in all_bookings if str(b.status).upper() == "COMPLETED"])
 
-    total_revenue = sum(float(b.amount or 0) for b in all_bookings if str(b.status).upper() not in ["CANCELLED"])
+    valid_bookings = [b for b in all_bookings if str(b.status).upper() not in ["CANCELLED"]]
+    total_revenue = sum(float(b.amount or 0) for b in valid_bookings)
 
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    now = datetime.utcnow()
+    today_start = datetime(now.year, now.month, now.day)
+    seven_days_ago = today_start - timedelta(days=6)
+    thirty_days_ago = today_start - timedelta(days=29)
+    year_start = datetime(now.year, 1, 1)
+
     today_revenue = sum(
         float(b.amount or 0)
-        for b in all_bookings
-        if b.booking_date and str(b.booking_date).startswith(today_str) and str(b.status).upper() not in ["CANCELLED"]
+        for b in valid_bookings
+        if b.booking_date and b.booking_date >= today_start
     )
+
+    weekly_revenue = sum(
+        float(b.amount or 0)
+        for b in valid_bookings
+        if b.booking_date and b.booking_date >= seven_days_ago
+    )
+
+    monthly_revenue = sum(
+        float(b.amount or 0)
+        for b in valid_bookings
+        if b.booking_date and b.booking_date >= thirty_days_ago
+    )
+
+    yearly_revenue = sum(
+        float(b.amount or 0)
+        for b in valid_bookings
+        if b.booking_date and b.booking_date >= year_start
+    )
+
+    # 1. Today Hourly Breakdown
+    today_hours = [
+        {"label": "06:00 - 09:00", "min_h": 6, "max_h": 9, "amount": 0.0, "count": 0},
+        {"label": "09:00 - 12:00", "min_h": 9, "max_h": 12, "amount": 0.0, "count": 0},
+        {"label": "12:00 - 15:00", "min_h": 12, "max_h": 15, "amount": 0.0, "count": 0},
+        {"label": "15:00 - 18:00", "min_h": 15, "max_h": 18, "amount": 0.0, "count": 0},
+        {"label": "18:00 - 21:00", "min_h": 18, "max_h": 21, "amount": 0.0, "count": 0},
+        {"label": "21:00 - 00:00", "min_h": 21, "max_h": 24, "amount": 0.0, "count": 0},
+    ]
+    for b in valid_bookings:
+        if b.booking_date and b.booking_date >= today_start:
+            hour = b.booking_date.hour
+            for slot_h in today_hours:
+                if slot_h["min_h"] <= hour < slot_h["max_h"]:
+                    slot_h["amount"] += float(b.amount or 0)
+                    slot_h["count"] += 1
+                    break
+
+    # 2. Weekly Daily Breakdown (Last 7 Days)
+    weekly_days = []
+    for i in range(7):
+        day_date = seven_days_ago + timedelta(days=i)
+        day_str = day_date.strftime("%a")
+        day_start = datetime(day_date.year, day_date.month, day_date.day)
+        day_end = day_start + timedelta(days=1)
+        day_amt = sum(
+            float(b.amount or 0)
+            for b in valid_bookings
+            if b.booking_date and day_start <= b.booking_date < day_end
+        )
+        day_cnt = len([
+            b for b in valid_bookings
+            if b.booking_date and day_start <= b.booking_date < day_end
+        ])
+        weekly_days.append({
+            "label": day_str,
+            "date": day_date.strftime("%b %d"),
+            "amount": day_amt,
+            "count": day_cnt,
+        })
+
+    # 3. Monthly Weekly Breakdown (4 Weeks)
+    monthly_weeks = [
+        {"label": "Week 1", "amount": 0.0, "count": 0},
+        {"label": "Week 2", "amount": 0.0, "count": 0},
+        {"label": "Week 3", "amount": 0.0, "count": 0},
+        {"label": "Week 4", "amount": 0.0, "count": 0},
+    ]
+    for b in valid_bookings:
+        if b.booking_date and b.booking_date >= thirty_days_ago:
+            days_diff = (now - b.booking_date).days
+            if days_diff < 7:
+                monthly_weeks[3]["amount"] += float(b.amount or 0)
+                monthly_weeks[3]["count"] += 1
+            elif days_diff < 14:
+                monthly_weeks[2]["amount"] += float(b.amount or 0)
+                monthly_weeks[2]["count"] += 1
+            elif days_diff < 21:
+                monthly_weeks[1]["amount"] += float(b.amount or 0)
+                monthly_weeks[1]["count"] += 1
+            else:
+                monthly_weeks[0]["amount"] += float(b.amount or 0)
+                monthly_weeks[0]["count"] += 1
+
+    # 4. Yearly Monthly Breakdown (Jan - Dec)
+    yearly_months = []
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    for m_idx, m_name in enumerate(month_names, start=1):
+        m_amt = sum(
+            float(b.amount or 0)
+            for b in valid_bookings
+            if b.booking_date and b.booking_date.year == now.year and b.booking_date.month == m_idx
+        )
+        m_cnt = len([
+            b for b in valid_bookings
+            if b.booking_date and b.booking_date.year == now.year and b.booking_date.month == m_idx
+        ])
+        yearly_months.append({
+            "label": m_name,
+            "amount": m_amt,
+            "count": m_cnt,
+        })
 
     facility_breakdowns = []
     for loc in locations:
@@ -333,8 +440,38 @@ def get_owner_live_dashboard(
         "maintenance_slots": maintenance_slots_count,
         "total_revenue": total_revenue,
         "today_revenue": today_revenue,
+        "weekly_revenue": weekly_revenue,
+        "monthly_revenue": monthly_revenue,
+        "yearly_revenue": yearly_revenue,
+        "revenue_breakdowns": {
+            "today": today_hours,
+            "weekly": weekly_days,
+            "monthly": monthly_weeks,
+            "yearly": yearly_months,
+        },
         "facilities": facility_breakdowns,
         "live_bookings": live_bookings_data,
+    }
+
+
+# =========================================================
+# GET REVENUE ANALYTICS SPECIFIC ENDPOINT
+# GET /owner/revenue-analytics
+# =========================================================
+
+@router.get("/revenue-analytics")
+def get_revenue_analytics(
+    db: Session = Depends(get_db),
+    user=Depends(owner_required)
+):
+    dashboard = get_owner_live_dashboard(db=db, user=user)
+    return {
+        "total_revenue": dashboard.get("total_revenue", 0),
+        "today_revenue": dashboard.get("today_revenue", 0),
+        "weekly_revenue": dashboard.get("weekly_revenue", 0),
+        "monthly_revenue": dashboard.get("monthly_revenue", 0),
+        "yearly_revenue": dashboard.get("yearly_revenue", 0),
+        "breakdowns": dashboard.get("revenue_breakdowns", {}),
     }
 
 

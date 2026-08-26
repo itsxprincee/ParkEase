@@ -198,14 +198,16 @@ export default function AddParking() {
         </div>
 
         {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-8">
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          <div className="max-w-2xl space-y-2">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-6 sm:p-8 border border-emerald-400/30">
+          <div className="max-w-2xl space-y-2 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black">
+              <span>FACILITY ONBOARDING</span>
+            </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Add a New Parking Facility
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-400 font-medium leading-relaxed">
-              Fill in your facility details below. As you type, the card on the right shows exactly how drivers will see your parking spot.
+            <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
+              Fill in your facility details below. As you type, the live card preview shows exactly how drivers will see your facility.
             </p>
           </div>
         </div>

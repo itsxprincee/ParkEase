@@ -180,18 +180,17 @@ export default function AdminDashboard() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Obsidian Command Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-8">
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/70 to-transparent" />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-black tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-slate-900 text-white shadow-2xl p-6 sm:p-9 border border-indigo-400/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-purple-200 animate-pulse" />
                 <span>SUPER ADMIN VERIFICATION TERMINAL</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 Facility Compliance & Approvals
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+              <p className="text-xs sm:text-sm text-purple-100 font-medium">
                 Review owner parking listings, inspect slot integrity, and authorize live booking status.
               </p>
             </div>
@@ -199,9 +198,9 @@ export default function AdminDashboard() {
             <button
               onClick={() => loadData(true)}
               disabled={refreshing}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/[0.15] text-white text-xs font-bold transition-all active:scale-95 shadow-md self-start sm:self-auto cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-all active:scale-95 shadow-md self-start sm:self-auto cursor-pointer"
             >
-              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-purple-400" : ""}`} />
+              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-purple-200" : ""}`} />
               <span>Sync Applications</span>
             </button>
           </div>

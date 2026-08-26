@@ -147,18 +147,17 @@ export default function MyBookings() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Header Hero Box */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-8">
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-6 sm:p-9 border border-emerald-400/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
                 <span>MY DIGITAL PASS WALLET</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white">
+              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 My Passes & Reservations
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+              <p className="text-xs sm:text-sm text-emerald-50 font-medium">
                 Instant contactless entry passes, barrier gate QR codes, and parking receipts.
               </p>
             </div>
@@ -167,18 +166,18 @@ export default function MyBookings() {
               <button
                 onClick={() => loadBookings(true)}
                 disabled={refreshing}
-                className="p-3 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/[0.12] text-zinc-300 hover:text-white transition-all active:scale-95 shadow-md cursor-pointer"
+                className="p-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 shadow-md cursor-pointer"
                 title="Refresh Passes"
               >
                 <FiRefreshCw
-                  className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-400" : ""}`}
+                  className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-200" : ""}`}
                 />
               </button>
               <button
                 onClick={() => navigate("/customer/dashboard")}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
               >
-                <FiMapPin className="w-4 h-4" />
+                <FiMapPin className="w-4 h-4 text-emerald-600" />
                 <span>Find Parking</span>
               </button>
             </div>

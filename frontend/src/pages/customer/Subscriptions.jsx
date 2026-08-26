@@ -312,48 +312,46 @@ Thank you for choosing ParkEase Smart Mobility!
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO OBSIDIAN BANNER
+        {/* ══════════════════════════════════════════════════════════════════
+            1. HERO VIBRANT GRADIENT BANNER
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white p-6 sm:p-9">
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          <div className="absolute top-0 right-1/4 w-80 h-32 bg-emerald-500/10 blur-3xl pointer-events-none" />
-
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-9 shadow-2xl border border-emerald-400/30">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
                 <span>COMMUTER SEASON PASSES & SUBSCRIPTIONS</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                 Monthly Parking Subscriptions
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-400 font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
                 Save up to 40% with guaranteed reserved bays, unlimited daily entries, and instant automated barrier clearance.
               </p>
 
               {/* Badges row */}
               <div className="flex items-center gap-2 flex-wrap pt-1">
-                <span className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold border border-white/15">
+                <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
                   🛡️ Guaranteed Reserved Bay
                 </span>
-                <span className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold border border-white/15">
+                <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
                   ⚡ Zero Gate Queues
                 </span>
-                <span className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold border border-white/15">
+                <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
                   ⏸️ Freeze Pass on Vacation
                 </span>
               </div>
             </div>
 
             {/* Quick Stats Pill */}
-            <div className="shrink-0 p-5 rounded-3xl bg-zinc-900/90 border border-zinc-800 shadow-xl backdrop-blur-xl space-y-2 text-center sm:text-left min-w-[200px]">
-              <span className="text-[11px] text-zinc-400 font-black uppercase tracking-wider block">
+            <div className="shrink-0 p-5 rounded-3xl bg-white/15 border border-white/25 shadow-xl backdrop-blur-xl space-y-2 text-center sm:text-left min-w-[200px] text-white">
+              <span className="text-[11px] text-emerald-100 font-black uppercase tracking-wider block">
                 Active Passes
               </span>
-              <div className="text-3xl font-black text-emerald-400 font-mono">
-                {subscriptions.filter((s) => s.status === "ACTIVE").length} <span className="text-xs text-zinc-400 font-normal">Active</span>
+              <div className="text-3xl font-black text-white font-mono">
+                {subscriptions.filter((s) => s.status === "ACTIVE").length} <span className="text-xs text-emerald-200 font-normal">Active</span>
               </div>
-              <p className="text-[11px] text-zinc-400">Guaranteed 30-day access</p>
+              <p className="text-[11px] text-emerald-100">Guaranteed 30-day access</p>
             </div>
           </div>
         </div>
@@ -381,21 +379,20 @@ Thank you for choosing ParkEase Smart Mobility!
                 return (
                   <div
                     key={sub.id}
-                    className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-950 via-[#0f0f15] to-black border border-emerald-500/30 text-white shadow-2xl p-6 space-y-5"
+                    className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-800 via-teal-900 to-slate-900 border border-emerald-400/40 text-white shadow-2xl p-6 space-y-5"
                   >
-                    <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
-                    <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
+                    <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent" />
 
                     {/* Pass Header */}
                     <div className="flex items-start justify-between gap-3 relative z-10">
                       <div>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black tracking-wide border border-emerald-500/30 mb-1.5">
-                          <FiStar className="w-3 h-3 text-emerald-400 fill-emerald-400" />
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-black tracking-wide border border-white/30 mb-1.5">
+                          <FiStar className="w-3 h-3 text-amber-300 fill-amber-300" />
                           <span>VIP PASS • #{sub.id}</span>
                         </div>
                         <h3 className="text-lg font-black text-white">{sub.planTitle}</h3>
-                        <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
-                          <FiMapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                        <p className="text-xs text-emerald-100 flex items-center gap-1 mt-0.5">
+                          <FiMapPin className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
                           <span className="truncate">{sub.facilityName}</span>
                         </p>
                       </div>
@@ -406,50 +403,50 @@ Thank you for choosing ParkEase Smart Mobility!
                     </div>
 
                     {/* Metadata Grid */}
-                    <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-white/[0.06] border border-white/[0.1] backdrop-blur-md text-xs relative z-10">
+                    <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-xs relative z-10">
                       <div>
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase block">Dedicated Bay</span>
-                        <span className="font-mono font-black text-emerald-400">{sub.slotNumber}</span>
+                        <span className="text-[10px] text-emerald-100 font-bold uppercase block">Dedicated Bay</span>
+                        <span className="font-mono font-black text-white">{sub.slotNumber}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase block">Vehicle</span>
+                        <span className="text-[10px] text-emerald-100 font-bold uppercase block">Vehicle</span>
                         <span className="font-mono font-black text-white truncate block">{sub.vehicleNumber}</span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase block">Valid Till</span>
-                        <span className="font-mono font-bold text-zinc-300">{sub.endDate}</span>
+                        <span className="text-[10px] text-emerald-100 font-bold uppercase block">Valid Till</span>
+                        <span className="font-mono font-bold text-white">{sub.endDate}</span>
                       </div>
                     </div>
 
                     {/* Countdown Progress */}
                     <div className="space-y-1.5 relative z-10">
                       <div className="flex justify-between text-xs font-bold">
-                        <span className="text-zinc-400">Validity Remaining</span>
-                        <span className="text-emerald-400 font-mono">
+                        <span className="text-emerald-100">Validity Remaining</span>
+                        <span className="text-white font-mono font-black">
                           {sub.daysRemaining} of 30 Days ({progressPct}%)
                         </span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+                      <div className="w-full h-2 rounded-full bg-black/30 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-700"
+                          className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-teal-200 transition-all duration-700"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
                     </div>
 
                     {/* Action Bar */}
-                    <div className="pt-2 flex items-center justify-between gap-2 flex-wrap border-t border-zinc-800/80 relative z-10">
+                    <div className="pt-2 flex items-center justify-between gap-2 flex-wrap border-t border-white/15 relative z-10">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => togglePauseSubscription(sub.id)}
-                          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-zinc-200 transition-all cursor-pointer"
+                          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white transition-all cursor-pointer border border-white/20"
                         >
-                          {isPaused ? <FiPlayCircle className="w-3.5 h-3.5 text-emerald-400" /> : <FiPauseCircle className="w-3.5 h-3.5" />}
+                          {isPaused ? <FiPlayCircle className="w-3.5 h-3.5 text-emerald-300" /> : <FiPauseCircle className="w-3.5 h-3.5" />}
                           <span>{isPaused ? "Resume Pass" : "Freeze Pass"}</span>
                         </button>
                         <button
                           onClick={() => handleDownloadInvoice(sub)}
-                          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-zinc-200 transition-all cursor-pointer"
+                          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold text-white transition-all cursor-pointer border border-white/20"
                           title="Download Tax Invoice"
                         >
                           <FiDownload className="w-3.5 h-3.5" />
@@ -459,7 +456,7 @@ Thank you for choosing ParkEase Smart Mobility!
 
                       <button
                         onClick={() => navigate("/customer/my-bookings")}
-                        className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-2xl bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                       >
                         <span>Gate Pass</span>
                         <FiArrowRight className="w-3.5 h-3.5 stroke-[3]" />

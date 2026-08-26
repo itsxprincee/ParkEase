@@ -518,41 +518,38 @@ export default function OwnerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO COMMAND BANNER — JET BLACK OBSIDIAN OPERATIONS HUD
+            1. HERO COMMAND BANNER — VIBRANT EMERALD-TEAL OPERATIONS HUD
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800/90 shadow-[0_16px_50px_rgba(0,0,0,0.35)] text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-slate-900 text-white shadow-2xl border border-emerald-400/30">
           <div
-            className="absolute inset-0 opacity-[0.04]"
+            className="absolute inset-0 opacity-[0.08]"
             style={{
               backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+                "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
               backgroundSize: "36px 36px",
             }}
           />
-
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          <div className="absolute top-0 right-1/4 w-80 h-32 bg-emerald-500/10 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 p-6 sm:p-9 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3.5 max-w-2xl">
               
               {/* Live Gate HUD Badges */}
               <div className="flex items-center gap-2.5 flex-wrap">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300" />
                   </span>
                   <span>LIVE REVENUE & GATE HUB</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 text-xs font-semibold backdrop-blur-md">
-                  <FiCpu className="w-3.5 h-3.5 text-zinc-400" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
+                  <FiCpu className="w-3.5 h-3.5 text-emerald-200" />
                   <span>{currentTime || "IST"}</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] border border-white/[0.1] text-zinc-300 text-xs font-semibold backdrop-blur-md">
-                  <FiRadio className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
+                  <FiRadio className="w-3.5 h-3.5 text-emerald-200" />
                   <span>{parkingList.length} {parkingList.length === 1 ? "Hub" : "Hubs"} Sync</span>
                 </div>
               </div>
@@ -561,23 +558,23 @@ export default function OwnerDashboard() {
                 <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
                   Facility Control & Revenue Hub
                 </h1>
-                <p className="mt-1.5 text-zinc-400 text-sm font-medium leading-relaxed">
+                <p className="mt-1.5 text-emerald-50 text-sm font-medium leading-relaxed">
                   Real-time bay operations, fast automated check-in verification, and today / weekly / monthly / yearly revenue tracking.
                 </p>
               </div>
 
               {/* Quick Summary Chips */}
               <div className="flex items-center gap-2 flex-wrap pt-0.5">
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] text-zinc-200 text-xs font-bold border border-white/[0.1] backdrop-blur-md">
-                  <FiActivity className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
+                  <FiActivity className="w-3.5 h-3.5 text-emerald-300" />
                   <span>{liveBookings.length} Active Drivers</span>
                 </span>
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] text-zinc-200 text-xs font-bold border border-white/[0.1] backdrop-blur-md">
-                  <FiTrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
+                  <FiTrendingUp className="w-3.5 h-3.5 text-emerald-300" />
                   <span>₹{todayRevenue.toLocaleString("en-IN")} Today</span>
                 </span>
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] text-zinc-200 text-xs font-bold border border-white/[0.1] backdrop-blur-md">
-                  <FiDollarSign className="w-3.5 h-3.5 text-amber-400" />
+                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
+                  <FiDollarSign className="w-3.5 h-3.5 text-amber-300" />
                   <span>₹{monthlyRevenue.toLocaleString("en-IN")} This Month</span>
                 </span>
               </div>
@@ -588,12 +585,12 @@ export default function OwnerDashboard() {
               <button
                 onClick={() => loadOwnerData(true)}
                 disabled={refreshing}
-                className="p-3.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/[0.12] text-zinc-300 hover:text-white transition-all active:scale-95 shadow-md group cursor-pointer"
+                className="p-3.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 shadow-md group cursor-pointer"
                 title="Refresh Live Data"
               >
                 <FiRefreshCw
                   className={`w-4 h-4 group-hover:rotate-180 transition-transform duration-500 ${
-                    refreshing ? "animate-spin text-emerald-400" : ""
+                    refreshing ? "animate-spin text-emerald-200" : ""
                   }`}
                 />
               </button>
@@ -603,25 +600,25 @@ export default function OwnerDashboard() {
                   setActiveTab("REVENUE");
                   window.scrollTo({ top: 300, behavior: "smooth" });
                 }}
-                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-emerald-500/40 text-emerald-400 text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
+                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
               >
-                <FiBarChart2 className="w-4 h-4 text-emerald-400" />
+                <FiBarChart2 className="w-4 h-4 text-emerald-300" />
                 <span>Revenue Center</span>
               </button>
 
               <button
                 onClick={() => navigate("/owner/scan-qr")}
-                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/[0.15] text-white text-xs font-bold transition-all active:scale-95 shadow-md hover:border-zinc-500 cursor-pointer"
+                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
               >
-                <FiCamera className="w-4 h-4 text-emerald-400" />
+                <FiCamera className="w-4 h-4 text-emerald-300" />
                 <span>Scan QR</span>
               </button>
 
               <button
                 onClick={() => navigate("/owner/add-parking")}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 hover:bg-emerald-50 text-xs font-black shadow-xl transition-all active:scale-95 cursor-pointer"
               >
-                <FiPlus className="w-4 h-4 stroke-[3]" />
+                <FiPlus className="w-4 h-4 stroke-[3] text-emerald-600" />
                 <span>Add Facility</span>
               </button>
             </div>

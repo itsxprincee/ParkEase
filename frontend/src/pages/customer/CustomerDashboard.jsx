@@ -25,6 +25,7 @@ import Modal from "../../components/Modal";
 import { CardSkeleton } from "../../components/Skeleton";
 import ParkingMapView from "../../components/ParkingMapView";
 import Button from "../../components/Button";
+import FindMyCarModal from "../../components/FindMyCarModal";
 import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -196,6 +197,7 @@ export default function CustomerDashboard() {
   const [userCoords, setUserCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [mapModalParking, setMapModalParking] = useState(null);
+  const [findCarModalBooking, setFindCarModalBooking] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -379,8 +381,8 @@ export default function CustomerDashboard() {
 
             {/* Active Pass Banner (if user has an active booking) */}
             {latestActive && (
-              <div className="shrink-0 p-4.5 rounded-2xl bg-zinc-900/90 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex items-center justify-between gap-4 max-w-sm">
-                <div className="space-y-1">
+              <div className="shrink-0 p-4.5 rounded-2xl bg-zinc-900/90 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex items-center justify-between gap-3 max-w-md">
+                <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                     <span>ACTIVE RESERVATION</span>
@@ -388,18 +390,28 @@ export default function CustomerDashboard() {
                   <p className="text-xs font-bold text-white line-clamp-1">
                     {latestActive.parking_name || "ParkEase Facility"}
                   </p>
-                  <p className="text-[11px] text-zinc-400">Slot #{latestActive.slot_number}</p>
+                  <p className="text-[11px] text-zinc-400 font-mono">Bay #{latestActive.slot_number}</p>
                 </div>
-                <button
-                  onClick={() =>
-                    navigate(`/customer/qr?booking=${latestActive.id}`, {
-                      state: { booking: latestActive },
-                    })
-                  }
-                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-lg transition-all active:scale-95 shrink-0 cursor-pointer"
-                >
-                  View QR Pass
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setFindCarModalBooking(latestActive)}
+                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/10"
+                    title="Open Walking Compass & Radar"
+                  >
+                    <FiCompass className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                    <span>Find Car</span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      navigate(`/customer/qr?booking=${latestActive.id}`, {
+                        state: { booking: latestActive },
+                      })
+                    }
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                  >
+                    Pass
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -539,6 +551,15 @@ export default function CustomerDashboard() {
           </div>
         </div>
       </main>
+
+      {/* ─── FIND MY CAR & WALKING RADAR MODAL ─── */}
+      {findCarModalBooking && (
+        <FindMyCarModal
+          isOpen={Boolean(findCarModalBooking)}
+          onClose={() => setFindCarModalBooking(null)}
+          booking={findCarModalBooking}
+        />
+      )}
     </div>
   );
 }

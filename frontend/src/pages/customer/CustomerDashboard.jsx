@@ -84,7 +84,7 @@ function numericDistance(userCoords, parking) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Top-Notch Parking Card ───────────────────────────────────────────────────
+// ── Uber-Style Parking Tier Card ─────────────────────────────────────────
 function ParkingListCard({ parking, userCoords, onClick }) {
   const { t } = useLanguage();
   const available = parking.available_slots ?? parking.available ?? parking.total_slots ?? 12;
@@ -99,84 +99,76 @@ function ParkingListCard({ parking, userCoords, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="group relative p-4.5 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 hover:border-zinc-400 dark:hover:border-zinc-600 bg-white/95 dark:bg-zinc-900/90 hover:bg-zinc-50/80 dark:hover:bg-zinc-850/80 transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-0.5 cursor-pointer backdrop-blur-xl"
+      className="group relative p-4 rounded-3xl border border-zinc-200 dark:border-zinc-800/90 hover:border-black dark:hover:border-white bg-white dark:bg-zinc-900/95 hover:bg-zinc-50 dark:hover:bg-zinc-850 transition-all duration-200 shadow-xs hover:shadow-lg cursor-pointer flex items-center justify-between gap-3.5"
     >
-      <div className="flex items-start justify-between gap-3">
-        
-        {/* Left icon & details */}
-        <div className="flex items-start gap-3.5 min-w-0">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 flex items-center justify-center text-xl shrink-0 transition-colors shadow-xs">
-            {parking.has_ev ? "⚡" : "🅿️"}
-          </div>
-
-          <div className="min-w-0 space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate">
-                {parking.name || "ParkEase Hub"}
-              </h3>
-              {hasDaily && (
-                <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  🎟️ ₹{parking.daily_rate || 10}/day
-                </span>
-              )}
-            </div>
-
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
-              <FiMapPin className="w-3 h-3 shrink-0 text-zinc-400" />
-              <span>{parking.address || parking.location || "City Location"}</span>
-            </p>
-
-            {/* Feature tags */}
-            <div className="flex items-center gap-2.5 text-[11px] font-semibold flex-wrap pt-0.5">
-              <span
-                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                  isFull
-                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                    : isLow
-                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    isFull ? "bg-rose-500" : isLow ? "bg-amber-500" : "bg-emerald-500 animate-pulse"
-                  }`}
-                />
-                {isFull ? "Full" : `${available} bays left`}
-              </span>
-
-              {distance && (
-                <span className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
-                  📍 {distance}
-                </span>
-              )}
-
-              {parking.has_ev && (
-                <span className="text-sky-600 dark:text-sky-400 text-[10px] font-bold">
-                  ⚡ Fast EV
-                </span>
-              )}
-            </div>
-          </div>
+      {/* Left Icon & Details */}
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div className="w-13 h-13 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
+          {parking.has_ev ? "⚡" : "🚗"}
         </div>
 
-        {/* Right Pricing & Book Action */}
-        <div className="shrink-0 text-right space-y-1">
-          {isFree ? (
-            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">FREE</span>
-          ) : (
-            <div>
-              <span className="text-base font-black text-zinc-900 dark:text-white font-mono">
-                ₹{parking.hourly_rate ?? 50}
+        <div className="min-w-0 space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-black text-black dark:text-white tracking-tight truncate">
+              {parking.name || "ParkEase Location"}
+            </h3>
+            {hasDaily && (
+              <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                ₹{parking.daily_rate}/day
               </span>
-              <span className="text-[10px] text-zinc-400 font-bold block">/hour</span>
-            </div>
-          )}
-
-          <div className="inline-flex items-center gap-1 text-[11px] font-black text-zinc-900 dark:text-white group-hover:text-emerald-500 transition-colors pt-1">
-            <span>Book</span>
-            <FiArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            )}
           </div>
+
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
+            <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+            <span>{parking.address || parking.location || "City Location"}</span>
+          </p>
+
+          <div className="flex items-center gap-2 text-[11px] font-bold flex-wrap pt-0.5">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                isFull
+                  ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                  : isLow
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isFull ? "bg-rose-500" : isLow ? "bg-amber-500" : "bg-emerald-500 animate-pulse"}`} />
+              {isFull ? "Full" : `${available} spots left`}
+            </span>
+
+            {distance && (
+              <span className="text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
+                📍 {distance} away
+              </span>
+            )}
+
+            {parking.has_ev && (
+              <span className="text-cyan-600 dark:text-cyan-400 text-[10px] font-black">
+                ⚡ EV Fast
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Pricing & Book Action (Uber Ride Tier Style) */}
+      <div className="shrink-0 text-right space-y-1">
+        {isFree ? (
+          <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">FREE</span>
+        ) : (
+          <div>
+            <span className="text-lg font-black text-black dark:text-white font-mono tracking-tight">
+              ₹{parking.hourly_rate ?? 40}
+            </span>
+            <span className="text-[10px] text-zinc-400 font-bold block leading-none">/hr</span>
+          </div>
+        )}
+
+        <div className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full bg-black dark:bg-white text-white dark:text-black group-hover:scale-105 transition-transform shadow-xs">
+          <span>Reserve</span>
+          <FiArrowRight className="w-3 h-3" />
         </div>
       </div>
     </div>
@@ -335,40 +327,29 @@ export default function CustomerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO SEARCH BANNER — VIBRANT EMERALD-CYAN GRADIENT
+            1. UBER 'WHERE TO?' COMMAND CARD (MINIMALIST & HIGH CONTRAST)
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-9 shadow-2xl border border-emerald-400/30">
-          {/* Subtle Grid Accent */}
-          <div
-            className="absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-              backgroundSize: "36px 36px",
-            }}
-          />
-
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white p-6 sm:p-8 shadow-2xl border border-zinc-800">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>INSTANT PARKING PASS</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>INSTANT PARKING</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                Where are you parking, {getUserName().split(" ")[0]}?
+                Where to, {getUserName().split(" ")[0]}?
               </h1>
-              <p className="text-emerald-50 text-xs sm:text-sm font-medium">
-                Find and book safe parking spots near you with instant QR check-in.
+              <p className="text-zinc-400 text-xs sm:text-sm font-medium">
+                Reserve safe parking spots in real-time with automated gate QR passes.
               </p>
 
               {/* Quick Destination Shortcut Tags */}
-              <div className="flex items-center gap-2 flex-wrap pt-2">
-                <span className="text-xs text-emerald-100 font-bold">Quick Search:</span>
+              <div className="flex items-center gap-2 flex-wrap pt-1">
                 {destinationShortcuts.map((tag) => (
                   <button
                     key={tag.label}
                     onClick={() => setSearch(tag.query)}
-                    className="px-3.5 py-1 rounded-full text-xs font-black bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 cursor-pointer shadow-xs"
+                    className="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-zinc-850 hover:bg-zinc-700 border border-zinc-700/80 text-white transition-all active:scale-95 cursor-pointer"
                   >
                     {tag.label}
                   </button>
@@ -376,27 +357,27 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            {/* Active Pass Banner (if user has an active booking) */}
+            {/* Active Pass HUD (Uber Trip Receipt style) */}
             {latestActive && (
-              <div className="shrink-0 p-5 rounded-3xl bg-white/15 border border-white/25 shadow-2xl backdrop-blur-2xl flex items-center justify-between gap-4 max-w-md text-white">
+              <div className="shrink-0 p-5 rounded-3xl bg-zinc-900/90 border border-zinc-700/80 shadow-2xl flex items-center justify-between gap-4 max-w-md text-white">
                 <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-200">
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                    <span>ACTIVE BOOKING</span>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span>ACTIVE RESERVATION</span>
                   </div>
                   <p className="text-sm font-black text-white line-clamp-1">
                     {latestActive.parking_name || "Parking Location"}
                   </p>
-                  <p className="text-xs text-emerald-100 font-mono">Spot #{latestActive.slot_number}</p>
+                  <p className="text-xs text-zinc-400 font-mono">Spot #{latestActive.slot_number}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setFindCarModalBooking(latestActive)}
-                    className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/20"
+                    className="p-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-zinc-700"
                     title="Find My Car"
                   >
                     <FiCompass className="w-4 h-4 animate-spin-slow" />
-                    <span>Find Car</span>
+                    <span>Locate</span>
                   </button>
                   <button
                     onClick={() =>
@@ -404,9 +385,9 @@ export default function CustomerDashboard() {
                         state: { booking: latestActive },
                       })
                     }
-                    className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                    className="px-4 py-2.5 rounded-2xl bg-white text-black hover:bg-zinc-200 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
                   >
-                    View Pass
+                    Pass
                   </button>
                 </div>
               </div>

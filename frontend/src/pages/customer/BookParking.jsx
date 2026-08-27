@@ -686,19 +686,20 @@ export default function BookParking() {
                 </div>
               )}
 
-              {/* CONFIRM BUTTON */}
+              {/* CONFIRM BUTTON (UBER-INSPIRED) */}
               <button
                 type="button"
                 disabled={!selectedSlot || !selectedVehicle || bookingLoading}
                 onClick={handleConfirmBooking}
-                className="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black text-base font-black shadow-lg transition-all active:scale-95 text-center cursor-pointer"
+                className="w-full py-4 px-6 rounded-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-white dark:text-black text-base font-black shadow-xl transition-all active:scale-[0.98] text-center cursor-pointer flex items-center justify-center gap-2"
               >
-                {bookingLoading ? "Locking Spot..." : "Confirm & Get Pass →"}
+                <span>{bookingLoading ? "Reserving Spot..." : "Reserve Spot Now"}</span>
+                <FiArrowRight className="w-5 h-5" />
               </button>
 
               {(!selectedSlot || !selectedVehicle) && (
                 <p className="text-xs text-rose-500 font-bold text-center">
-                  {!selectedVehicle ? "⚠ Please choose a vehicle" : "⚠ Please pick a spot"}
+                  {!selectedVehicle ? "⚠ Please choose your vehicle" : "⚠ Please select a parking spot"}
                 </p>
               )}
             </div>

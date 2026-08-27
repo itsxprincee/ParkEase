@@ -141,39 +141,32 @@ export default function SaaSNavbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-18">
             
-            {/* BRAND LOGO */}
+            {/* BRAND LOGO (UBER-INSPIRED) */}
             <Link
               to={brandHome}
               className="flex items-center gap-3 group focus:outline-hidden"
               id="navbar-brand-logo"
             >
-              <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 p-[2px] shadow-md group-hover:scale-105 transition-transform duration-300">
-                <div className="w-full h-full bg-emerald-500 rounded-[14px] flex items-center justify-center text-white">
-                  <FiMapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                </div>
+              <div className="w-10 h-10 rounded-2xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-black shadow-md group-hover:scale-105 transition-transform duration-200">
+                <span className="text-base font-mono">PE</span>
               </div>
 
               <div className="flex flex-col">
-                <div className="flex items-center tracking-tight leading-none">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                    Park
+                <div className="flex items-center gap-1.5 leading-none">
+                  <span className="text-xl sm:text-2xl font-black text-black dark:text-white tracking-tight">
+                    ParkEase
                   </span>
-                  <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                    Ease
-                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse inline-block" />
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                    {getRoleLabel()}
-                  </span>
-                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400 mt-0.5">
+                  {getRoleLabel()}
+                </span>
               </div>
             </Link>
 
-            {/* DESKTOP NAV LINKS */}
+            {/* DESKTOP NAV PILLS (UBER-INSPIRED) */}
             <nav
-              className="hidden md:flex items-center gap-1.5 bg-slate-100/80 dark:bg-zinc-900/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800/80"
+              className="hidden md:flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs"
               id="navbar-nav-links"
             >
               {navLinks.map((link) => {
@@ -184,13 +177,13 @@ export default function SaaSNavbar() {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
                       isActive
-                        ? "bg-emerald-500 text-white shadow-md font-black"
-                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800"
+                        ? "bg-black dark:bg-white text-white dark:text-black shadow-md font-black"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5" />
                     <span>{link.name}</span>
                   </Link>
                 );
@@ -198,7 +191,7 @@ export default function SaaSNavbar() {
             </nav>
 
             {/* RIGHT UTILITIES & USER PROFILE */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
 
               {/* Notifications */}
               <div className="relative" ref={notifRef}>

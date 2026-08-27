@@ -368,6 +368,7 @@ def get_owner_live_dashboard(
     for loc in locations:
         loc_slots = [s for s in all_slots if s.parking_id == loc.id]
         loc_bookings = [b for b in all_bookings if b.parking_location_id == loc.id]
+        loc_valid_bookings = [b for b in loc_bookings if str(b.status).upper() not in ["CANCELLED"]]
 
         loc_avail = len([s for s in loc_slots if str(s.status).upper() == "AVAILABLE"])
         loc_maint = len([s for s in loc_slots if str(s.status).upper() == "MAINTENANCE"])
@@ -376,6 +377,12 @@ def get_owner_live_dashboard(
 
         tot = loc.total_slots or len(loc_slots) or 1
         occ_rate = round(((loc_entered + loc_booked) / tot) * 100) if tot > 0 else 0
+
+        loc_total_rev = sum(float(b.amount or 0) for b in loc_valid_bookings)
+        loc_today_rev = sum(float(b.amount or 0) for b in loc_valid_bookings if b.booking_date and b.booking_date >= today_start)
+        loc_weekly_rev = sum(float(b.amount or 0) for b in loc_valid_bookings if b.booking_date and b.booking_date >= seven_days_ago)
+        loc_monthly_rev = sum(float(b.amount or 0) for b in loc_valid_bookings if b.booking_date and b.booking_date >= thirty_days_ago)
+        loc_yearly_rev = sum(float(b.amount or 0) for b in loc_valid_bookings if b.booking_date and b.booking_date >= year_start)
 
         facility_breakdowns.append({
             "id": loc.id,
@@ -388,6 +395,11 @@ def get_owner_live_dashboard(
             "entered_count": loc_entered,
             "maintenance_count": loc_maint,
             "occupancy_rate": min(occ_rate, 100),
+            "total_revenue": loc_total_rev,
+            "today_revenue": loc_today_rev,
+            "weekly_revenue": loc_weekly_rev,
+            "monthly_revenue": loc_monthly_rev,
+            "yearly_revenue": loc_yearly_rev,
             "verification_status": loc.verification_status,
             "image": loc.image
         })

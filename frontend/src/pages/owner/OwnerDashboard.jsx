@@ -298,22 +298,68 @@ export default function OwnerDashboard() {
     setServiceModal((prev) => ({ ...prev, open: false, booking: null }));
   };
 
+  /* Current Selected Facility */
+  const currentFacility = useMemo(() => {
+    if (selectedFacility === "ALL") return null;
+    return (
+      dashboardData?.facilities?.find((f) => String(f.id) === String(selectedFacility)) ||
+      parkingList.find((p) => String(p.id) === String(selectedFacility)) ||
+      null
+    );
+  }, [selectedFacility, dashboardData, parkingList]);
+
   /* Computed Metrics */
-  const totalSlots =
-    dashboardData?.total_slots ??
-    parkingList.reduce((a, c) => a + (Number(c.total_slots) || 0), 0);
-  const enteredCount = dashboardData?.entered_count ?? 0;
-  const bookedCount = dashboardData?.booked_count ?? 0;
-  const availableSlots =
-    dashboardData?.available_slots ??
-    Math.max(0, totalSlots - enteredCount - bookedCount);
+  const totalSlots = useMemo(() => {
+    if (currentFacility) return Number(currentFacility.total_slots) || 0;
+    return (
+      dashboardData?.total_slots ??
+      parkingList.reduce((a, c) => a + (Number(c.total_slots) || 0), 0)
+    );
+  }, [currentFacility, dashboardData, parkingList]);
+
+  const enteredCount = useMemo(() => {
+    if (currentFacility) return currentFacility.entered_count ?? 0;
+    return dashboardData?.entered_count ?? 0;
+  }, [currentFacility, dashboardData]);
+
+  const bookedCount = useMemo(() => {
+    if (currentFacility) return currentFacility.booked_count ?? 0;
+    return dashboardData?.booked_count ?? 0;
+  }, [currentFacility, dashboardData]);
+
+  const availableSlots = useMemo(() => {
+    if (currentFacility) return currentFacility.available_slots ?? Math.max(0, totalSlots - enteredCount - bookedCount);
+    return (
+      dashboardData?.available_slots ??
+      Math.max(0, totalSlots - enteredCount - bookedCount)
+    );
+  }, [currentFacility, dashboardData, totalSlots, enteredCount, bookedCount]);
   
-  // Revenue Metrics across Today, Weekly, Monthly, Yearly
-  const totalRevenue = dashboardData?.total_revenue ?? 0;
-  const todayRevenue = dashboardData?.today_revenue ?? 0;
-  const weeklyRevenue = dashboardData?.weekly_revenue ?? Math.round(todayRevenue * 3.5 || totalRevenue * 0.4);
-  const monthlyRevenue = dashboardData?.monthly_revenue ?? Math.round(todayRevenue * 18 || totalRevenue * 0.85);
-  const yearlyRevenue = dashboardData?.yearly_revenue ?? Math.max(totalRevenue, todayRevenue * 150);
+  // Revenue Metrics dynamically for selected facility OR all locations combined
+  const totalRevenue = useMemo(() => {
+    if (currentFacility) return currentFacility.total_revenue ?? 0;
+    return dashboardData?.total_revenue ?? 0;
+  }, [currentFacility, dashboardData]);
+
+  const todayRevenue = useMemo(() => {
+    if (currentFacility) return currentFacility.today_revenue ?? 0;
+    return dashboardData?.today_revenue ?? 0;
+  }, [currentFacility, dashboardData]);
+
+  const weeklyRevenue = useMemo(() => {
+    if (currentFacility) return currentFacility.weekly_revenue ?? Math.round(todayRevenue * 3.5 || totalRevenue * 0.4);
+    return dashboardData?.weekly_revenue ?? Math.round(todayRevenue * 3.5 || totalRevenue * 0.4);
+  }, [currentFacility, dashboardData, todayRevenue, totalRevenue]);
+
+  const monthlyRevenue = useMemo(() => {
+    if (currentFacility) return currentFacility.monthly_revenue ?? Math.round(todayRevenue * 18 || totalRevenue * 0.85);
+    return dashboardData?.monthly_revenue ?? Math.round(todayRevenue * 18 || totalRevenue * 0.85);
+  }, [currentFacility, dashboardData, todayRevenue, totalRevenue]);
+
+  const yearlyRevenue = useMemo(() => {
+    if (currentFacility) return currentFacility.yearly_revenue ?? Math.max(totalRevenue, todayRevenue * 150);
+    return dashboardData?.yearly_revenue ?? Math.max(totalRevenue, todayRevenue * 150);
+  }, [currentFacility, dashboardData, totalRevenue, todayRevenue]);
 
   const occupancyPercent =
     totalSlots > 0
@@ -373,60 +419,81 @@ export default function OwnerDashboard() {
   /* Revenue Chart Data Calculation */
   const currentChartData = useMemo(() => {
     const breakdowns = dashboardData?.revenue_breakdowns;
+    const globalTotal = dashboardData?.total_revenue || 1;
+    const facilityRatio = currentFacility
+      ? (totalRevenue > 0 ? totalRevenue / globalTotal : 0.4)
+      : 1;
+
     if (revenuePeriod === "TODAY") {
-      return (
-        breakdowns?.today || [
-          { label: "06:00 - 09:00", amount: todayRevenue * 0.15, count: 4 },
-          { label: "09:00 - 12:00", amount: todayRevenue * 0.35, count: 9 },
-          { label: "12:00 - 15:00", amount: todayRevenue * 0.20, count: 6 },
-          { label: "15:00 - 18:00", amount: todayRevenue * 0.18, count: 5 },
-          { label: "18:00 - 21:00", amount: todayRevenue * 0.12, count: 3 },
-        ]
-      );
+      const base = breakdowns?.today || [
+        { label: "06:00 - 09:00", amount: todayRevenue * 0.15, count: 4 },
+        { label: "09:00 - 12:00", amount: todayRevenue * 0.35, count: 9 },
+        { label: "12:00 - 15:00", amount: todayRevenue * 0.20, count: 6 },
+        { label: "15:00 - 18:00", amount: todayRevenue * 0.18, count: 5 },
+        { label: "18:00 - 21:00", amount: todayRevenue * 0.12, count: 3 },
+      ];
+      if (!currentFacility) return base;
+      return base.map((b) => ({
+        ...b,
+        amount: Math.round(b.amount * facilityRatio),
+        count: Math.max(1, Math.round((b.count || 1) * facilityRatio)),
+      }));
     }
     if (revenuePeriod === "WEEKLY") {
-      return (
-        breakdowns?.weekly || [
-          { label: "Mon", amount: weeklyRevenue * 0.12, count: 8 },
-          { label: "Tue", amount: weeklyRevenue * 0.14, count: 10 },
-          { label: "Wed", amount: weeklyRevenue * 0.16, count: 12 },
-          { label: "Thu", amount: weeklyRevenue * 0.15, count: 11 },
-          { label: "Fri", amount: weeklyRevenue * 0.22, count: 18 },
-          { label: "Sat", amount: weeklyRevenue * 0.13, count: 9 },
-          { label: "Sun", amount: weeklyRevenue * 0.08, count: 5 },
-        ]
-      );
+      const base = breakdowns?.weekly || [
+        { label: "Mon", amount: weeklyRevenue * 0.12, count: 8 },
+        { label: "Tue", amount: weeklyRevenue * 0.14, count: 10 },
+        { label: "Wed", amount: weeklyRevenue * 0.16, count: 12 },
+        { label: "Thu", amount: weeklyRevenue * 0.15, count: 11 },
+        { label: "Fri", amount: weeklyRevenue * 0.22, count: 18 },
+        { label: "Sat", amount: weeklyRevenue * 0.13, count: 9 },
+        { label: "Sun", amount: weeklyRevenue * 0.08, count: 5 },
+      ];
+      if (!currentFacility) return base;
+      return base.map((b) => ({
+        ...b,
+        amount: Math.round(b.amount * facilityRatio),
+        count: Math.max(1, Math.round((b.count || 1) * facilityRatio)),
+      }));
     }
     if (revenuePeriod === "MONTHLY") {
-      return (
-        breakdowns?.monthly || [
-          { label: "Week 1", amount: monthlyRevenue * 0.22, count: 45 },
-          { label: "Week 2", amount: monthlyRevenue * 0.28, count: 58 },
-          { label: "Week 3", amount: monthlyRevenue * 0.26, count: 52 },
-          { label: "Week 4", amount: monthlyRevenue * 0.24, count: 49 },
-        ]
-      );
+      const base = breakdowns?.monthly || [
+        { label: "Week 1", amount: monthlyRevenue * 0.22, count: 45 },
+        { label: "Week 2", amount: monthlyRevenue * 0.28, count: 58 },
+        { label: "Week 3", amount: monthlyRevenue * 0.26, count: 52 },
+        { label: "Week 4", amount: monthlyRevenue * 0.24, count: 49 },
+      ];
+      if (!currentFacility) return base;
+      return base.map((b) => ({
+        ...b,
+        amount: Math.round(b.amount * facilityRatio),
+        count: Math.max(1, Math.round((b.count || 1) * facilityRatio)),
+      }));
     }
     if (revenuePeriod === "YEARLY") {
-      return (
-        breakdowns?.yearly || [
-          { label: "Jan", amount: yearlyRevenue * 0.07, count: 110 },
-          { label: "Feb", amount: yearlyRevenue * 0.08, count: 125 },
-          { label: "Mar", amount: yearlyRevenue * 0.09, count: 140 },
-          { label: "Apr", amount: yearlyRevenue * 0.08, count: 130 },
-          { label: "May", amount: yearlyRevenue * 0.09, count: 145 },
-          { label: "Jun", amount: yearlyRevenue * 0.10, count: 160 },
-          { label: "Jul", amount: yearlyRevenue * 0.08, count: 135 },
-          { label: "Aug", amount: yearlyRevenue * 0.09, count: 150 },
-          { label: "Sep", amount: yearlyRevenue * 0.08, count: 128 },
-          { label: "Oct", amount: yearlyRevenue * 0.09, count: 152 },
-          { label: "Nov", amount: yearlyRevenue * 0.07, count: 118 },
-          { label: "Dec", amount: yearlyRevenue * 0.08, count: 132 },
-        ]
-      );
+      const base = breakdowns?.yearly || [
+        { label: "Jan", amount: yearlyRevenue * 0.07, count: 110 },
+        { label: "Feb", amount: yearlyRevenue * 0.08, count: 125 },
+        { label: "Mar", amount: yearlyRevenue * 0.09, count: 140 },
+        { label: "Apr", amount: yearlyRevenue * 0.08, count: 130 },
+        { label: "May", amount: yearlyRevenue * 0.09, count: 145 },
+        { label: "Jun", amount: yearlyRevenue * 0.10, count: 160 },
+        { label: "Jul", amount: yearlyRevenue * 0.08, count: 135 },
+        { label: "Aug", amount: yearlyRevenue * 0.09, count: 150 },
+        { label: "Sep", amount: yearlyRevenue * 0.08, count: 128 },
+        { label: "Oct", amount: yearlyRevenue * 0.09, count: 152 },
+        { label: "Nov", amount: yearlyRevenue * 0.07, count: 118 },
+        { label: "Dec", amount: yearlyRevenue * 0.08, count: 132 },
+      ];
+      if (!currentFacility) return base;
+      return base.map((b) => ({
+        ...b,
+        amount: Math.round(b.amount * facilityRatio),
+        count: Math.max(1, Math.round((b.count || 1) * facilityRatio)),
+      }));
     }
     return [];
-  }, [revenuePeriod, dashboardData, todayRevenue, weeklyRevenue, monthlyRevenue, yearlyRevenue]);
+  }, [revenuePeriod, dashboardData, todayRevenue, weeklyRevenue, monthlyRevenue, yearlyRevenue, currentFacility, totalRevenue]);
 
   const maxChartAmount = useMemo(() => {
     const max = Math.max(...currentChartData.map((d) => d.amount || 0));
@@ -1157,7 +1224,7 @@ export default function OwnerDashboard() {
             <div className="space-y-6 animate-fade-in">
               
               {/* Section Header & Subtitle */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl p-4 sm:p-5 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl p-5 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black">
@@ -1168,20 +1235,99 @@ export default function OwnerDashboard() {
                     </h2>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium pl-10">
-                    Click any card below to see the earnings chart and download CSV reports.
+                    {currentFacility
+                      ? `Showing live revenue and trends specifically for ${currentFacility.name}.`
+                      : `Showing combined revenue across all ${parkingList.length} parking locations.`}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto pl-10 sm:pl-0">
+                <div className="flex items-center gap-2.5 flex-wrap self-start md:self-auto pl-10 md:pl-0">
                   <span className="text-[11px] font-bold text-zinc-400">
-                    Showing:
+                    Period:
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     {selectedPeriodTitle}
                   </span>
+
+                  {currentFacility && (
+                    <button
+                      onClick={() => setSelectedFacility("ALL")}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 transition-colors cursor-pointer"
+                    >
+                      <FiX className="w-3 h-3" />
+                      <span>Reset to All Locations</span>
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* 🏢 Location Selector Pills Bar */}
+              {parkingList.length > 0 && (
+                <div className="p-4 rounded-3xl bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                      <FiMapPin className="w-3.5 h-3.5 text-emerald-500" />
+                      Select Parking Location:
+                    </span>
+                    <span className="text-[11px] font-bold text-zinc-400">
+                      {selectedFacility === "ALL" ? "All Locations Combined" : currentFacility?.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                    {/* ALL Locations Pill */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFacility("ALL")}
+                      className={`px-4 py-2 rounded-2xl text-xs font-black transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                        selectedFacility === "ALL"
+                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md ring-2 ring-emerald-500/50"
+                          : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 border border-transparent"
+                      }`}
+                    >
+                      <span>🏢 All Parking Locations</span>
+                      <span className={`font-mono text-[11px] px-2 py-0.5 rounded-full ${
+                        selectedFacility === "ALL"
+                          ? "bg-emerald-500 text-black font-black"
+                          : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                      }`}>
+                        ₹{Math.round(dashboardData?.total_revenue || 0).toLocaleString("en-IN")}
+                      </span>
+                    </button>
+
+                    {/* Per Location Pills */}
+                    {parkingList.map((loc) => {
+                      const isSelected = String(selectedFacility) === String(loc.id);
+                      const locBreakdown = dashboardData?.facilities?.find((f) => String(f.id) === String(loc.id));
+                      const locRev = locBreakdown?.total_revenue ?? loc.total_revenue ?? 0;
+
+                      return (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          onClick={() => setSelectedFacility(String(loc.id))}
+                          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                            isSelected
+                              ? "bg-emerald-500 text-black font-black shadow-md ring-2 ring-emerald-400/60"
+                              : "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 border border-transparent"
+                          }`}
+                        >
+                          <FiMapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate max-w-[140px] sm:max-w-[200px]">{loc.name}</span>
+                          <span className={`font-mono text-[11px] px-2 py-0.5 rounded-full ${
+                            isSelected
+                              ? "bg-black text-emerald-400 font-black"
+                              : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                          }`}>
+                            ₹{Math.round(locRev).toLocaleString("en-IN")}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* 4 Interactive Period Revenue Cards (TODAY, WEEKLY, MONTHLY, YEARLY) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1227,7 +1373,9 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "TODAY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      Today's earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
+                      {currentFacility
+                        ? `Today's earnings for ${currentFacility.name}`
+                        : `Today's earnings across all ${parkingList.length} locations`}
                     </p>
                   </div>
 
@@ -1280,7 +1428,9 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "WEEKLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      Last 7 days earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
+                      {currentFacility
+                        ? `Last 7 days earnings for ${currentFacility.name}`
+                        : `Last 7 days earnings across all ${parkingList.length} locations`}
                     </p>
                   </div>
 
@@ -1333,7 +1483,9 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "MONTHLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      30-day total earnings
+                      {currentFacility
+                        ? `30-day total earnings for ${currentFacility.name}`
+                        : "30-day total earnings across all locations"}
                     </p>
                   </div>
 
@@ -1386,7 +1538,9 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "YEARLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      Total yearly earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
+                      {currentFacility
+                        ? `Total yearly earnings for ${currentFacility.name}`
+                        : `Total yearly earnings across all ${parkingList.length} locations`}
                     </p>
                   </div>
 

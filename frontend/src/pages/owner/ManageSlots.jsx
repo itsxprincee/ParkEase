@@ -219,31 +219,37 @@ export default function ManageSlots() {
   const evCount = slots.filter((s) => s.is_ev).length;
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+          <div
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+              toast.type === "error"
+                ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+                : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+            }`}
+          >
             {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* TOP BAR */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#e0e0e0] text-xs font-semibold text-[#0a0a0a] hover:border-[#0a0a0a] transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Dashboard</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="outline"
               size="sm"
@@ -251,7 +257,7 @@ export default function ManageSlots() {
               loading={refreshing}
               onClick={() => loadData(true)}
             >
-              Sync
+              Refresh
             </Button>
             <Button
               variant="secondary"
@@ -259,7 +265,7 @@ export default function ManageSlots() {
               icon={FiLayers}
               onClick={() => setBulkModalOpen(true)}
             >
-              Batch Generate
+              Add Multiple Spots
             </Button>
             <Button
               variant="primary"
@@ -267,58 +273,58 @@ export default function ManageSlots() {
               icon={FiPlus}
               onClick={() => setAddModalOpen(true)}
             >
-              Add Single Slot
+              Add Single Spot
             </Button>
           </div>
         </div>
 
-        {/* FACILITY TITLE & STATS */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* PARKING TITLE & STATS */}
+        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <Badge variant="primary" size="sm">
-              Slot Matrix & Capacity
-            </Badge>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              {parking?.name || "Facility Slot Grid"}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/20">
+              <span>PARKING SPOTS & CAPACITY</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight mt-1">
+              {parking?.name || "Parking Spots Grid"}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {parking?.address || "Configure and manage real-time parking spot statuses."}
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
+              {parking?.address || "Manage real-time parking spot statuses and EV charging."}
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-center px-4 py-2 bg-emerald-50 rounded-2xl border border-emerald-100">
-              <span className="text-[10px] uppercase font-bold text-emerald-700 block">Available</span>
-              <span className="text-xl font-extrabold text-emerald-700">{availableCount}</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="text-center px-4 py-2.5 bg-emerald-500/10 dark:bg-emerald-950/40 rounded-2xl border border-emerald-500/20">
+              <span className="text-[10px] uppercase font-black text-emerald-600 dark:text-emerald-400 block">Available</span>
+              <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">{availableCount}</span>
             </div>
-            <div className="text-center px-4 py-2 bg-rose-50 rounded-2xl border border-rose-100">
-              <span className="text-[10px] uppercase font-bold text-rose-700 block">Occupied</span>
-              <span className="text-xl font-extrabold text-rose-700">{occupiedCount}</span>
+            <div className="text-center px-4 py-2.5 bg-rose-500/10 dark:bg-rose-950/40 rounded-2xl border border-rose-500/20">
+              <span className="text-[10px] uppercase font-black text-rose-600 dark:text-rose-400 block">Occupied</span>
+              <span className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">{occupiedCount}</span>
             </div>
-            <div className="text-center px-4 py-2 bg-amber-50 rounded-2xl border border-amber-100">
-              <span className="text-[10px] uppercase font-bold text-amber-700 block">⚡ EV Ready</span>
-              <span className="text-xl font-extrabold text-amber-700">{evCount}</span>
+            <div className="text-center px-4 py-2.5 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl border border-amber-500/20">
+              <span className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400 block">⚡ EV Ports</span>
+              <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">{evCount}</span>
             </div>
           </div>
         </div>
 
         {/* SEARCH & FILTERS */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-1 bg-[#e8e8e8] p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+          <div className="flex items-center gap-1.5 bg-zinc-200/60 dark:bg-zinc-800/60 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto border border-zinc-200 dark:border-zinc-700">
             {[
               { id: "ALL", label: `All (${slots.length})` },
               { id: "AVAILABLE", label: "Available" },
               { id: "OCCUPIED", label: "Occupied" },
-              { id: "MAINTENANCE", label: "Maintenance" },
-              { id: "EV", label: "⚡ EV Slots" },
+              { id: "MAINTENANCE", label: "Under Repair" },
+              { id: "EV", label: "⚡ EV Spots" },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   statusFilter === tab.id
-                    ? "bg-white text-indigo-600 shadow-xs font-bold"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white shadow-xs"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
                 }`}
               >
                 {tab.label}
@@ -327,15 +333,15 @@ export default function ManageSlots() {
           </div>
 
           <div className="relative w-full sm:w-64 flex items-center">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
               <FiSearch className="w-4 h-4" />
             </div>
             <input
               type="text"
-              placeholder="Search slot (e.g. A-1)..."
+              placeholder="Search spot (e.g. A-1)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pe-input pe-input-icon-left text-xs"
+              className="pe-input pl-10 text-xs bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl w-full"
             />
           </div>
         </div>
@@ -349,9 +355,9 @@ export default function ManageSlots() {
         ) : filteredSlots.length === 0 ? (
           <EmptyState
             icon={FiLayers}
-            title="No slots configured"
-            description="Create slots or use the 1-click batch generator to create parking spaces."
-            actionLabel="+ Batch Generate Slots"
+            title="No spots configured"
+            description="Create spots or use the batch generator to create parking spaces."
+            actionLabel="+ Add Multiple Spots"
             onAction={() => setBulkModalOpen(true)}
           />
         ) : (
@@ -362,24 +368,23 @@ export default function ManageSlots() {
               const isMaintenance = status === "maintenance";
 
               return (
-                <Card
+                <div
                   key={slot.id}
-                  padding="p-4"
-                  className={`flex flex-col justify-between space-y-3 relative transition-all ${
+                  className={`p-4 rounded-3xl border backdrop-blur-xl flex flex-col justify-between space-y-3 relative transition-all shadow-xs ${
                     isOccupied
-                      ? "border-rose-200 bg-rose-50/40"
+                      ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/20"
                       : isMaintenance
-                      ? "border-amber-200 bg-amber-50/40"
-                      : "border-emerald-200 bg-emerald-50/30"
+                      ? "border-amber-300 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/20"
+                      : "border-emerald-300 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20"
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <span className="text-base font-black text-slate-900 tracking-tight">
+                    <span className="text-base font-black text-zinc-900 dark:text-white font-mono tracking-tight">
                       {slot.slot_number}
                     </span>
 
                     {slot.is_ev && (
-                      <span className="text-xs font-bold text-amber-500 bg-amber-100/80 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
                         ⚡ EV
                       </span>
                     )}
@@ -388,10 +393,10 @@ export default function ManageSlots() {
                   <Badge
                     variant={
                       isOccupied
-                        ? "occupied"
+                        ? "danger"
                         : isMaintenance
-                        ? "maintenance"
-                        : "available"
+                        ? "warning"
+                        : "success"
                     }
                     size="sm"
                     dot
@@ -403,22 +408,22 @@ export default function ManageSlots() {
                       : "Available"}
                   </Badge>
 
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                  <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex items-center justify-between">
                     <button
                       onClick={() => setEditModal({ open: true, slot })}
-                      className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                      className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <FiEdit2 className="w-3 h-3" />
                       <span>Edit</span>
                     </button>
                     <button
                       onClick={() => setDeleteModal({ open: true, slot })}
-                      className="text-[11px] font-bold text-rose-500 hover:text-rose-700 flex items-center gap-1"
+                      className="text-[11px] font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1 cursor-pointer"
                     >
-                      <FiTrash2 className="w-3 h-3" />
+                      <FiTrash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
@@ -429,12 +434,12 @@ export default function ManageSlots() {
       <Modal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
-        title="Add Single Parking Slot"
+        title="Add Single Parking Spot"
       >
         <form onSubmit={handleAddSingleSlot} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Slot Identifier *
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Spot Number *
             </label>
             <input
               type="text"
@@ -447,12 +452,12 @@ export default function ManageSlots() {
                   slot_number: e.target.value.toUpperCase(),
                 })
               }
-              className="pe-input text-sm font-bold"
+              className="pe-input text-sm font-bold font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Initial Status
             </label>
             <select
@@ -460,15 +465,15 @@ export default function ManageSlots() {
               onChange={(e) =>
                 setSingleSlotForm({ ...singleSlotForm, status: e.target.value })
               }
-              className="pe-input text-sm"
+              className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             >
               <option value="available">Available</option>
               <option value="occupied">Occupied</option>
-              <option value="maintenance">Under Maintenance</option>
+              <option value="maintenance">Under Repair</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2.5 pt-1">
             <input
               type="checkbox"
               id="is_ev"
@@ -479,13 +484,13 @@ export default function ManageSlots() {
                   is_ev: e.target.checked,
                 })
               }
-              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 cursor-pointer"
             />
             <label
               htmlFor="is_ev"
-              className="text-xs font-semibold text-slate-700 cursor-pointer"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer"
             >
-              Equipped with EV Fast Charging Station (⚡)
+              Has EV Fast Charging Port (⚡)
             </label>
           </div>
 
@@ -504,7 +509,7 @@ export default function ManageSlots() {
               type="submit"
               loading={saving}
             >
-              Save Slot
+              Save Spot
             </Button>
           </div>
         </form>
@@ -514,19 +519,19 @@ export default function ManageSlots() {
       <Modal
         isOpen={bulkModalOpen}
         onClose={() => setBulkModalOpen(false)}
-        title="Batch Slot Generator"
-        subtitle="Quickly generate a sequence of numbered slots."
+        title="Add Multiple Spots"
+        subtitle="Quickly generate a series of numbered parking spots."
       >
         <form onSubmit={handleBulkGenerate} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Zone / Floor Prefix
+              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Floor / Section Letter
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. A, B, B1, P2"
+                placeholder="e.g. A, B, P1, P2"
                 value={bulkForm.prefix}
                 onChange={(e) =>
                   setBulkForm({
@@ -534,13 +539,13 @@ export default function ManageSlots() {
                     prefix: e.target.value.toUpperCase(),
                   })
                 }
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                className="pe-input text-xs font-bold font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Number of Slots
+              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Number of Spots
               </label>
               <input
                 type="number"
@@ -551,12 +556,12 @@ export default function ManageSlots() {
                 onChange={(e) =>
                   setBulkForm({ ...bulkForm, count: e.target.value })
                 }
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                className="pe-input text-xs font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2.5 pt-1">
             <input
               type="checkbox"
               id="bulk_ev"
@@ -564,13 +569,13 @@ export default function ManageSlots() {
               onChange={(e) =>
                 setBulkForm({ ...bulkForm, is_ev: e.target.checked })
               }
-              className="w-4 h-4 rounded text-indigo-600"
+              className="w-4 h-4 rounded text-emerald-500 cursor-pointer"
             />
             <label
               htmlFor="bulk_ev"
-              className="text-xs font-semibold text-slate-700 cursor-pointer"
+              className="text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer"
             >
-              Mark all generated spots as EV Ready (⚡)
+              Mark all spots as EV Ready (⚡)
             </label>
           </div>
 
@@ -589,7 +594,7 @@ export default function ManageSlots() {
               type="submit"
               loading={saving}
             >
-              Generate Sequence
+              Generate Spots
             </Button>
           </div>
         </form>
@@ -599,13 +604,13 @@ export default function ManageSlots() {
       <Modal
         isOpen={editModal.open}
         onClose={() => setEditModal({ open: false, slot: null })}
-        title={`Edit Slot ${editModal.slot?.slot_number || ""}`}
+        title={`Edit Spot ${editModal.slot?.slot_number || ""}`}
       >
         {editModal.slot && (
           <form onSubmit={handleEditSlot} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700">
-                Slot Status
+              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Spot Status
               </label>
               <select
                 value={(editModal.slot.status || "available").toLowerCase()}
@@ -615,15 +620,15 @@ export default function ManageSlots() {
                     slot: { ...editModal.slot, status: e.target.value },
                   })
                 }
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-medium focus:outline-none focus:border-indigo-500"
+                className="pe-input text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
               >
                 <option value="available">Available (Free)</option>
-                <option value="occupied">Occupied (In-Use)</option>
-                <option value="maintenance">Under Maintenance</option>
+                <option value="occupied">Occupied (Parked)</option>
+                <option value="maintenance">Under Repair</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2.5 pt-1">
               <input
                 type="checkbox"
                 id="edit_ev"
@@ -634,13 +639,13 @@ export default function ManageSlots() {
                     slot: { ...editModal.slot, is_ev: e.target.checked },
                   })
                 }
-                className="w-4 h-4 rounded text-indigo-600"
+                className="w-4 h-4 rounded text-emerald-500 cursor-pointer"
               />
               <label
                 htmlFor="edit_ev"
-                className="text-xs font-semibold text-slate-700 cursor-pointer"
+                className="text-xs font-bold text-zinc-700 dark:text-zinc-300 cursor-pointer"
               >
-                EV Fast Charging Support (⚡)
+                EV Fast Charging Port (⚡)
               </label>
             </div>
 
@@ -670,19 +675,19 @@ export default function ManageSlots() {
       <Modal
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, slot: null })}
-        title="Delete Slot"
+        title="Delete Spot"
         maxWidth="max-w-md"
       >
         <div className="text-center py-2 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-100">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto border border-rose-500/20">
             <FiTrash2 className="w-7 h-7" />
           </div>
           <div>
-            <h4 className="text-base font-bold text-slate-900">
-              Delete Slot {deleteModal.slot?.slot_number}?
+            <h4 className="text-base font-bold text-zinc-900 dark:text-white">
+              Delete Spot {deleteModal.slot?.slot_number}?
             </h4>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto mt-1">
-              This parking spot will be removed from your facility matrix.
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto mt-1">
+              This parking spot will be removed from your parking lot.
             </p>
           </div>
 

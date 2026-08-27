@@ -201,13 +201,13 @@ export default function AddParking() {
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-6 sm:p-8 border border-emerald-400/30">
           <div className="max-w-2xl space-y-2 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black">
-              <span>FACILITY ONBOARDING</span>
+              <span>ADD PARKING</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Add a New Parking Facility
+              Add a New Parking Location
             </h1>
             <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
-              Fill in your facility details below. As you type, the live card preview shows exactly how drivers will see your facility.
+              Fill in your parking details below. The live card preview shows exactly what drivers will see in the app.
             </p>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function AddParking() {
                   1
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Facility Details</h2>
+                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Location Details</h2>
                   <p className="text-xs text-zinc-400 font-medium">Name and street address</p>
                 </div>
               </div>
@@ -233,12 +233,12 @@ export default function AddParking() {
               <div className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    Facility Name *
+                    Parking Name *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. City Mall Underground Parking"
+                    placeholder="e.g. City Mall Parking"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"
@@ -309,15 +309,15 @@ export default function AddParking() {
                   2
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Slots & Rates</h2>
-                  <p className="text-xs text-zinc-400 font-medium">How many cars can park and what you charge</p>
+                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Spots & Pricing</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Number of parking spots and hourly/daily rates</p>
                 </div>
               </div>
 
-              {/* Slots Count */}
+              {/* Spots Count */}
               <div>
                 <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                  Total Parking Slots *
+                  Total Spots *
                 </label>
                 <div className="flex items-center gap-3">
                   <input
@@ -341,7 +341,7 @@ export default function AddParking() {
                             : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
                         }`}
                       >
-                        {num} slots
+                        {num} spots
                       </button>
                     ))}
                   </div>
@@ -454,7 +454,7 @@ export default function AddParking() {
                 </div>
                 <div>
                   <h2 className="text-base font-black text-zinc-900 dark:text-white">Amenities & Photo</h2>
-                  <p className="text-xs text-zinc-400 font-medium">Highlight your facility's safety and features</p>
+                  <p className="text-xs text-zinc-400 font-medium">Highlight safety and convenience features</p>
                 </div>
               </div>
 
@@ -525,7 +525,7 @@ export default function AddParking() {
                     <button
                       type="button"
                       onClick={handleRemoveImage}
-                      className="text-xs text-red-600 font-bold px-2 py-1 hover:underline"
+                      className="text-xs text-red-600 font-bold px-2 py-1 hover:underline cursor-pointer"
                     >
                       Remove
                     </button>
@@ -541,10 +541,10 @@ export default function AddParking() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-sm font-black shadow-xl shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-black shadow-xl shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <FiCheck className="w-5 h-5 stroke-[3]" />
-                <span>{loading ? "Publishing Facility..." : "Publish Parking Facility"}</span>
+                <span>{loading ? "Listing Parking..." : "Save & List Parking Spot"}</span>
               </button>
             </div>
           </div>
@@ -587,7 +587,7 @@ export default function AddParking() {
 
                 <div className="p-4 space-y-2">
                   <h3 className="text-base font-black text-zinc-900 dark:text-white line-clamp-1">
-                    {formData.name || "Your Facility Name"}
+                    {formData.name || "Your Parking Name"}
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 line-clamp-1">
                     <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
@@ -596,7 +596,7 @@ export default function AddParking() {
 
                   <div className="flex items-center justify-between text-xs pt-2 border-t border-zinc-100 dark:border-zinc-800">
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {formData.total_slots} Bays Available
+                      {formData.total_slots} Spots Available
                     </span>
                     <span className="text-[11px] text-zinc-400">📍 0.5 km</span>
                   </div>

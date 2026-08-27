@@ -167,47 +167,53 @@ export default function EditParking() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+          <div
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+              toast.type === "error"
+                ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+                : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+            }`}
+          >
             {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-neutral-200 text-xs font-bold text-black hover:border-black transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Hub</span>
+            <span>Back to Dashboard</span>
           </button>
         </div>
 
         {loading ? (
           <CardSkeleton />
         ) : (
-          <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="border-b border-neutral-100 pb-4">
-              <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
-                Edit Facility Details
+          <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-6">
+            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                Edit Parking Location
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-500 mt-1 font-medium">
-                Update information, slot limits, and photos.
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+                Update name, address, pricing, spots, and photos.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
-                    Facility Name *
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    Parking Name *
                   </label>
                   <input
                     type="text"
@@ -216,12 +222,12 @@ export default function EditParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Street Address *
                   </label>
                   <textarea
@@ -231,19 +237,19 @@ export default function EditParking() {
                     onChange={(e) =>
                       setFormData({ ...formData, address: e.target.value })
                     }
-                    className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs text-black font-semibold focus:outline-none transition"
+                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full resize-none"
                   />
                 </div>
               </div>
 
               {/* CAPACITY & COORDINATES */}
-              <div className="space-y-4 pt-4 border-t border-neutral-100">
+              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                    Capacity & Exact Coordinates
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                    Spots & Map Location
                   </h3>
-                  <p className="text-xs text-[#737373] mt-0.5">
-                    Click anywhere on the map or drag the pin to calibrate your facility entrance.
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Click anywhere on the map or drag the pin to set your parking location.
                   </p>
                 </div>
 
@@ -262,8 +268,8 @@ export default function EditParking() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
-                      Total Slots
+                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Total Spots
                     </label>
                     <input
                       type="number"
@@ -277,12 +283,12 @@ export default function EditParking() {
                           total_slots: e.target.value,
                         })
                       }
-                      className="pe-input text-xs font-bold"
+                      className="pe-input text-xs font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
+                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                       Latitude
                     </label>
                     <input
@@ -292,12 +298,12 @@ export default function EditParking() {
                       onChange={(e) =>
                         setFormData({ ...formData, latitude: e.target.value })
                       }
-                      className="pe-input text-xs font-mono"
+                      className="pe-input text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-neutral-700">
+                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                       Longitude
                     </label>
                     <input
@@ -307,28 +313,28 @@ export default function EditParking() {
                       onChange={(e) =>
                         setFormData({ ...formData, longitude: e.target.value })
                       }
-                      className="pe-input text-xs font-mono"
+                      className="pe-input text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* PRICING MODEL, DAILY PASS & CURFEW */}
-              <div className="space-y-4 pt-4 border-t border-neutral-100">
+              {/* PRICING MODEL & DAILY PASS */}
+              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                    Pricing Model & Gate Curfew
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                    Pricing & Rates
                   </h3>
-                  <p className="text-xs text-[#737373] mt-0.5">
-                    Select hourly billing, flat daily passes with unlimited entry & exit, or both.
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Select hourly rates, flat daily passes, or both.
                   </p>
                 </div>
 
                 {/* Model Selector */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
-                    { id: "HOURLY", title: "⏱️ Hourly Billing", desc: "Pay per hour" },
-                    { id: "DAILY_PASS", title: "🎟️ Flat Day Pass", desc: "Unlimited entry/exit" },
+                    { id: "HOURLY", title: "⏱️ Hourly Only", desc: "Pay per hour" },
+                    { id: "DAILY_PASS", title: "🎟️ Flat Day Pass", desc: "One price for full day" },
                     { id: "BOTH", title: "⚡ Both Options", desc: "Driver chooses pass" },
                   ].map((mode) => (
                     <div
@@ -336,12 +342,12 @@ export default function EditParking() {
                       onClick={() => setFormData({ ...formData, pricing_type: mode.id })}
                       className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
                         formData.pricing_type === mode.id
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-black border-neutral-200 hover:border-neutral-400"
+                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs font-bold"
+                          : "bg-white dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                       }`}
                     >
                       <p className="text-xs font-black">{mode.title}</p>
-                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === mode.id ? "text-neutral-400" : "text-neutral-500"}`}>
+                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === mode.id ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"}`}>
                         {mode.desc}
                       </p>
                     </div>
@@ -351,11 +357,11 @@ export default function EditParking() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(formData.pricing_type === "HOURLY" || formData.pricing_type === "BOTH") && (
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-700">
+                      <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                         Hourly Rate (₹ / Hour)
                       </label>
-                      <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white transition">
-                        <span className="font-bold text-black">₹</span>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-zinc-400 text-sm">₹</span>
                         <input
                           type="number"
                           min="0"
@@ -369,22 +375,19 @@ export default function EditParking() {
                               hourly_rate: e.target.value,
                             })
                           }
-                          className="w-full bg-transparent text-xs font-bold text-black focus:outline-none"
+                          className="pe-input pl-8 text-xs font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                         />
-                        <span className="text-xs text-neutral-400 font-medium shrink-0">
-                          /hr
-                        </span>
                       </div>
                     </div>
                   )}
 
                   {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#05944f]">
+                      <label className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                         Flat Day Pass Rate (₹ / Whole Day)
                       </label>
-                      <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#f0fdf4] border border-[#86efac] focus-within:border-[#05944f] transition">
-                        <span className="font-bold text-[#05944f]">₹</span>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-emerald-500 text-sm">₹</span>
                         <input
                           type="number"
                           min="1"
@@ -398,27 +401,22 @@ export default function EditParking() {
                               daily_rate: e.target.value,
                             })
                           }
-                          className="w-full bg-transparent text-xs font-bold text-[#05944f] focus:outline-none"
+                          className="pe-input pl-8 text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-2xl w-full"
                         />
-                        <span className="text-xs text-[#05944f] font-medium shrink-0">
-                          /day
-                        </span>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
-                  <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-black text-[#05944f]">
-                          Unlimited Multi-Entry & Gate Curfew Rule
-                        </p>
-                        <p className="text-[11px] text-neutral-600">
-                          Drivers can exit and re-enter multiple times before gate closing.
-                        </p>
-                      </div>
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-3">
+                    <div>
+                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        Day Pass & Closing Time
+                      </p>
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                        Drivers can exit and re-enter multiple times before closing.
+                      </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -429,35 +427,35 @@ export default function EditParking() {
                             allow_multi_entry: !formData.allow_multi_entry,
                           })
                         }
-                        className="p-3 rounded-xl bg-white border border-[#86efac] flex items-center justify-between cursor-pointer"
+                        className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 border border-emerald-500/30 flex items-center justify-between cursor-pointer"
                       >
                         <div>
-                          <p className="text-xs font-bold text-black">Unlimited In / Out Entry</p>
-                          <p className="text-[10px] text-neutral-500">QR code remains valid</p>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">Unlimited In & Out</p>
+                          <p className="text-[10px] text-zinc-400">QR pass remains active</p>
                         </div>
                         <div
-                          className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs ${
-                            formData.allow_multi_entry ? "bg-[#05944f] text-white" : "bg-neutral-200 text-neutral-600"
+                          className={`w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs ${
+                            formData.allow_multi_entry ? "bg-emerald-500 text-black" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
                           }`}
                         >
-                          {formData.allow_multi_entry ? <FiCheck className="w-3.5 h-3.5" /> : "✕"}
+                          {formData.allow_multi_entry ? <FiCheck className="w-3.5 h-3.5 stroke-[3]" /> : "✕"}
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-black block">
-                          Last Exit Timing (Gate Curfew)
+                        <label className="text-xs font-bold text-zinc-900 dark:text-white block">
+                          Closing Time
                         </label>
-                        <div className="flex items-center gap-1 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {["10:00 PM", "10:30 PM", "11:00 PM", "11:30 PM", "12:00 AM"].map((t) => (
                             <button
                               key={t}
                               type="button"
                               onClick={() => setFormData({ ...formData, last_exit_time: t })}
-                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border transition ${
+                              className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition cursor-pointer ${
                                 formData.last_exit_time === t
-                                  ? "bg-black text-white border-black"
-                                  : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-400"
+                                  ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs"
+                                  : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                               }`}
                             >
                               {t}
@@ -471,19 +469,19 @@ export default function EditParking() {
               </div>
 
               {/* AMENITIES */}
-              <div className="space-y-4 pt-4 border-t border-neutral-100">
-                <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                  Amenities & Badges
+              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                  Amenities & Features
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
-                    { key: "has_ev", label: "⚡ EV Charging", desc: "Fast EV stations" },
-                    { key: "has_cctv", label: "📹 24/7 CCTV", desc: "High-res monitoring" },
-                    { key: "has_security_guard", label: "🛡️ Security Guard", desc: "On-site personnel" },
-                    { key: "has_covered_roof", label: "🏢 Covered Roof", desc: "Indoor parking" },
-                    { key: "is_24_7", label: "⏰ 24/7 Access", desc: "Open all hours" },
-                    { key: "has_valet", label: "🔑 Valet Service", desc: "Attendant assistance" },
+                    { key: "has_ev", label: "⚡ EV Charging", desc: "Fast EV ports" },
+                    { key: "has_cctv", label: "📹 24/7 CCTV", desc: "Camera monitored" },
+                    { key: "has_security_guard", label: "🛡️ Security Guard", desc: "Guard on duty" },
+                    { key: "has_covered_roof", label: "🏢 Covered Roof", desc: "Indoor covered" },
+                    { key: "is_24_7", label: "⏰ 24/7 Open", desc: "All hours access" },
+                    { key: "has_valet", label: "🔑 Valet Parking", desc: "Valet driver" },
                   ].map((amenity) => (
                     <div
                       key={amenity.key}
@@ -493,17 +491,17 @@ export default function EditParking() {
                           [amenity.key]: !formData[amenity.key],
                         })
                       }
-                      className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
                         formData[amenity.key]
-                          ? "bg-neutral-50 border-black shadow-sm"
-                          : "bg-white border-neutral-200 hover:border-neutral-300"
+                          ? "bg-emerald-500/10 border-emerald-500 shadow-xs"
+                          : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                       }`}
                     >
                       <div>
-                        <span className="text-xs font-black text-black block">
+                        <span className="text-xs font-black text-zinc-900 dark:text-white block">
                           {amenity.label}
                         </span>
-                        <span className="text-[10px] text-neutral-500 mt-0.5 block">
+                        <span className="text-[10px] text-zinc-400 mt-0.5 block">
                           {amenity.desc}
                         </span>
                       </div>
@@ -513,20 +511,25 @@ export default function EditParking() {
               </div>
 
               {/* IMAGE UPLOAD */}
-              <div className="space-y-3 pt-4 border-t border-neutral-100">
-                <h3 className="text-xs font-black uppercase tracking-wider text-neutral-400">
-                  Facility Photo
+              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                  Entrance Photo
                 </h3>
 
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-neutral-300 hover:border-black rounded-2xl p-6 text-center cursor-pointer transition-colors bg-neutral-50"
+                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
                 >
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleImageSelect}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setImageFile(file);
+                      setImagePreview(URL.createObjectURL(file));
+                    }}
                     className="hidden"
                   />
 
@@ -535,38 +538,37 @@ export default function EditParking() {
                       <img
                         src={imagePreview}
                         alt="Preview"
-                        className="max-h-48 rounded-xl mx-auto object-cover shadow-sm"
+                        className="max-h-48 rounded-2xl mx-auto object-cover shadow-sm"
                       />
-                      <p className="text-xs text-black font-black">
-                        Click to upload new photo
+                      <p className="text-xs text-zinc-900 dark:text-white font-black">
+                        Click to change photo
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <FiUploadCloud className="w-10 h-10 text-neutral-400 mx-auto" />
-                      <p className="text-xs font-black text-black">
-                        Upload facility photo
+                      <FiUploadCloud className="w-10 h-10 text-zinc-400 mx-auto" />
+                      <p className="text-xs font-black text-zinc-900 dark:text-white">
+                        Upload entrance photo
                       </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-neutral-100 flex items-center justify-end gap-3">
-                <button
-                  type="button"
+              <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end gap-3">
+                <Button
+                  variant="outline"
                   onClick={() => navigate("/owner")}
-                  className="px-5 py-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  disabled={saving}
-                  className="px-6 py-3 rounded-xl bg-black hover:bg-neutral-800 disabled:opacity-50 text-white text-xs font-black shadow-sm transition"
+                  variant="primary"
+                  loading={saving}
                 >
-                  {saving ? "Saving Changes..." : "Save Changes"}
-                </button>
+                  Save Changes
+                </Button>
               </div>
             </form>
           </div>

@@ -312,19 +312,19 @@ Thank you for choosing ParkEase Smart Mobility!
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO VIBRANT GRADIENT BANNER
+            1. UBER PASS / MEMBERSHIP HERO COMMAND BANNER
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-9 shadow-2xl border border-emerald-400/30">
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white p-6 sm:p-9 shadow-2xl border border-zinc-800">
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>MONTHLY PARKING PASSES</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>MONTHLY PASS</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                 Monthly Parking Passes
               </h1>
-              <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium leading-relaxed">
                 Save up to 40% with guaranteed reserved spots, unlimited daily entries, and fast gate access.
               </p>
 

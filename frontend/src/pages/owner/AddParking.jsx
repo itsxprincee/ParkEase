@@ -218,14 +218,16 @@ export default function AddParking() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-8 mb-8 border border-emerald-400/30">
+        {/* UBER HOST ONBOARDING COMMAND BANNER */}
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-8 mb-8 border border-zinc-800">
           <div className="max-w-2xl space-y-2 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black">
-              <span>ADD PARKING</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>HOST ONBOARDING</span>
             </div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Add a New Parking Location</h1>
-            <p className="text-sm text-emerald-50 font-medium leading-relaxed">
-              Fill in your parking details and upload both Entrance and Inside photos so customers can easily locate and navigate your parking facility.
+            <h1 className="text-3xl font-black text-white tracking-tight">Host Your Parking Space</h1>
+            <p className="text-sm text-zinc-400 font-medium leading-relaxed">
+              List your parking spots with entrance & inside photos so drivers can locate and park effortlessly.
             </p>
           </div>
         </div>

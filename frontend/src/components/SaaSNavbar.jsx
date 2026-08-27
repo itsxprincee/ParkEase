@@ -114,7 +114,6 @@ export default function SaaSNavbar() {
       ? [
           { name: t("findParking", "Find Parking"), path: "/customer/dashboard", icon: FiHome },
           { name: t("myBookings", "My Passes"), path: "/customer/my-bookings", icon: FiCalendar },
-          { name: "Season Passes", path: "/customer/subscriptions", icon: FiZap },
           { name: t("myVehicles", "My Vehicles"), path: "/customer/my-vehicles", icon: FiTruck },
         ]
       : []),
@@ -200,16 +199,6 @@ export default function SaaSNavbar() {
 
             {/* RIGHT UTILITIES & USER PROFILE */}
             <div className="flex items-center gap-2.5 sm:gap-3">
-              
-              {/* Language Switcher */}
-              <div className="hidden sm:block">
-                <LanguageSwitcher />
-              </div>
-
-              {/* Theme Switcher */}
-              <div className="hidden sm:block">
-                <ThemeSwitcher />
-              </div>
 
               {/* Notifications */}
               <div className="relative" ref={notifRef}>
@@ -246,7 +235,7 @@ export default function SaaSNavbar() {
                 )}
               </div>
 
-              {/* USER PROFILE DROPDOWN */}
+              {/* USER PROFILE & PREFERENCES DROPDOWN */}
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -267,13 +256,28 @@ export default function SaaSNavbar() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-3 w-64 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xl p-3 space-y-2 z-50 animate-fade-in text-slate-900 dark:text-white">
+                  <div className="absolute right-0 mt-3 w-72 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xl p-3.5 space-y-3 z-50 animate-fade-in text-slate-900 dark:text-white">
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-100 dark:border-zinc-800">
                       <p className="text-xs font-black text-slate-900 dark:text-white truncate">{getUserName()}</p>
                       <p className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">{user?.email || "driver@parkease.in"}</p>
                     </div>
 
-                    <div className="space-y-1 pt-1 text-xs font-bold">
+                    {/* Preferences Controls (Organized inside Profile) */}
+                    <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-zinc-800">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-1">
+                        Preferences
+                      </span>
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-bold text-slate-600 dark:text-zinc-300">Language</span>
+                        <LanguageSwitcher />
+                      </div>
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-bold text-slate-600 dark:text-zinc-300">Theme</span>
+                        <ThemeSwitcher />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-zinc-800 text-xs font-bold">
                       <button
                         onClick={() => {
                           setProfileOpen(false);

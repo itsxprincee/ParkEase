@@ -185,21 +185,39 @@ export default function MyBookings() {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
-            {tabs.map((tab) => (
+        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Pass Type Switcher */}
+            <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 p-1 rounded-2xl">
               <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  statusFilter === tab.id
-                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                }`}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-500 text-white shadow-xs"
               >
-                {tab.label}
+                🎟️ Passes ({bookings.length})
               </button>
-            ))}
+              <button
+                onClick={() => navigate("/customer/subscriptions")}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <span>👑 Season Passes</span>
+              </button>
+            </div>
+
+            {/* Status Tabs */}
+            <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    statusFilter === tab.id
+                      ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="relative sm:w-64">

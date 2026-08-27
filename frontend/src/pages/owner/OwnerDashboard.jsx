@@ -625,9 +625,9 @@ export default function OwnerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO COMMAND BANNER
+            1. HERO COMMAND BANNER (UBER PARTNER AESTHETIC)
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-slate-900 text-white shadow-2xl border border-emerald-400/30">
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl border border-zinc-800">
           <div
             className="absolute inset-0 opacity-[0.08]"
             style={{

@@ -178,18 +178,18 @@ export default function AdminDashboard() {
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* Obsidian Command Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-slate-900 text-white shadow-2xl p-6 sm:p-9 border border-indigo-400/30">
+        {/* Uber Enterprise Command Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-6 sm:p-9 border border-zinc-800">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-purple-200 animate-pulse" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>ADMIN APPROVALS</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 Parking Spot Approvals
               </h1>
-              <p className="text-xs sm:text-sm text-purple-100 font-medium">
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
                 Review new parking spots submitted by owners and approve or reject them.
               </p>
             </div>

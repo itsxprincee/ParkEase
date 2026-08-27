@@ -23,9 +23,9 @@ const dotColors = {
 };
 
 const sizes = {
-  xs: "px-1.5 py-0.5 text-[10px] rounded-md",
-  sm: "px-2 py-0.5 text-xs rounded-md",
-  md: "px-2.5 py-1 text-xs rounded-lg",
+  xs: "px-2 py-0.5 text-[10px] rounded-full",
+  sm: "px-2.5 py-1 text-xs rounded-full",
+  md: "px-3 py-1.5 text-xs rounded-full",
 };
 
 export default function Badge({
@@ -38,7 +38,7 @@ export default function Badge({
   return (
     <span
       className={[
-        "inline-flex items-center gap-1.5 font-semibold leading-none whitespace-nowrap",
+        "inline-flex items-center gap-1.5 font-bold leading-none whitespace-nowrap",
         variants[variant] ?? variants.default,
         sizes[size] ?? sizes.sm,
         className,

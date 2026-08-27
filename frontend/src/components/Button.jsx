@@ -46,10 +46,10 @@ export default function Button({
       onClick={onClick}
       disabled={disabled || loading}
       className={[
-        "inline-flex items-center justify-center font-semibold rounded-xl",
+        "inline-flex items-center justify-center font-black rounded-full tracking-tight",
         "transition-all duration-150 cursor-pointer select-none",
         "focus:outline-none active:scale-[0.97]",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100",
         sizeMap[size] ?? sizeMap.md,
         variantMap[variant] ?? variantMap.primary,
         fullWidth ? "w-full" : "",

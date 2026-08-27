@@ -37,6 +37,7 @@ export default function EditParking() {
     latitude: "",
     longitude: "",
     total_slots: "",
+    supported_vehicles: "BOTH", // "CAR" | "BIKE" | "BOTH"
     pricing_type: "HOURLY",
     hourly_rate: "50",
     daily_rate: "10",
@@ -78,6 +79,7 @@ export default function EditParking() {
           latitude: data.latitude || "19.0760",
           longitude: data.longitude || "72.8777",
           total_slots: String(data.total_slots || 20),
+          supported_vehicles: data.supported_vehicles || "BOTH",
           pricing_type: data.pricing_type || "HOURLY",
           hourly_rate: String(data.hourly_rate ?? 50),
           daily_rate: String(data.daily_rate ?? 10),
@@ -148,6 +150,7 @@ export default function EditParking() {
       submitData.append("latitude", formData.latitude);
       submitData.append("longitude", formData.longitude);
       submitData.append("total_slots", formData.total_slots);
+      submitData.append("supported_vehicles", formData.supported_vehicles || "BOTH");
       submitData.append("pricing_type", formData.pricing_type);
       submitData.append("hourly_rate", formData.hourly_rate || "0");
       submitData.append("daily_rate", formData.daily_rate || "10");
@@ -335,6 +338,41 @@ export default function EditParking() {
                       className="pe-input text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Supported Vehicle Types (Car / Bike / Both) */}
+              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                    Allowed Vehicle Types
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    Define whether your lot supports Cars, Bikes, or Both.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: "BOTH", title: "🚗 + 🛵 Both Cars & Bikes", desc: "Open to all drivers & riders" },
+                    { id: "CAR", title: "🚗 Cars Only", desc: "For Sedans, SUVs & Hatchbacks" },
+                    { id: "BIKE", title: "🛵 Bikes / Scooters Only", desc: "Two-wheeler bays only" },
+                  ].map((v) => (
+                    <div
+                      key={v.id}
+                      onClick={() => setFormData({ ...formData, supported_vehicles: v.id })}
+                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                        (formData.supported_vehicles || "BOTH") === v.id
+                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm font-bold scale-[1.01]"
+                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                      }`}
+                    >
+                      <p className="text-xs font-black">{v.title}</p>
+                      <p className={`text-[10px] mt-0.5 ${(formData.supported_vehicles || "BOTH") === v.id ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"}`}>
+                        {v.desc}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 

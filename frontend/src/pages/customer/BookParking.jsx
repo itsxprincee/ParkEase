@@ -222,6 +222,17 @@ export default function BookParking() {
       return;
     }
 
+    const supported = (parking?.supported_vehicles || "BOTH").toUpperCase();
+    const vehType = (selectedVehicle.vehicle_type || "Car").toUpperCase();
+    if (supported === "BIKE" && vehType.includes("CAR")) {
+      showToast("⚠️ This location only accommodates Two-Wheelers / Bikes. Please select a bike.", "error");
+      return;
+    }
+    if (supported === "CAR" && vehType.includes("BIKE")) {
+      showToast("⚠️ This location only accommodates Cars. Please select a car.", "error");
+      return;
+    }
+
     try {
       setBookingLoading(true);
 
@@ -559,14 +570,34 @@ export default function BookParking() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {vehicles.map((veh) => {
                     const isSelected = selectedVehicle?.id === veh.id;
+                    const supported = (parking?.supported_vehicles || "BOTH").toUpperCase();
+                    const vType = (veh.vehicle_type || "Car").toUpperCase();
+                    const isIncompatible =
+                      (supported === "BIKE" && vType.includes("CAR")) ||
+                      (supported === "CAR" && vType.includes("BIKE"));
+
                     return (
                       <div
                         key={veh.id}
-                        onClick={() => setSelectedVehicle(veh)}
+                        onClick={() => {
+                          if (isIncompatible) {
+                            showToast(
+                              supported === "BIKE"
+                                ? "This location only accepts Bikes/Scooters."
+                                : "This location only accepts Cars.",
+                              "error"
+                            );
+                          }
+                          setSelectedVehicle(veh);
+                        }}
                         className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                           isSelected
-                            ? "bg-emerald-500/10 border-emerald-500 shadow-sm"
-                            : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
+                            ? isIncompatible
+                              ? "bg-rose-500/10 border-rose-500 shadow-sm"
+                              : "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm"
+                            : isIncompatible
+                            ? "bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 opacity-60 hover:opacity-100"
+                            : "bg-white dark:bg-zinc-850 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -574,13 +605,28 @@ export default function BookParking() {
                             <span className="license-plate-ind">IND</span>
                             <span>{veh.vehicle_number}</span>
                           </div>
-                          <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300 truncate">
-                            {veh.vehicle_name || veh.vehicle_type || "Vehicle"}
-                          </span>
+                          <div>
+                            <span
+                              className={`text-xs font-bold block truncate ${
+                                isSelected && !isIncompatible
+                                  ? "text-white dark:text-black"
+                                  : "text-zinc-700 dark:text-zinc-200"
+                              }`}
+                            >
+                              {veh.vehicle_name || veh.vehicle_type || "Vehicle"}
+                            </span>
+                            {isIncompatible && (
+                              <span className="text-[10px] text-rose-500 font-bold block">
+                                Incompatible with this lot
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        {isSelected && (
-                          <FiCheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                        {isSelected && !isIncompatible && (
+                          <span className="w-6 h-6 rounded-full bg-emerald-500 text-black flex items-center justify-center font-black text-xs shrink-0">
+                            ✓
+                          </span>
                         )}
                       </div>
                     );

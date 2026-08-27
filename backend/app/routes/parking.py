@@ -107,12 +107,21 @@ def ensure_parking_slots(parking: ParkingLocation, db: Session):
     )
 
     if count == 0:
+        supported = getattr(parking, "supported_vehicles", "BOTH") or "BOTH"
         for i in range(1, parking.total_slots + 1):
+            if supported == "BIKE":
+                v_type = "Bike"
+            elif supported == "CAR":
+                v_type = "Car"
+            else:
+                v_type = "Bike" if i > int(parking.total_slots * 0.7) else "Car"
+
             db.add(
                 ParkingSlot(
                     parking_id=parking.id,
                     slot_number=f"A{i}",
-                    status="AVAILABLE"
+                    status="AVAILABLE",
+                    vehicle_type=v_type
                 )
             )
         db.commit()
@@ -157,6 +166,9 @@ async def create_parking(
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
         pricing_type = str(form.get("pricing_type") or "HOURLY").upper().strip()
+        supported_vehicles = str(form.get("supported_vehicles") or "BOTH").upper().strip()
+        if supported_vehicles not in ("CAR", "BIKE", "BOTH"):
+            supported_vehicles = "BOTH"
         try:
             daily_rate = float(form.get("daily_rate") or 10.0)
         except (ValueError, TypeError):
@@ -208,6 +220,9 @@ async def create_parking(
                 detail="Invalid numbers for latitude, longitude, total_slots, or hourly_rate"
             )
         pricing_type = str(body.get("pricing_type") or "HOURLY").upper().strip()
+        supported_vehicles = str(body.get("supported_vehicles") or "BOTH").upper().strip()
+        if supported_vehicles not in ("CAR", "BIKE", "BOTH"):
+            supported_vehicles = "BOTH"
         try:
             daily_rate = float(body.get("daily_rate") or 10.0)
         except (ValueError, TypeError):
@@ -242,6 +257,7 @@ async def create_parking(
         total_slots=total_slots,
         hourly_rate=hourly_rate,
         pricing_type=pricing_type,
+        supported_vehicles=supported_vehicles,
         daily_rate=daily_rate,
         allow_multi_entry=allow_multi_entry,
         last_exit_time=last_exit_time,
@@ -265,10 +281,18 @@ async def create_parking(
 
     # Auto-generate slots
     for i in range(1, total_slots + 1):
+        if supported_vehicles == "BIKE":
+            v_type = "Bike"
+        elif supported_vehicles == "CAR":
+            v_type = "Car"
+        else:
+            v_type = "Bike" if i > int(total_slots * 0.7) else "Car"
+
         slot = ParkingSlot(
             parking_id=parking.id,
             slot_number=f"A{i}",
-            status="AVAILABLE"
+            status="AVAILABLE",
+            vehicle_type=v_type
         )
         db.add(slot)
     db.commit()
@@ -360,6 +384,7 @@ def get_all_parking(
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
                 "pricing_type": getattr(location, "pricing_type", "HOURLY") or "HOURLY",
+                "supported_vehicles": getattr(location, "supported_vehicles", "BOTH") or "BOTH",
                 "daily_rate": getattr(location, "daily_rate", 10.0) if getattr(location, "daily_rate", 10.0) is not None else 10.0,
                 "allow_multi_entry": getattr(location, "allow_multi_entry", True),
                 "last_exit_time": getattr(location, "last_exit_time", "11:00 PM") or "11:00 PM",
@@ -429,6 +454,7 @@ def get_approved_parking(
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
                 "pricing_type": getattr(location, "pricing_type", "HOURLY") or "HOURLY",
+                "supported_vehicles": getattr(location, "supported_vehicles", "BOTH") or "BOTH",
                 "daily_rate": getattr(location, "daily_rate", 10.0) if getattr(location, "daily_rate", 10.0) is not None else 10.0,
                 "allow_multi_entry": getattr(location, "allow_multi_entry", True),
                 "last_exit_time": getattr(location, "last_exit_time", "11:00 PM") or "11:00 PM",
@@ -497,6 +523,7 @@ def get_customer_parking_details(
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
         "pricing_type": getattr(parking, "pricing_type", "HOURLY") or "HOURLY",
+        "supported_vehicles": getattr(parking, "supported_vehicles", "BOTH") or "BOTH",
         "daily_rate": getattr(parking, "daily_rate", 10.0) if getattr(parking, "daily_rate", 10.0) is not None else 10.0,
         "allow_multi_entry": getattr(parking, "allow_multi_entry", True),
         "last_exit_time": getattr(parking, "last_exit_time", "11:00 PM") or "11:00 PM",
@@ -666,6 +693,8 @@ def get_my_parking(
                 "longitude": location.longitude,
                 "total_slots": location.total_slots,
                 "hourly_rate": location.hourly_rate,
+                "pricing_type": getattr(location, "pricing_type", "HOURLY") or "HOURLY",
+                "supported_vehicles": getattr(location, "supported_vehicles", "BOTH") or "BOTH",
                 "has_ev": location.has_ev,
                 "has_cctv": location.has_cctv,
                 "has_security_guard": location.has_security_guard,
@@ -750,6 +779,8 @@ def get_owner_parking_details(
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
         "hourly_rate": parking.hourly_rate,
+        "pricing_type": getattr(parking, "pricing_type", "HOURLY") or "HOURLY",
+        "supported_vehicles": getattr(parking, "supported_vehicles", "BOTH") or "BOTH",
         "has_ev": parking.has_ev,
         "has_cctv": parking.has_cctv,
         "has_security_guard": parking.has_security_guard,
@@ -808,6 +839,10 @@ async def update_parking(
             )
         if "pricing_type" in form:
             parking.pricing_type = str(form.get("pricing_type")).upper().strip()
+        if "supported_vehicles" in form:
+            v_val = str(form.get("supported_vehicles")).upper().strip()
+            if v_val in ("CAR", "BIKE", "BOTH"):
+                parking.supported_vehicles = v_val
         if "daily_rate" in form:
             try:
                 parking.daily_rate = float(form.get("daily_rate"))
@@ -848,6 +883,10 @@ async def update_parking(
             )
         if "pricing_type" in body:
             parking.pricing_type = str(body.get("pricing_type")).upper().strip()
+        if "supported_vehicles" in body:
+            v_val = str(body.get("supported_vehicles")).upper().strip()
+            if v_val in ("CAR", "BIKE", "BOTH"):
+                parking.supported_vehicles = v_val
         if "daily_rate" in body:
             try:
                 parking.daily_rate = float(body.get("daily_rate"))

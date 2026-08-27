@@ -72,6 +72,7 @@ export default function AddParking() {
     latitude: "19.0760",
     longitude: "72.8777",
     total_slots: "20",
+    supported_vehicles: "BOTH", // "CAR" | "BIKE" | "BOTH"
     pricing_type: "HOURLY", // "HOURLY" | "DAILY_PASS" | "BOTH"
     hourly_rate: "40",
     daily_rate: "10",
@@ -159,6 +160,7 @@ export default function AddParking() {
       submitData.append("latitude", formData.latitude);
       submitData.append("longitude", formData.longitude);
       submitData.append("total_slots", formData.total_slots);
+      submitData.append("supported_vehicles", formData.supported_vehicles || "BOTH");
       submitData.append("pricing_type", formData.pricing_type);
       submitData.append("hourly_rate", formData.hourly_rate || "0");
       submitData.append("daily_rate", formData.daily_rate || "10");
@@ -298,6 +300,35 @@ export default function AddParking() {
                       </button>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Supported Vehicle Types (Car / Bike / Both) */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Allowed Vehicle Types *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {[
+                    { id: "BOTH", title: "🚗 + 🛵 Both Cars & Bikes", desc: "Open to all drivers & riders" },
+                    { id: "CAR", title: "🚗 Cars Only", desc: "For Sedans, SUVs & Hatchbacks" },
+                    { id: "BIKE", title: "🛵 Bikes / Scooters Only", desc: "Two-wheeler bays only" },
+                  ].map((v) => (
+                    <div
+                      key={v.id}
+                      onClick={() => setFormData({ ...formData, supported_vehicles: v.id })}
+                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                        (formData.supported_vehicles || "BOTH") === v.id
+                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm font-bold scale-[1.01]"
+                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                      }`}
+                    >
+                      <p className="text-xs font-black">{v.title}</p>
+                      <p className={`text-[10px] mt-0.5 ${(formData.supported_vehicles || "BOTH") === v.id ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"}`}>
+                        {v.desc}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 

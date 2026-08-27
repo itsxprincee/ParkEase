@@ -144,6 +144,30 @@ function ParkingListCard({ parking, userCoords, onClick }) {
               </span>
             )}
 
+            {/* Vehicle Compatibility Badge */}
+            {(() => {
+              const sup = (parking.supported_vehicles || "BOTH").toUpperCase();
+              if (sup === "BIKE") {
+                return (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    🛵 Bikes Only
+                  </span>
+                );
+              }
+              if (sup === "CAR") {
+                return (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                    🚗 Cars Only
+                  </span>
+                );
+              }
+              return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                  🚗+🛵 Cars & Bikes
+                </span>
+              );
+            })()}
+
             {parking.has_ev && (
               <span className="text-cyan-600 dark:text-cyan-400 text-[10px] font-black">
                 ⚡ EV Fast
@@ -288,6 +312,14 @@ export default function CustomerDashboard() {
         (p.location && p.location.toLowerCase().includes(q));
 
       let matchFilter = true;
+      if (selectedFilter === "CAR") {
+        const sup = (p.supported_vehicles || "BOTH").toUpperCase();
+        matchFilter = sup === "CAR" || sup === "BOTH";
+      }
+      if (selectedFilter === "BIKE") {
+        const sup = (p.supported_vehicles || "BOTH").toUpperCase();
+        matchFilter = sup === "BIKE" || sup === "BOTH";
+      }
       if (selectedFilter === "FREE") matchFilter = (p.hourly_rate ?? 0) === 0;
       if (selectedFilter === "EV") matchFilter = Boolean(p.has_ev);
       if (selectedFilter === "DAILY_PASS") {
@@ -306,9 +338,11 @@ export default function CustomerDashboard() {
 
   const filters = [
     { id: "ALL", label: "🌟 All Hubs" },
+    { id: "CAR", label: "🚗 Cars" },
+    { id: "BIKE", label: "🛵 Bikes / 2-Wheelers" },
     { id: "NEARBY", label: "📍 Near Me" },
     { id: "FREE", label: "🆓 Free Parking" },
-    { id: "EV", label: "⚡ EV Charging" },
+    { id: "EV", label: "⚡ EV Fast Charge" },
     { id: "DAILY_PASS", label: "🎟️ Daily Pass" },
   ];
 

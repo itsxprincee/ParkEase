@@ -96,6 +96,12 @@ class ParkingLocation(Base):
         default="11:00 PM"
     )
 
+    supported_vehicles = Column(
+        String(50),
+        nullable=False,
+        default="BOTH"  # "CAR", "BIKE", "BOTH"
+    )
+
     # =====================================================
     # AMENITIES & SECURITY FEATURES
     # =====================================================

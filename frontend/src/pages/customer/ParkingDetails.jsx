@@ -245,8 +245,31 @@ export default function ParkingDetails() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {(() => {
+                        const sup = (parking.supported_vehicles || "BOTH").toUpperCase();
+                        if (sup === "BIKE") {
+                          return (
+                            <span className="px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black">
+                              🛵 Bikes / 2-Wheelers Only
+                            </span>
+                          );
+                        }
+                        if (sup === "CAR") {
+                          return (
+                            <span className="px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-black">
+                              🚗 Cars Only
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-black">
+                            🚗+🛵 Cars & Bikes Allowed
+                          </span>
+                        );
+                      })()}
+
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black">
                         <FiStar className="text-amber-500 fill-amber-500" />
                         <span>4.9 (120+ Reviews)</span>
                       </div>

@@ -303,7 +303,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
           <button
             type="button"
             onClick={openExternalMaps}
-            className="px-4 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="px-4 py-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-black text-zinc-900 dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
             <FiExternalLink className="w-4 h-4" />
             <span>Google Maps</span>

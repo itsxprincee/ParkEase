@@ -594,15 +594,15 @@ export default function AddParking() {
               </div>
             </div>
 
-            {/* SUBMIT BUTTON */}
-            <div className="pt-2">
+            {/* SUBMIT BUTTON (UBER-INSPIRED) */}
+            <div className="pt-3">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-sm font-black shadow-xl shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-black text-base font-black shadow-xl transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <FiCheck className="w-5 h-5 stroke-[3]" />
-                <span>{loading ? "Listing Parking..." : "Save & List Parking Spot"}</span>
+                <span>{loading ? "Listing Parking..." : "Publish & Start Earning"}</span>
               </button>
             </div>
           </div>

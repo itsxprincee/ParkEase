@@ -2,19 +2,22 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+from pathlib import Path
+import os
 
 from database import get_db
 from app.models.user import User
 
-import os
-
+# Load .env
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # =========================================================
 # SECURITY
 # =========================================================
 
 security = HTTPBearer()
-
 
 SECRET_KEY = os.getenv(
     "SECRET_KEY",

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
+  FiArrowRight,
   FiCalendar,
   FiClock,
   FiCheckCircle,
@@ -21,6 +22,11 @@ import { Card } from "../../components/Card";
 import Modal from "../../components/Modal";
 import { Skeleton } from "../../components/Skeleton";
 import ParkingLotVisualizer from "../../components/ParkingLotVisualizer";
+
+const VEHICLE_TYPES = [
+  { value: "Car", label: "🚗 Car", desc: "Sedan, SUV, Hatchback" },
+  { value: "Bike", label: "🛵 Bike", desc: "Motorcycle / Scooter" },
+];
 
 export default function BookParking() {
   const { id } = useParams();
@@ -753,73 +759,83 @@ export default function BookParking() {
         </div>
       </main>
 
-      {/* ADD VEHICLE MODAL */}
+      {/* ADD/EDIT MODAL (SAME AS MY VEHICLES) */}
       <Modal
         isOpen={showAddVehicleModal}
         onClose={() => setShowAddVehicleModal(false)}
-        title="Add Vehicle"
-        subtitle="Save vehicle details for fast pass generation."
+        title="Add New Vehicle"
+        maxWidth="max-w-md"
       >
         <form onSubmit={handleAddVehicle} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
               License Plate Number *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. MH-02-CD-5678"
+              placeholder="e.g. MH-01-AB-1234"
               value={newVehicle.vehicle_number}
               onChange={(e) =>
-                setNewVehicle({ ...newVehicle, vehicle_number: e.target.value.toUpperCase() })
+                setNewVehicle({
+                  ...newVehicle,
+                  vehicle_number: e.target.value.toUpperCase(),
+                })
               }
-              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 text-xs font-bold text-zinc-900 dark:text-white focus:outline-none transition"
+              className="pe-input font-mono tracking-widest text-sm font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              Vehicle Nickname (Optional)
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Vehicle Nickname / Model
             </label>
             <input
               type="text"
-              placeholder="e.g. Daily Car"
+              placeholder="e.g. White Creta, Red Pulsar, Nexon EV"
               value={newVehicle.vehicle_name}
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })
               }
-              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 text-xs font-bold text-zinc-900 dark:text-white focus:outline-none transition"
+              className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Vehicle Type
             </label>
-            <select
-              value={newVehicle.vehicle_type}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })
-              }
-              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white font-bold focus:outline-none focus:border-emerald-500 transition"
-            >
-              <option value="Car">Car (Sedan/SUV/Hatchback)</option>
-              <option value="Bike">Motorcycle / Scooter</option>
-            </select>
+            <div className="grid grid-cols-2 gap-2.5">
+              {VEHICLE_TYPES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() =>
+                    setNewVehicle({ ...newVehicle, vehicle_type: t.value })
+                  }
+                  className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer ${
+                    newVehicle.vehicle_type === t.value
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-xs font-bold"
+                      : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400"
+                  }`}
+                >
+                  <p className="text-xl leading-none">{t.label.split(" ")[0]}</p>
+                  <p className="text-xs font-black mt-1">{t.label.split(" ")[1]}</p>
+                  <p className="text-[9px] text-zinc-400 mt-0.5">{t.desc}</p>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-3">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <Button
               variant="outline"
+              type="button"
               onClick={() => setShowAddVehicleModal(false)}
             >
               Cancel
             </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              loading={addingVehicle}
-            >
+            <Button variant="primary" type="submit" loading={addingVehicle}>
               Save Vehicle
             </Button>
           </div>

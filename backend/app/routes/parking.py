@@ -551,8 +551,7 @@ def get_customer_parking_details(
 @router.get("/{parking_id}/slots")
 def get_customer_parking_slots(
     parking_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
 
     parking = (
@@ -567,56 +566,30 @@ def get_customer_parking_slots(
             detail="Parking location not found"
         )
 
-    is_owner = parking.owner_id == user.id
-    is_admin = getattr(user, "role", "").lower() == "admin"
-    is_approved = str(parking.verification_status or "").upper().strip() == "APPROVED"
-
-    if not (is_approved or is_owner or is_admin):
-        raise HTTPException(
-            status_code=403,
-            detail="Parking not approved yet"
-        )
-
-    # Auto-generate slots if not created yet
-    created_count = (
-        db.query(ParkingSlot)
-        .filter(ParkingSlot.parking_id == parking.id)
-        .count()
-    )
-
-    if created_count == 0 and parking.total_slots > 0:
-        for i in range(1, parking.total_slots + 1):
-            db.add(
-                ParkingSlot(
-                    parking_id=parking.id,
-                    slot_number=f"A{i}",
-                    status="AVAILABLE"
-                )
-            )
-        db.commit()
+    # Auto-generate slots if needed
+    ensure_parking_slots(parking, db)
 
     slots = (
         db.query(ParkingSlot)
-        .filter(
-            ParkingSlot.parking_id == parking.id,
-            ParkingSlot.status == "AVAILABLE"
-        )
-        .order_by(
-            ParkingSlot.id.asc()
-        )
+        .filter(ParkingSlot.parking_id == parking.id)
+        .order_by(ParkingSlot.id.asc())
         .all()
     )
 
     return {
         "parking_id": parking.id,
         "parking_name": parking.name,
-        "total_available_slots": len(slots),
+        "total_slots": len(slots),
+        "total_available_slots": sum(1 for s in slots if str(s.status).upper() == "AVAILABLE"),
         "slots": [
             {
                 "id": slot.id,
                 "parking_id": slot.parking_id,
                 "slot_number": slot.slot_number,
-                "status": slot.status
+                "status": slot.status,
+                "is_ev": bool(getattr(slot, "is_ev", False)),
+                "vehicle_type": getattr(slot, "vehicle_type", "Car") or "Car",
+                "is_occupied": str(slot.status).upper() != "AVAILABLE"
             }
             for slot in slots
         ]

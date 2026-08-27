@@ -63,7 +63,8 @@ const CITY_PRESETS = [
 
 export default function AddParking() {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const entranceInputRef = useRef(null);
+  const insideInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -84,8 +85,11 @@ export default function AddParking() {
     has_valet: false,
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
+  const [entranceFile, setEntranceFile] = useState(null);
+  const [entrancePreview, setEntrancePreview] = useState("");
+  const [insideFile, setInsideFile] = useState(null);
+  const [insidePreview, setInsidePreview] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -94,33 +98,41 @@ export default function AddParking() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const handleImageSelect = (e) => {
+  const handleEntranceSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      showToast("Photo is too large. Maximum size is 10MB.", "error");
+      showToast("Entrance photo is too large. Maximum size is 10MB.", "error");
       return;
     }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    setEntranceFile(file);
+    setEntrancePreview(URL.createObjectURL(file));
   };
 
-  const handleRemoveImage = (e) => {
+  const handleRemoveEntrance = (e) => {
     e.stopPropagation();
-    setImageFile(null);
-    setImagePreview("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setEntranceFile(null);
+    setEntrancePreview("");
+    if (entranceInputRef.current) entranceInputRef.current.value = "";
   };
 
-  // Projected monthly earnings estimate
-  const projectedMonthly = useMemo(() => {
-    const slots = parseInt(formData.total_slots, 10) || 0;
-    const isDaily = formData.pricing_type === "DAILY_PASS";
-    const rate = isDaily
-      ? parseFloat(formData.daily_rate) || 10
-      : (parseFloat(formData.hourly_rate) || 0) * 8; // 8 hours avg
-    return Math.round(slots * rate * 0.75 * 30); // 75% occupancy, 30 days
-  }, [formData.total_slots, formData.hourly_rate, formData.daily_rate, formData.pricing_type]);
+  const handleInsideSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("Inside photo is too large. Maximum size is 10MB.", "error");
+      return;
+    }
+    setInsideFile(file);
+    setInsidePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveInside = (e) => {
+    e.stopPropagation();
+    setInsideFile(null);
+    setInsidePreview("");
+    if (insideInputRef.current) insideInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -132,6 +144,12 @@ export default function AddParking() {
     }
     if (!formData.total_slots || parseInt(formData.total_slots, 10) < 1) {
       return showToast("Please enter at least 1 parking slot.", "error");
+    }
+    if (!entranceFile && !entrancePreview) {
+      return showToast("Parking Entrance Photo is compulsory! Upload a photo of your front gate.", "error");
+    }
+    if (!insideFile && !insidePreview) {
+      return showToast("Parking Inside Photo is compulsory! Upload a photo of the interior parking area.", "error");
     }
 
     try {
@@ -153,15 +171,21 @@ export default function AddParking() {
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
       submitData.append("has_valet", formData.has_valet);
-      if (imageFile) {
-        submitData.append("image", imageFile);
+      
+      if (entranceFile) {
+        submitData.append("image", entranceFile);
+        submitData.append("entrance_image", entranceFile);
+      }
+      if (insideFile) {
+        submitData.append("inside_image", insideFile);
+        submitData.append("interior_image", insideFile);
       }
 
       await API.post("/parking/create", submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      showToast("Facility added successfully! Ready for bookings.", "success");
+      showToast("Facility listed successfully with Entrance & Inside photos!", "success");
       setTimeout(() => navigate("/owner"), 800);
     } catch (error) {
       console.error("Add parking error:", error);
@@ -191,123 +215,52 @@ export default function AddParking() {
             <span>Back to Dashboard</span>
           </button>
           
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20">
-            <FiZap className="w-3.5 h-3.5" />
-            <span>Fast 2-Minute Setup</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20">
+            <FiZap className="w-3.5 h-3.5" /> <span>Both Photos Mandatory</span>
           </div>
         </div>
 
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-6 sm:p-8 border border-emerald-400/30">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-8 mb-8 border border-emerald-400/30">
           <div className="max-w-2xl space-y-2 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-black">
               <span>ADD PARKING</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Add a New Parking Location
-            </h1>
-            <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
-              Fill in your parking details below. The live card preview shows exactly what drivers will see in the app.
+            <h1 className="text-3xl font-black text-white tracking-tight">Add a New Parking Location</h1>
+            <p className="text-sm text-emerald-50 font-medium leading-relaxed">
+              Fill in your parking details and upload both Entrance and Inside photos so customers can easily locate and navigate your parking facility.
             </p>
           </div>
         </div>
 
-        {/* 2-COLUMN USER-FRIENDLY LAYOUT */}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* LEFT COLUMN: EASY FORM SECTIONS (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-6">
             
-            {/* 1. Basic Info Card */}
+            {/* 1. Location Details */}
             <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
               <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
-                  1
-                </div>
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">1</div>
                 <div>
                   <h2 className="text-base font-black text-zinc-900 dark:text-white">Location Details</h2>
                   <p className="text-xs text-zinc-400 font-medium">Name and street address</p>
                 </div>
               </div>
-
               <div className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    Parking Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. City Mall Parking"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"
-                  />
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">Parking Name *</label>
+                  <input type="text" required placeholder="e.g. City Mall Parking" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm focus:ring-2 focus:ring-emerald-500/20" />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                    Address / Landmark *
-                  </label>
-                  <textarea
-                    required
-                    rows={2}
-                    placeholder="e.g. Gate 3, Sector 12, Main Ring Road"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs resize-none focus:ring-2 focus:ring-emerald-500/20"
-                  />
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">Address *</label>
+                  <textarea required rows={2} placeholder="e.g. 123 Main St, Mumbai" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm focus:ring-2 focus:ring-emerald-500/20 resize-none" />
                 </div>
-
-                {/* Map Pinning */}
-                <div className="space-y-2 pt-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Map Location Pin
-                    </label>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] text-zinc-400 font-medium">Quick Cities:</span>
-                      {CITY_PRESETS.map((city) => (
-                        <button
-                          key={city.name}
-                          type="button"
-                          onClick={() => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              latitude: city.lat,
-                              longitude: city.lng,
-                            }));
-                            showToast(`Location set to ${city.name}`, "success");
-                          }}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-950 dark:hover:bg-white hover:text-white dark:hover:text-zinc-950 transition-all cursor-pointer"
-                        >
-                          {city.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <LocationPickerMap
-                    latitude={formData.latitude}
-                    longitude={formData.longitude}
-                    onLocationChange={(lat, lng) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        latitude: lat,
-                        longitude: lng,
-                      }));
-                    }}
-                  />
-                </div>
+                <LocationPickerMap latitude={formData.latitude} longitude={formData.longitude} onLocationChange={(lat, lng) => setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))} />
               </div>
             </div>
 
-            {/* 2. Capacity & Pricing Card */}
+            {/* 2. Spots & Pricing Card */}
             <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5 backdrop-blur-xl">
               <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
-                  2
-                </div>
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">2</div>
                 <div>
                   <h2 className="text-base font-black text-zinc-900 dark:text-white">Spots & Pricing</h2>
                   <p className="text-xs text-zinc-400 font-medium">Number of parking spots and hourly/daily rates</p>
@@ -446,19 +399,18 @@ export default function AddParking() {
               </div>
             </div>
 
-            {/* 3. Amenities & Photo Card */}
+            {/* 3. Amenities */}
             <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
               <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
                   3
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Amenities & Photo</h2>
+                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Amenities & Features</h2>
                   <p className="text-xs text-zinc-400 font-medium">Highlight safety and convenience features</p>
                 </div>
               </div>
 
-              {/* Tap-friendly amenity pills */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {[
                   { key: "has_cctv", label: "📹 24/7 CCTV" },
@@ -493,44 +445,151 @@ export default function AddParking() {
                   );
                 })}
               </div>
+            </div>
 
-              {/* Optional Photo Upload */}
-              <div className="pt-2">
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                  Entrance Photo (Optional)
-                </label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-4 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 bg-zinc-50 dark:bg-zinc-800/40 flex items-center justify-between cursor-pointer transition-colors"
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                  />
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                      <FiCamera className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-zinc-900 dark:text-white">
-                        {imageFile ? imageFile.name : "Tap to upload entrance photo"}
-                      </p>
-                      <p className="text-[10px] text-zinc-400">JPG or PNG under 10MB</p>
-                    </div>
+            {/* 4. PARKING ENTRANCE PHOTO (COMPULSORY) */}
+            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
+                    4
                   </div>
-                  {imagePreview ? (
+                  <div>
+                    <h2 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                      <span>Parking Entrance Photo</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        Compulsory *
+                      </span>
+                    </h2>
+                    <p className="text-xs text-zinc-400 font-medium">Front gate / road entrance view to help drivers spot your parking from the street</p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => entranceInputRef.current?.click()}
+                className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 ${
+                  entrancePreview
+                    ? "border-emerald-500/60 bg-emerald-500/5 dark:bg-emerald-500/10"
+                    : "border-zinc-300 dark:border-zinc-700 hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/40"
+                }`}
+              >
+                <input
+                  ref={entranceInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleEntranceSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  {entrancePreview ? (
+                    <img
+                      src={entrancePreview}
+                      alt="Entrance Preview"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500 shadow-md shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                      <FiCamera className="w-7 h-7" />
+                    </div>
+                  )}
+                  <div className="text-left space-y-1">
+                    <p className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
+                      {entranceFile ? entranceFile.name : "Click or drag to upload Entrance Gate Photo"}
+                    </p>
+                    <p className="text-[11px] text-zinc-400">
+                      Clear daytime or lit view of the main gate / barrier
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  {entrancePreview ? (
                     <button
                       type="button"
-                      onClick={handleRemoveImage}
-                      className="text-xs text-red-600 font-bold px-2 py-1 hover:underline cursor-pointer"
+                      onClick={handleRemoveEntrance}
+                      className="text-xs text-red-600 dark:text-red-400 font-bold px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-100 transition-colors cursor-pointer"
                     >
                       Remove
                     </button>
                   ) : (
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Browse</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                      Browse Gate Photo
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 5. PARKING INSIDE PHOTO (COMPULSORY) */}
+            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-black text-xs">
+                    5
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                      <span>Parking Inside / Bay Photo</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                        Compulsory *
+                      </span>
+                    </h2>
+                    <p className="text-xs text-zinc-400 font-medium">Interior parking lanes, marked bays, or floor layout so customers know where to park</p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => insideInputRef.current?.click()}
+                className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 ${
+                  insidePreview
+                    ? "border-cyan-500/60 bg-cyan-500/5 dark:bg-cyan-500/10"
+                    : "border-zinc-300 dark:border-zinc-700 hover:border-cyan-500 bg-zinc-50/50 dark:bg-zinc-800/40"
+                }`}
+              >
+                <input
+                  ref={insideInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleInsideSelect}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  {insidePreview ? (
+                    <img
+                      src={insidePreview}
+                      alt="Inside Preview"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-cyan-500 shadow-md shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                      <FiLayers className="w-7 h-7" />
+                    </div>
+                  )}
+                  <div className="text-left space-y-1">
+                    <p className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
+                      {insideFile ? insideFile.name : "Click or drag to upload Inside Parking Photo"}
+                    </p>
+                    <p className="text-[11px] text-zinc-400">
+                      Indoor bays, floor markings, or covered roof layout
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  {insidePreview ? (
+                    <button
+                      type="button"
+                      onClick={handleRemoveInside}
+                      className="text-xs text-red-600 dark:text-red-400 font-bold px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-950/40 hover:bg-red-100 transition-colors cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                      Browse Inside Photo
+                    </span>
                   )}
                 </div>
               </div>
@@ -541,82 +600,11 @@ export default function AddParking() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-black shadow-xl shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black text-sm font-black shadow-xl shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <FiCheck className="w-5 h-5 stroke-[3]" />
                 <span>{loading ? "Listing Parking..." : "Save & List Parking Spot"}</span>
               </button>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: LIVE DRIVER CARD PREVIEW (5 Cols) */}
-          <div className="lg:col-span-5 sticky top-24 space-y-4">
-            
-            {/* Live Driver Card Mockup */}
-            <div className="p-5 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_8px_30px_rgba(0,0,0,0.06)] space-y-4 backdrop-blur-xl">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase text-zinc-400 tracking-wider">
-                  Live App Card Preview
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Preview
-                </span>
-              </div>
-
-              {/* Mockup Card */}
-              <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 overflow-hidden bg-white dark:bg-zinc-950 shadow-md">
-                <div className="relative h-40 bg-zinc-950 flex items-center justify-center">
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Facility Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-center space-y-1 text-zinc-500">
-                      <FiLayers className="w-8 h-8 mx-auto" />
-                      <p className="text-xs font-bold">Parking Entrance Photo</p>
-                    </div>
-                  )}
-                  <div className="absolute top-3 left-3">
-                    <Badge variant="success" dot size="sm">
-                      Live Verified
-                    </Badge>
-                  </div>
-                  <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-white text-xs font-mono font-black border border-white/20">
-                    {formData.pricing_type === "DAILY_PASS" ? `₹${formData.daily_rate}/day` : `₹${formData.hourly_rate}/hr`}
-                  </div>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <h3 className="text-base font-black text-zinc-900 dark:text-white line-clamp-1">
-                    {formData.name || "Your Parking Name"}
-                  </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 line-clamp-1">
-                    <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
-                    <span>{formData.address || "Your Address Location"}</span>
-                  </p>
-
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {formData.total_slots} Spots Available
-                    </span>
-                    <span className="text-[11px] text-zinc-400">📍 0.5 km</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Estimated Earnings Card */}
-            <div className="p-5 rounded-3xl bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white border border-zinc-800 shadow-xl space-y-2">
-              <div className="flex items-center gap-2 text-xs text-zinc-400 font-bold">
-                <FiTrendingUp className="w-4 h-4 text-emerald-400" />
-                <span>Projected Monthly Earnings</span>
-              </div>
-              <div className="text-3xl font-black text-white font-mono">
-                ₹{projectedMonthly.toLocaleString("en-IN")}
-                <span className="text-xs text-zinc-400 font-normal ml-2">/ month</span>
-              </div>
-              <p className="text-[11px] text-zinc-400 leading-relaxed pt-1">
-                Estimated based on {formData.total_slots} spots at 75% average occupancy. Automated payouts directly to your account.
-              </p>
             </div>
           </div>
         </form>

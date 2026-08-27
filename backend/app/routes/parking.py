@@ -169,6 +169,27 @@ async def create_parking(
         has_covered_roof = parse_bool(form.get("has_covered_roof"))
         is_24_7 = parse_bool(form.get("is_24_7"))
         has_valet = parse_bool(form.get("has_valet"))
+        
+        # Entrance and Inside Images
+        img_field = form.get("image") or form.get("entrance_image")
+        image_str = None
+        if img_field and hasattr(img_field, "filename") and img_field.filename:
+            contents = await img_field.read()
+            import base64
+            b64 = base64.b64encode(contents).decode("utf-8")
+            image_str = f"data:{img_field.content_type or 'image/jpeg'};base64,{b64}"
+        elif isinstance(img_field, str) and img_field.strip():
+            image_str = img_field.strip()
+
+        inside_field = form.get("inside_image") or form.get("interior_image")
+        inside_image_str = None
+        if inside_field and hasattr(inside_field, "filename") and inside_field.filename:
+            contents = await inside_field.read()
+            import base64
+            b64 = base64.b64encode(contents).decode("utf-8")
+            inside_image_str = f"data:{inside_field.content_type or 'image/jpeg'};base64,{b64}"
+        elif isinstance(inside_field, str) and inside_field.strip():
+            inside_image_str = inside_field.strip()
     else:
         try:
             body = await request.json()
@@ -199,6 +220,8 @@ async def create_parking(
         has_covered_roof = parse_bool(body.get("has_covered_roof"))
         is_24_7 = parse_bool(body.get("is_24_7"))
         has_valet = parse_bool(body.get("has_valet"))
+        image_str = body.get("image") or body.get("image_url") or body.get("entrance_image")
+        inside_image_str = body.get("inside_image") or body.get("inside_image_url") or body.get("interior_image")
 
     if not name:
         raise HTTPException(status_code=400, detail="Parking name is required")
@@ -228,6 +251,8 @@ async def create_parking(
         has_covered_roof=has_covered_roof,
         is_24_7=is_24_7,
         has_valet=has_valet,
+        image=image_str,
+        inside_image=inside_image_str,
         verification_status="PENDING",
         verification_submitted_at=datetime.utcnow(),
         verified_at=None,
@@ -346,6 +371,8 @@ def get_all_parking(
                 "has_valet": location.has_valet,
                 "image": location.image,
                 "image_url": location.image,
+                "inside_image": getattr(location, "inside_image", None),
+                "inside_image_url": getattr(location, "inside_image", None),
                 "created_slots": total_created_slots,
                 "available_slots": available_slots,
                 "occupied_slots": occupied_slots,
@@ -414,6 +441,8 @@ def get_approved_parking(
                 "available_slots": available_slots,
                 "image": location.image,
                 "image_url": location.image,
+                "inside_image": getattr(location, "inside_image", None),
+                "inside_image_url": getattr(location, "inside_image", None),
                 "verification_status": location.verification_status
             }
         )
@@ -478,6 +507,10 @@ def get_customer_parking_details(
         "is_24_7": parking.is_24_7,
         "has_valet": parking.has_valet,
         "available_slots": available_slots,
+        "image": parking.image,
+        "image_url": parking.image,
+        "inside_image": getattr(parking, "inside_image", None),
+        "inside_image_url": getattr(parking, "inside_image", None),
         "verification_status": parking.verification_status
     }
 

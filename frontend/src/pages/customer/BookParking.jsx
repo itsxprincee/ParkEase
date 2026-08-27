@@ -757,7 +757,6 @@ export default function BookParking() {
               className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white font-bold focus:outline-none focus:border-emerald-500 transition"
             >
               <option value="Car">Car (Sedan/SUV/Hatchback)</option>
-              <option value="EV">Electric Vehicle (EV)</option>
               <option value="Bike">Motorcycle / Scooter</option>
             </select>
           </div>

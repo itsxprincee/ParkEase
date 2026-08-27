@@ -137,10 +137,15 @@ class ParkingLocation(Base):
     )
 
     # =====================================================
-    # PARKING IMAGE
+    # PARKING IMAGES (ENTRANCE & INSIDE)
     # =====================================================
 
     image = Column(
+        String(500),
+        nullable=True
+    )
+
+    inside_image = Column(
         String(500),
         nullable=True
     )

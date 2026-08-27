@@ -401,7 +401,10 @@ def get_owner_live_dashboard(
             "monthly_revenue": loc_monthly_rev,
             "yearly_revenue": loc_yearly_rev,
             "verification_status": loc.verification_status,
-            "image": loc.image
+            "image": loc.image,
+            "image_url": loc.image,
+            "inside_image": getattr(loc, "inside_image", None),
+            "inside_image_url": getattr(loc, "inside_image", None)
         })
 
     live_bookings_data = []

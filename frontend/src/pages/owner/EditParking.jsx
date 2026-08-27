@@ -50,8 +50,14 @@ export default function EditParking() {
     has_valet: false,
   });
 
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
+  const entranceInputRef = useRef(null);
+  const insideInputRef = useRef(null);
+
+  const [entranceFile, setEntranceFile] = useState(null);
+  const [entrancePreview, setEntrancePreview] = useState("");
+  const [insideFile, setInsideFile] = useState(null);
+  const [insidePreview, setInsidePreview] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -86,7 +92,10 @@ export default function EditParking() {
           has_valet: Boolean(data.has_valet),
         });
         if (data.image_url || data.image) {
-          setImagePreview(data.image_url || data.image);
+          setEntrancePreview(data.image_url || data.image);
+        }
+        if (data.inside_image_url || data.inside_image) {
+          setInsidePreview(data.inside_image_url || data.inside_image);
         }
       }
     } catch (e) {
@@ -126,6 +135,13 @@ export default function EditParking() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!entranceFile && !entrancePreview) {
+      return showToast("Parking Entrance Photo is compulsory.", "error");
+    }
+    if (!insideFile && !insidePreview) {
+      return showToast("Parking Inside Photo is compulsory.", "error");
+    }
+
     try {
       setSaving(true);
       const submitData = new FormData();
@@ -145,16 +161,22 @@ export default function EditParking() {
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
       submitData.append("has_valet", formData.has_valet);
-      if (imageFile) {
-        submitData.append("image", imageFile);
+
+      if (entranceFile) {
+        submitData.append("image", entranceFile);
+        submitData.append("entrance_image", entranceFile);
+      }
+      if (insideFile) {
+        submitData.append("inside_image", insideFile);
+        submitData.append("interior_image", insideFile);
       }
 
-      await API.put(`/parking/owner/${id}`, submitData, {
+      await API.put(`/parking/${id}`, submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      showToast("Facility updated successfully!", "success");
-      setTimeout(() => navigate("/owner"), 1000);
+      showToast("Facility updated with Entrance & Inside photos!", "success");
+      setTimeout(() => navigate("/owner"), 800);
     } catch (error) {
       console.error("Update parking error:", error);
       showToast(
@@ -510,45 +532,102 @@ export default function EditParking() {
                 </div>
               </div>
 
-              {/* IMAGE UPLOAD */}
+              {/* 1. PARKING ENTRANCE PHOTO (COMPULSORY) */}
               <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                  Entrance Photo
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
+                    <span>🚪 Parking Entrance Photo</span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      Compulsory *
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">Front gate / road entrance view</p>
+                </div>
 
                 <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
+                  onClick={() => entranceInputRef.current?.click()}
+                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
                 >
                   <input
-                    ref={fileInputRef}
+                    ref={entranceInputRef}
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      setImageFile(file);
-                      setImagePreview(URL.createObjectURL(file));
+                      setEntranceFile(file);
+                      setEntrancePreview(URL.createObjectURL(file));
                     }}
                     className="hidden"
                   />
 
-                  {imagePreview ? (
-                    <div className="space-y-3">
+                  {entrancePreview ? (
+                    <div className="space-y-2">
                       <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="max-h-48 rounded-2xl mx-auto object-cover shadow-sm"
+                        src={entrancePreview}
+                        alt="Entrance Preview"
+                        className="max-h-40 rounded-2xl mx-auto object-cover shadow-sm border border-emerald-500/40"
                       />
-                      <p className="text-xs text-zinc-900 dark:text-white font-black">
-                        Click to change photo
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                        Click to change entrance photo
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <FiUploadCloud className="w-10 h-10 text-zinc-400 mx-auto" />
+                      <FiUploadCloud className="w-8 h-8 text-emerald-500 mx-auto" />
                       <p className="text-xs font-black text-zinc-900 dark:text-white">
-                        Upload entrance photo
+                        Upload Parking Entrance Gate Photo
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. PARKING INSIDE PHOTO (COMPULSORY) */}
+              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
+                    <span>🏢 Parking Inside / Bay Photo</span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                      Compulsory *
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">Indoor bays, markings, and floor layout</p>
+                </div>
+
+                <div
+                  onClick={() => insideInputRef.current?.click()}
+                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-cyan-500 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
+                >
+                  <input
+                    ref={insideInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setInsideFile(file);
+                      setInsidePreview(URL.createObjectURL(file));
+                    }}
+                    className="hidden"
+                  />
+
+                  {insidePreview ? (
+                    <div className="space-y-2">
+                      <img
+                        src={insidePreview}
+                        alt="Inside Preview"
+                        className="max-h-40 rounded-2xl mx-auto object-cover shadow-sm border border-cyan-500/40"
+                      />
+                      <p className="text-xs text-cyan-600 dark:text-cyan-400 font-bold">
+                        Click to change inside photo
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <FiLayers className="w-8 h-8 text-cyan-500 mx-auto" />
+                      <p className="text-xs font-black text-zinc-900 dark:text-white">
+                        Upload Parking Inside / Bay Layout Photo
                       </p>
                     </div>
                   )}

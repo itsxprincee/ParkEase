@@ -610,7 +610,6 @@ export default function Profile() {
               className="pe-input text-sm font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             >
               <option value="Car">Car / Sedan / SUV 🚗</option>
-              <option value="EV">Electric Vehicle (EV) ⚡</option>
               <option value="Bike">Motorcycle / Scooter 🏍️</option>
               <option value="Truck">Truck / Commercial 🚛</option>
             </select>

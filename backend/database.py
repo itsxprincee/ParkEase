@@ -219,6 +219,7 @@ try:
                         "daily_rate": "FLOAT NOT NULL DEFAULT 10.0",
                         "allow_multi_entry": "BOOLEAN NOT NULL DEFAULT 1",
                         "last_exit_time": "VARCHAR(50) NOT NULL DEFAULT '11:00 PM'",
+                        "inside_image": "VARCHAR(500) NULL DEFAULT NULL",
                     }
                     for col_name, col_def in expected_columns.items():
                         if col_name not in parking_column_names:

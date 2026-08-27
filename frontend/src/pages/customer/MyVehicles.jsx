@@ -30,7 +30,6 @@ function Toast({ toast }) {
 
 const VEHICLE_TYPES = [
   { value: "Car", label: "🚗 Car", desc: "Sedan, SUV, Hatchback" },
-  { value: "EV", label: "⚡ EV", desc: "Electric Vehicle" },
   { value: "Bike", label: "🛵 Bike", desc: "Motorcycle / Scooter" },
 ];
 
@@ -255,7 +254,7 @@ export default function MyVehicles() {
             <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Vehicle Type
             </label>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 gap-2.5">
               {VEHICLE_TYPES.map((t) => (
                 <button
                   key={t.value}

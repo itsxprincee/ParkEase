@@ -33,6 +33,7 @@ export default function ParkingDetails() {
   const [parking, setParking] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activePhoto, setActivePhoto] = useState("ENTRANCE"); // "ENTRANCE" | "INSIDE"
 
   // Review submission
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -156,26 +157,77 @@ export default function ParkingDetails() {
             <div className="lg:col-span-2 space-y-6">
               {/* HERO CARD */}
               <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
-                <div className="relative h-64 sm:h-80 bg-zinc-950 overflow-hidden">
-                  {parking.image_url || parking.image ? (
-                    <img
-                      src={parking.image_url || parking.image}
-                      alt={parking.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-gradient-to-tr from-zinc-950 to-zinc-900 p-6 text-center">
-                      <FiMapPin className="w-12 h-12 text-emerald-500 mb-2" />
-                      <span className="text-sm font-black text-zinc-300">
-                        ParkEase Verified Location
-                      </span>
-                    </div>
-                  )}
+                {/* DUAL PHOTO GALLERY: ENTRANCE & INSIDE */}
+                <div className="relative h-64 sm:h-80 bg-zinc-950 overflow-hidden group">
+                  {(() => {
+                    const entranceImg = parking.image_url || parking.image;
+                    const insideImg = parking.inside_image_url || parking.inside_image;
+                    const activeSrc = activePhoto === "INSIDE" ? (insideImg || entranceImg) : (entranceImg || insideImg);
 
-                  <div className="absolute top-4 left-4">
+                    if (activeSrc) {
+                      return (
+                        <img
+                          src={activeSrc}
+                          alt={`${parking.name} - ${activePhoto === "INSIDE" ? "Inside View" : "Entrance View"}`}
+                          className="w-full h-full object-cover transition-all duration-500"
+                        />
+                      );
+                    }
+                    return (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-gradient-to-tr from-zinc-950 to-zinc-900 p-6 text-center">
+                        <FiMapPin className="w-12 h-12 text-emerald-500 mb-2" />
+                        <span className="text-sm font-black text-zinc-300">
+                          ParkEase Verified Location
+                        </span>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Top Status & Verification Badge */}
+                  <div className="absolute top-4 left-4 flex items-center gap-2">
                     <Badge variant="success" size="md">
                       Open 24/7
                     </Badge>
+                    <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-bold border border-white/20">
+                      {activePhoto === "INSIDE" ? "🏢 Inside View" : "🚪 Entrance Gate"}
+                    </span>
+                  </div>
+
+                  {/* Top Right Photo Switcher Pills */}
+                  {(parking.image || parking.image_url || parking.inside_image || parking.inside_image_url) && (
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/80 backdrop-blur-md p-1 rounded-2xl border border-white/20 shadow-xl">
+                      <button
+                        type="button"
+                        onClick={() => setActivePhoto("ENTRANCE")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          activePhoto === "ENTRANCE"
+                            ? "bg-emerald-500 text-black shadow-md font-black"
+                            : "text-zinc-300 hover:text-white"
+                        }`}
+                      >
+                        <span>🚪 Entrance</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActivePhoto("INSIDE")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          activePhoto === "INSIDE"
+                            ? "bg-cyan-500 text-black shadow-md font-black"
+                            : "text-zinc-300 hover:text-white"
+                        }`}
+                      >
+                        <span>🏢 Inside</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Subtitle Pill on Image */}
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-none">
+                    <span className="px-3 py-1.5 rounded-xl bg-black/75 backdrop-blur-md text-zinc-200 text-xs font-medium border border-white/10">
+                      {activePhoto === "INSIDE"
+                        ? "🅿️ Inside parking bays & layout — Navigate to your spot"
+                        : "📍 Street & gate entrance — Spot your parking from the road"}
+                    </span>
                   </div>
                 </div>
 

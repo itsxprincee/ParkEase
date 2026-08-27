@@ -312,7 +312,6 @@ Thank you for choosing ParkEase Smart Mobility!
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         
         {/* ══════════════════════════════════════════════════════════════════
-        {/* ══════════════════════════════════════════════════════════════════
             1. HERO VIBRANT GRADIENT BANNER
         ══════════════════════════════════════════════════════════════════ */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-6 sm:p-9 shadow-2xl border border-emerald-400/30">
@@ -320,25 +319,25 @@ Thank you for choosing ParkEase Smart Mobility!
             <div className="space-y-3 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>COMMUTER SEASON PASSES & SUBSCRIPTIONS</span>
+                <span>MONTHLY PARKING PASSES</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                Monthly Parking Subscriptions
+                Monthly Parking Passes
               </h1>
               <p className="text-xs sm:text-sm text-emerald-50 font-medium leading-relaxed">
-                Save up to 40% with guaranteed reserved bays, unlimited daily entries, and instant automated barrier clearance.
+                Save up to 40% with guaranteed reserved spots, unlimited daily entries, and fast gate access.
               </p>
 
               {/* Badges row */}
               <div className="flex items-center gap-2 flex-wrap pt-1">
                 <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
-                  🛡️ Guaranteed Reserved Bay
+                  🛡️ Guaranteed Reserved Spot
                 </span>
                 <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
-                  ⚡ Zero Gate Queues
+                  ⚡ Fast Entry & Exit
                 </span>
                 <span className="px-3.5 py-1 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20">
-                  ⏸️ Freeze Pass on Vacation
+                  ⏸️ Pause Pass Anytime
                 </span>
               </div>
             </div>

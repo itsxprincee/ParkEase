@@ -120,19 +120,22 @@ export default function MyVehicles() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0a0a0a] tracking-tight">My Vehicles</h1>
-            <p className="text-sm text-[#737373] mt-1">
-              {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} registered
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/20 mb-1">
+              <span>SAVED VEHICLES</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">My Vehicles</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+              {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} saved for quick 1-tap booking
             </p>
           </div>
-          <Button icon={FiPlus} onClick={handleOpenAdd}>Add Vehicle</Button>
+          <Button icon={FiPlus} variant="primary" onClick={handleOpenAdd}>Add Vehicle</Button>
         </div>
 
         {loading ? (
@@ -142,8 +145,8 @@ export default function MyVehicles() {
         ) : vehicles.length === 0 ? (
           <EmptyState
             icon={FiTruck}
-            title="No vehicles registered"
-            description="Add your cars, bikes, and EVs for instant one-tap parking reservations."
+            title="No vehicles saved"
+            description="Add your car, bike, or EV for instant booking without typing your plate number each time."
             actionLabel="Add Your Vehicle"
             onAction={handleOpenAdd}
           />
@@ -156,53 +159,54 @@ export default function MyVehicles() {
               return (
                 <div
                   key={v.id}
-                  className="bg-white rounded-2xl border border-[#e0e0e0] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:border-[#a0a0a0] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-200 p-5 flex flex-col gap-4"
+                  className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:border-emerald-500/50 hover:shadow-xl transition-all duration-200 p-5 flex flex-col justify-between gap-4"
                 >
                   {/* Top */}
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${isEV ? "bg-[#fffbeb]" : isBike ? "bg-[#f5f3ff]" : "bg-[#f0f0f0]"}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${isEV ? "bg-amber-500/15 border border-amber-500/30" : isBike ? "bg-purple-500/15 border border-purple-500/30" : "bg-emerald-500/15 border border-emerald-500/30"}`}>
                       {getVehicleIcon(v)}
                     </div>
-                    <div>
-                      <Badge variant={isEV ? "warning" : isBike ? "purple" : "default"} size="sm">
-                        {v.vehicle_type || "Car"}
-                      </Badge>
-                      <p className="text-sm font-bold text-[#0a0a0a] mt-1 truncate">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={isEV ? "warning" : isBike ? "purple" : "success"} size="sm">
+                          {v.vehicle_type || "Car"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm font-black text-zinc-900 dark:text-white mt-1 truncate">
                         {v.vehicle_name || "My Vehicle"}
                       </p>
                     </div>
                   </div>
 
                   {/* License Plate */}
-                  <div className="p-3 rounded-xl bg-[#f7f7f7] border border-[#e0e0e0] flex items-center justify-between">
-                    <div className="license-plate">
-                      <div className="license-plate-ind">
-                        <span>🇮🇳</span>
-                        <span>IND</span>
-                      </div>
-                      <span>{v.vehicle_number}</span>
+                  <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
+                    <div className="license-plate text-xs shrink-0 shadow-xs inline-flex">
+                      <span className="license-plate-ind">IND</span>
+                      <span className="font-mono font-black tracking-wider">
+                        {v.vehicle_number}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#05944f]" />
-                      <span className="text-[11px] font-semibold text-[#05944f]">Active</span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">Ready</span>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-1 border-t border-[#f0f0f0] flex items-center justify-between">
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
                     <button
                       onClick={() => handleOpenEdit(v)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-[#545454] hover:text-[#0a0a0a] transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
                     >
                       <FiEdit2 className="w-3.5 h-3.5" />
-                      Edit
+                      <span>Edit</span>
                     </button>
                     <button
                       onClick={() => setDeleteModalVehicle(v)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-[#e11900] hover:text-[#c51500] transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors cursor-pointer"
                     >
                       <FiTrash2 className="w-3.5 h-3.5" />
-                      Remove
+                      <span>Remove</span>
                     </button>
                   </div>
                 </div>
@@ -216,13 +220,13 @@ export default function MyVehicles() {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingVehicle ? "Edit Vehicle" : "Add Vehicle"}
+        title={editingVehicle ? "Edit Vehicle" : "Add New Vehicle"}
         maxWidth="max-w-md"
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-              License Plate *
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              License Plate Number *
             </label>
             <input
               type="text"
@@ -230,38 +234,42 @@ export default function MyVehicles() {
               placeholder="e.g. MH-01-AB-1234"
               value={formData.vehicle_number}
               onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value.toUpperCase() })}
-              className="pe-input font-mono tracking-widest text-sm font-bold"
+              className="pe-input font-mono tracking-widest text-sm font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
-              Nickname / Model
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Vehicle Nickname / Model
             </label>
             <input
               type="text"
-              placeholder="e.g. Honda City, Nexon EV"
+              placeholder="e.g. White Creta, Red Pulsar, Nexon EV"
               value={formData.vehicle_name}
               onChange={(e) => setFormData({ ...formData, vehicle_name: e.target.value })}
-              className="pe-input"
+              className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+            <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Vehicle Type
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2.5">
               {VEHICLE_TYPES.map((t) => (
                 <button
                   key={t.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, vehicle_type: t.value })}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${formData.vehicle_type === t.value ? "border-[#0a0a0a] bg-[#0a0a0a] text-white" : "border-[#e0e0e0] bg-white text-[#0a0a0a] hover:border-[#a0a0a0]"}`}
+                  className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer ${
+                    formData.vehicle_type === t.value
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-xs font-bold"
+                      : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400"
+                  }`}
                 >
-                  <p className="text-lg leading-none">{t.label.split(" ")[0]}</p>
-                  <p className="text-[10px] font-bold mt-1">{t.label.split(" ")[1]}</p>
-                  <p className={`text-[9px] mt-0.5 ${formData.vehicle_type === t.value ? "text-[#a0a0a0]" : "text-[#737373]"}`}>{t.desc}</p>
+                  <p className="text-xl leading-none">{t.label.split(" ")[0]}</p>
+                  <p className="text-xs font-black mt-1">{t.label.split(" ")[1]}</p>
+                  <p className="text-[9px] text-zinc-400 mt-0.5">{t.desc}</p>
                 </button>
               ))}
             </div>
@@ -270,7 +278,7 @@ export default function MyVehicles() {
           <div className="grid grid-cols-2 gap-3 pt-2">
             <Button variant="outline" type="button" onClick={() => setModalOpen(false)}>Cancel</Button>
             <Button variant="primary" type="submit" loading={saving}>
-              {editingVehicle ? "Save Changes" : "Add Vehicle"}
+              {editingVehicle ? "Save Changes" : "Save Vehicle"}
             </Button>
           </div>
         </form>
@@ -278,13 +286,13 @@ export default function MyVehicles() {
 
       {/* DELETE MODAL */}
       <Modal isOpen={!!deleteModalVehicle} onClose={() => setDeleteModalVehicle(null)} title="Remove Vehicle" maxWidth="max-w-sm">
-        <div className="text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#fef2f2] flex items-center justify-center mx-auto text-2xl">
+        <div className="text-center space-y-4 py-2">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto text-2xl">
             {deleteModalVehicle ? getVehicleIcon(deleteModalVehicle) : "🚗"}
           </div>
           <div>
-            <p className="font-bold text-[#0a0a0a]">Remove {deleteModalVehicle?.vehicle_number}?</p>
-            <p className="text-sm text-[#737373] mt-1">This vehicle won't appear in your booking list anymore.</p>
+            <p className="font-black text-zinc-900 dark:text-white">Remove {deleteModalVehicle?.vehicle_number}?</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">This vehicle will be removed from your saved list.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-1">
             <Button variant="outline" onClick={() => setDeleteModalVehicle(null)}>Cancel</Button>

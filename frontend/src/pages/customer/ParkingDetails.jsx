@@ -105,32 +105,38 @@ export default function ParkingDetails() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+          <div
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+              toast.type === "error"
+                ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+                : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+            }`}
+          >
             {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* BACK NAV */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#e0e0e0] text-xs font-semibold text-[#0a0a0a] hover:border-[#0a0a0a] transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Dashboard</span>
+            <span>Back to Parking Search</span>
           </button>
 
           <Badge variant="success" size="sm" dot>
-            Verified Facility
+            Verified Location
           </Badge>
         </div>
 
@@ -139,9 +145,9 @@ export default function ParkingDetails() {
         ) : !parking ? (
           <EmptyState
             icon={FiMapPin}
-            title="Facility not found"
+            title="Parking location not found"
             description="This parking location could not be loaded."
-            actionLabel="Return to Dashboard"
+            actionLabel="Return to Search"
             onAction={() => navigate("/customer/dashboard")}
           />
         ) : (
@@ -149,8 +155,8 @@ export default function ParkingDetails() {
             {/* LEFT 2 COLS: OVERVIEW, AMENITIES, REVIEWS */}
             <div className="lg:col-span-2 space-y-6">
               {/* HERO CARD */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-card">
-                <div className="relative h-64 sm:h-80 bg-slate-900 overflow-hidden">
+              <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+                <div className="relative h-64 sm:h-80 bg-zinc-950 overflow-hidden">
                   {parking.image_url || parking.image ? (
                     <img
                       src={parking.image_url || parking.image}
@@ -158,16 +164,16 @@ export default function ParkingDetails() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-gradient-to-tr from-slate-900 to-indigo-950 p-6 text-center">
-                      <FiMapPin className="w-12 h-12 text-indigo-400 mb-2" />
-                      <span className="text-sm font-semibold text-slate-300">
-                        ParkEase Smart Verified Facility
+                    <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-gradient-to-tr from-zinc-950 to-zinc-900 p-6 text-center">
+                      <FiMapPin className="w-12 h-12 text-emerald-500 mb-2" />
+                      <span className="text-sm font-black text-zinc-300">
+                        ParkEase Verified Location
                       </span>
                     </div>
                   )}
 
                   <div className="absolute top-4 left-4">
-                    <Badge variant="primary" size="md">
+                    <Badge variant="success" size="md">
                       Open 24/7
                     </Badge>
                   </div>
@@ -176,35 +182,35 @@ export default function ParkingDetails() {
                 <div className="p-6 sm:p-8 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                        {parking.name || "ParkEase Smart Facility"}
+                      <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                        {parking.name || "Parking Location"}
                       </h1>
-                      <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1.5 mt-1">
-                        <FiMapPin className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mt-1">
+                        <FiMapPin className="w-4 h-4 text-emerald-500 shrink-0" />
                         <span>
-                          {parking.address || parking.location || "City Center, Prime Hub"}
+                          {parking.address || parking.location || "City Location"}
                         </span>
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black">
                         <FiStar className="text-amber-500 fill-amber-500" />
                         <span>4.9 (120+ Reviews)</span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
-                    Equipped with automated license plate recognition (ALPR), high-speed barrier arms, smart LED slot guidance, and 24/7 on-site physical security guards. Reserve in advance to ensure guaranteed slot availability without waiting in queue.
+                  <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                    Fast barrier gate entry, automated QR scanning, clean covered spots, and 24/7 security guard. Book in advance to guarantee your parking spot with zero waiting.
                   </p>
                 </div>
               </div>
 
               {/* AMENITIES */}
-              <Card className="space-y-4">
-                <h3 className="text-base font-bold text-slate-900">
-                  Facility Amenities & Features
+              <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4">
+                <h3 className="text-base font-black text-zinc-900 dark:text-white">
+                  Amenities & Features
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {amenities.map((item, idx) => {
@@ -212,16 +218,16 @@ export default function ParkingDetails() {
                     return (
                       <div
                         key={idx}
-                        className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-100"
+                        className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80"
                       >
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
                           <Icon className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-900">
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
                             {item.title}
                           </p>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                             {item.desc}
                           </p>
                         </div>
@@ -229,17 +235,17 @@ export default function ParkingDetails() {
                     );
                   })}
                 </div>
-              </Card>
+              </div>
 
               {/* REVIEWS SECTION */}
-              <Card className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4">
+                <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">
-                      Driver Reviews & Ratings
+                    <h3 className="text-base font-black text-zinc-900 dark:text-white">
+                      Customer Reviews
                     </h3>
-                    <p className="text-xs text-slate-500">
-                      Verified customer feedback for this location.
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Verified feedback from drivers who parked here.
                     </p>
                   </div>
 
@@ -255,67 +261,67 @@ export default function ParkingDetails() {
 
                 <div className="space-y-3">
                   {reviews.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="p-4 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-zinc-200 dark:border-zinc-700">
                       Be the first driver to leave a review after parking here!
                     </div>
                   ) : (
                     reviews.map((rev, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5"
+                        className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-1.5"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900">
+                          <span className="text-xs font-bold text-zinc-900 dark:text-white">
                             {rev.user_name || "Verified Driver"}
                           </span>
-                          <div className="flex items-center gap-1 text-amber-500 text-xs">
+                          <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
                             <FiStar className="fill-amber-500" />
                             <span>{rev.rating || 5}.0</span>
                           </div>
                         </div>
-                        <p className="text-xs text-slate-600">{rev.comment}</p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-300">{rev.comment}</p>
                       </div>
                     ))
                   )}
                 </div>
-              </Card>
+              </div>
             </div>
 
             {/* RIGHT COLUMN: BOOKING CARD & RATE */}
             <div className="space-y-6">
-              <Card className="sticky top-24 space-y-6">
+              <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] sticky top-24 space-y-6">
                 <div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Starting Standard Rate
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+                    Starting Price
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-3xl font-extrabold text-indigo-600">
-                      ₹50
+                    <span className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+                      ₹{parking.hourly_rate || 40}
                     </span>
-                    <span className="text-xs text-slate-500 font-medium">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                       / hour
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-3 py-3 border-y border-slate-100 text-xs text-slate-600">
+                <div className="space-y-3 py-3 border-y border-zinc-100 dark:border-zinc-800 text-xs text-zinc-600 dark:text-zinc-300">
                   <div className="flex justify-between">
-                    <span>Total Slot Capacity</span>
-                    <span className="font-bold text-slate-800">
+                    <span>Total Spots</span>
+                    <span className="font-bold text-zinc-900 dark:text-white">
                       {parking.total_slots || 20} Spots
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>EV Fast Charging</span>
-                    <span className="font-bold text-emerald-600">Available</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Available</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Entry Method</span>
-                    <span className="font-bold text-slate-800">Digital QR Pass</span>
+                    <span className="font-bold text-zinc-900 dark:text-white">Digital QR Pass</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Cancellation Policy</span>
-                    <span className="font-bold text-slate-800">Free Cancellation</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">Free Cancellation</span>
                   </div>
                 </div>
 
@@ -330,14 +336,14 @@ export default function ParkingDetails() {
                     })
                   }
                 >
-                  Reserve Spot Now
+                  Book Spot Now
                 </Button>
 
-                <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
+                <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-400 text-center">
                   <FiShield className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>Guaranteed slot reservation with instant entry QR.</span>
+                  <span>Guaranteed parking spot with instant QR pass.</span>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
         )}
@@ -352,7 +358,7 @@ export default function ParkingDetails() {
       >
         <form onSubmit={handleSubmitReview} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Rating (1 to 5 Stars)
             </label>
             <div className="flex items-center gap-2">
@@ -361,10 +367,10 @@ export default function ParkingDetails() {
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className={`p-2 rounded-xl border text-base transition ${
+                  className={`p-2.5 rounded-2xl border text-lg transition cursor-pointer ${
                     rating >= star
-                      ? "bg-amber-50 border-amber-300 text-amber-500"
-                      : "bg-slate-50 border-slate-200 text-slate-300"
+                      ? "bg-amber-500/15 border-amber-500/40 text-amber-500"
+                      : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-400"
                   }`}
                 >
                   ★
@@ -374,16 +380,16 @@ export default function ParkingDetails() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Comment
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              Your Review
             </label>
             <textarea
               required
               rows={3}
-              placeholder="How was the slot availability, lighting, and entry experience?"
+              placeholder="How was the spot availability, safety, and check-in experience?"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+              className="pe-input text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full resize-none"
             />
           </div>
 

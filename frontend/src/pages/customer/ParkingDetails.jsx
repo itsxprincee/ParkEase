@@ -102,7 +102,7 @@ export default function ParkingDetails() {
     { icon: FiShield, title: "24/7 Security & CCTV", desc: "Monitored premises" },
     { icon: FiZap, title: "EV Rapid Charging", desc: "Fast charge stations" },
     { icon: FiClock, title: "Open 24 Hours", desc: "Instant gate access" },
-    { icon: FiTruck, title: "Valet & Multi-Size Spots", desc: "Car, SUV & Bike" },
+    { icon: FiTruck, title: "Multi-Size Parking Spots", desc: "Car, SUV & Bike" },
   ];
 
   return (

@@ -170,7 +170,6 @@ export default function AdminDashboard() {
     { key: "has_ev", label: "⚡ EV Charging" },
     { key: "has_covered_roof", label: "🏢 Covered" },
     { key: "is_24_7", label: "⏰ 24/7" },
-    { key: "has_valet", label: "🔑 Valet" },
   ];
 
   return (

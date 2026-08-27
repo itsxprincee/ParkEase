@@ -143,8 +143,6 @@ export default function OwnerDashboard() {
     booking: null,
     evStatus: "CHARGING",
     evPercentage: 75,
-    valetStatus: "ASSIGNED",
-    washStatus: "IN_PROGRESS",
   });
 
   const [specialServicesCache, setSpecialServicesCache] = useState(() => {
@@ -264,8 +262,6 @@ export default function OwnerDashboard() {
     const existing = specialServicesCache[booking.id] || {
       evStatus: booking.has_ev ? "CHARGING" : "OFF",
       evPercentage: 80,
-      valetStatus: "ASSIGNED",
-      washStatus: "IN_PROGRESS",
     };
 
     setServiceModal({
@@ -273,8 +269,6 @@ export default function OwnerDashboard() {
       booking,
       evStatus: existing.evStatus,
       evPercentage: existing.evPercentage,
-      valetStatus: existing.valetStatus,
-      washStatus: existing.washStatus,
     });
   };
 
@@ -287,8 +281,6 @@ export default function OwnerDashboard() {
       [bookingId]: {
         evStatus: serviceModal.evStatus,
         evPercentage: serviceModal.evPercentage,
-        valetStatus: serviceModal.valetStatus,
-        washStatus: serviceModal.washStatus,
       },
     };
     setSpecialServicesCache(updated);
@@ -380,13 +372,11 @@ export default function OwnerDashboard() {
 
         const sData = specialServicesCache[b.id];
         const isEV = b.has_ev || sData?.evStatus === "CHARGING" || sData?.evStatus === "FULL";
-        const hasValetOrWash = sData?.valetStatus || (sData?.washStatus && sData.washStatus !== "NONE");
 
         if (vehicleFilter === "INSIDE" && !b.is_entered) return false;
         if (vehicleFilter === "BOOKED" && !b.is_booked) return false;
         if (vehicleFilter === "EXITED" && b.status !== "COMPLETED") return false;
         if (vehicleFilter === "EV" && !isEV) return false;
-        if (vehicleFilter === "VALET" && !hasValetOrWash) return false;
 
         if (search.trim()) {
           const q = search.toLowerCase();
@@ -1002,7 +992,6 @@ export default function OwnerDashboard() {
                   { id: "INSIDE", label: "Parked Now", count: enteredCount, dotColor: "bg-emerald-500" },
                   { id: "BOOKED", label: "Arriving Soon", count: bookedCount, dotColor: "bg-sky-500" },
                   { id: "EV", label: "⚡ EV Charging", dotColor: "bg-cyan-500" },
-                  { id: "VALET", label: "🧼 Valet & Wash", dotColor: "bg-amber-500" },
                   { id: "EXITED", label: "Checked Out", count: null, dotColor: "bg-zinc-400" },
                 ].map((chip) => (
                   <button
@@ -1118,18 +1107,6 @@ export default function OwnerDashboard() {
                                 >
                                   <FiZap className="w-3 h-3 text-cyan-400" />
                                   <span>{isFullEV ? "EV Full 100%" : `EV ${evPct}% Charging`}</span>
-                                </button>
-                              )}
-
-                              {washState !== "NONE" && (
-                                <button
-                                  type="button"
-                                  onClick={() => openServiceManager(b)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:scale-105 transition-transform cursor-pointer"
-                                  title="Manage Valet / Wash"
-                                >
-                                  <FiDroplet className="w-3 h-3 text-amber-500" />
-                                  <span>{washState === "COMPLETED" ? "Wash Done ✨" : "Wash In Progress 🧼"}</span>
                                 </button>
                               )}
                             </div>
@@ -1823,51 +1800,6 @@ export default function OwnerDashboard() {
                     {st.label}
                   </button>
                 ))}
-              </div>
-            </div>
-
-            {/* Valet & Car Wash Add-on Controls */}
-            <div className="space-y-3 pt-1">
-              <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                Valet & Car Wash Status
-              </label>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white">
-                    <FiKey className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Valet Driver</span>
-                  </div>
-                  <select
-                    value={serviceModal.valetStatus}
-                    onChange={(e) =>
-                      setServiceModal((prev) => ({ ...prev, valetStatus: e.target.value }))
-                    }
-                    className="pe-input text-xs font-bold w-full bg-white dark:bg-zinc-900 py-2"
-                  >
-                    <option value="ASSIGNED">Driver Assigned</option>
-                    <option value="PARKED">Car Parked</option>
-                    <option value="RETURNED">Key Returned</option>
-                  </select>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white">
-                    <FiDroplet className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Car Wash</span>
-                  </div>
-                  <select
-                    value={serviceModal.washStatus}
-                    onChange={(e) =>
-                      setServiceModal((prev) => ({ ...prev, washStatus: e.target.value }))
-                    }
-                    className="pe-input text-xs font-bold w-full bg-white dark:bg-zinc-900 py-2"
-                  >
-                    <option value="IN_PROGRESS">Washing 🧼</option>
-                    <option value="COMPLETED">Done ✨</option>
-                    <option value="NONE">No Wash</option>
-                  </select>
-                </div>
               </div>
             </div>
 

@@ -157,11 +157,6 @@ export default function OwnerParkingDetails() {
                         ⏰ 24/7 Open
                       </span>
                     )}
-                    {parking.has_valet && (
-                      <span className="px-2.5 py-1 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-bold border border-rose-500/20">
-                        🔑 Valet
-                      </span>
-                    )}
                   </div>
                 </div>
 

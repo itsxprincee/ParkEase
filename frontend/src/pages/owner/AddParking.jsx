@@ -82,7 +82,6 @@ export default function AddParking() {
     has_security_guard: true,
     has_covered_roof: true,
     is_24_7: true,
-    has_valet: false,
   });
 
   const [entranceFile, setEntranceFile] = useState(null);
@@ -170,7 +169,6 @@ export default function AddParking() {
       submitData.append("has_security_guard", formData.has_security_guard);
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
-      submitData.append("has_valet", formData.has_valet);
       
       if (entranceFile) {
         submitData.append("image", entranceFile);
@@ -418,7 +416,6 @@ export default function AddParking() {
                   { key: "has_ev", label: "⚡ EV Fast Charge" },
                   { key: "has_covered_roof", label: "🏢 Covered Roof" },
                   { key: "is_24_7", label: "⏰ 24/7 Access" },
-                  { key: "has_valet", label: "🔑 Valet Service" },
                 ].map((item) => {
                   const active = formData[item.key];
                   return (

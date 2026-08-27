@@ -86,7 +86,7 @@ const COMMUTER_PLANS = [
       "24/7 Round-the-Clock Unrestricted Access",
       "Priority EV Fast Charger Bay Allocation",
       "Dedicated Reserved Prime Bay with Plate Tag",
-      "Complimentary 1x Monthly Car Foam Wash",
+      "Priority Reserved Parking Guarantee",
     ],
     accentColor: "from-emerald-500 to-teal-500",
     popular: true,

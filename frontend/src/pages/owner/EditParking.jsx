@@ -47,7 +47,6 @@ export default function EditParking() {
     has_security_guard: true,
     has_covered_roof: false,
     is_24_7: true,
-    has_valet: false,
   });
 
   const entranceInputRef = useRef(null);
@@ -89,7 +88,6 @@ export default function EditParking() {
           has_security_guard: Boolean(data.has_security_guard),
           has_covered_roof: Boolean(data.has_covered_roof),
           is_24_7: Boolean(data.is_24_7),
-          has_valet: Boolean(data.has_valet),
         });
         if (data.image_url || data.image) {
           setEntrancePreview(data.image_url || data.image);
@@ -160,7 +158,6 @@ export default function EditParking() {
       submitData.append("has_security_guard", formData.has_security_guard);
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
-      submitData.append("has_valet", formData.has_valet);
 
       if (entranceFile) {
         submitData.append("image", entranceFile);
@@ -503,7 +500,6 @@ export default function EditParking() {
                     { key: "has_security_guard", label: "🛡️ Security Guard", desc: "Guard on duty" },
                     { key: "has_covered_roof", label: "🏢 Covered Roof", desc: "Indoor covered" },
                     { key: "is_24_7", label: "⏰ 24/7 Open", desc: "All hours access" },
-                    { key: "has_valet", label: "🔑 Valet Parking", desc: "Valet driver" },
                   ].map((amenity) => (
                     <div
                       key={amenity.key}

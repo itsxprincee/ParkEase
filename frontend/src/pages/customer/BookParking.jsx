@@ -20,6 +20,7 @@ import Button from "../../components/Button";
 import { Card } from "../../components/Card";
 import Modal from "../../components/Modal";
 import { Skeleton } from "../../components/Skeleton";
+import ParkingLotVisualizer from "../../components/ParkingLotVisualizer";
 
 export default function BookParking() {
   const { id } = useParams();
@@ -588,86 +589,41 @@ export default function BookParking() {
               )}
             </div>
 
-            {/* STEP 3: PICK SPOT */}
+            {/* STEP 3: PICK SPOT (2D VISUAL LOT MAP & GRID) */}
             <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     3
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-zinc-900 dark:text-white">Select Spot</h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Tap an available spot to lock it.</p>
+                    <h3 className="text-base font-black text-zinc-900 dark:text-white">Select Spot on Layout</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Click an available spot on the 2D layout or switch to quick grid.</p>
                   </div>
                 </div>
 
-                {/* Filter */}
-                <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl">
-                  {[
-                    { id: "ALL", label: "All" },
-                    { id: "EV", label: "⚡ EV" },
-                    { id: "CAR", label: "🚗 Car" },
-                    { id: "BIKE", label: "🏍️ Bike" },
-                  ].map((filter) => (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      onClick={() => setSlotFilter(filter.id)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        slotFilter === filter.id
-                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs font-black"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
+                {selectedSlot && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-400 font-bold hidden sm:inline">Selected:</span>
+                    <span className="px-3 py-1 rounded-xl bg-emerald-500 text-black text-xs font-black font-mono shadow-xs">
+                      Spot {selectedSlot.slot_number} ✓
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* SLOTS GRID */}
+              {/* 2D VISUAL LOT PICKER */}
               {slots.length === 0 ? (
-                <p className="text-center py-6 text-sm text-zinc-500 font-bold">
+                <p className="text-center py-8 text-sm text-zinc-500 font-bold">
                   No spots configured yet.
                 </p>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {filteredSlots.map((slot) => {
-                    const isOccupied =
-                      slot.is_occupied ||
-                      slot.status?.toLowerCase() === "occupied" ||
-                      slot.status?.toLowerCase() === "maintenance";
-                    const isSelected = selectedSlot?.id === slot.id;
-
-                    return (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        disabled={isOccupied}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`relative p-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all border-2 cursor-pointer ${
-                          isSelected
-                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-lg scale-105 ring-2 ring-emerald-500/40"
-                            : isOccupied
-                            ? "bg-zinc-100 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 text-zinc-400 cursor-not-allowed opacity-50"
-                            : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 text-zinc-900 dark:text-white"
-                        }`}
-                      >
-                        {slot.is_ev && (
-                          <span className="absolute top-1.5 right-1.5 text-[10px]">⚡</span>
-                        )}
-                        <span className="text-sm font-black font-mono">{slot.slot_number}</span>
-                        <span
-                          className={`text-[9px] font-black uppercase ${
-                            isSelected ? "text-emerald-600 dark:text-emerald-400" : isOccupied ? "text-zinc-400" : "text-emerald-500"
-                          }`}
-                        >
-                          {isSelected ? "Selected" : isOccupied ? "Busy" : "Free"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <ParkingLotVisualizer
+                  slots={slots}
+                  selectedSlot={selectedSlot}
+                  onSelectSlot={(slot) => setSelectedSlot(slot)}
+                  parkingName={parking?.name}
+                />
               )}
             </div>
           </div>

@@ -23,6 +23,8 @@ import { Card, StatCard } from "../../components/Card";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import ParkingLotVisualizer from "../../components/ParkingLotVisualizer";
+import { FiMap, FiGrid } from "react-icons/fi";
 
 export default function ManageSlots() {
   const { id } = useParams();
@@ -32,6 +34,7 @@ export default function ManageSlots() {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [viewLayout, setViewLayout] = useState("CARDS"); // "CARDS" | "2D_MAP"
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL"); // ALL, AVAILABLE, OCCUPIED, MAINTENANCE, EV
@@ -332,21 +335,51 @@ export default function ManageSlots() {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-64 flex items-center">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
-              <FiSearch className="w-4 h-4" />
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            {/* View Mode Switcher */}
+            <div className="flex items-center gap-1 bg-zinc-200/60 dark:bg-zinc-800/60 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+              <button
+                type="button"
+                onClick={() => setViewLayout("CARDS")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  viewLayout === "CARDS"
+                    ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white shadow-xs font-black"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                <FiGrid className="w-3.5 h-3.5" />
+                <span>Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewLayout("2D_MAP")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  viewLayout === "2D_MAP"
+                    ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs font-black"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                <FiMap className="w-3.5 h-3.5" />
+                <span>2D Map</span>
+              </button>
             </div>
-            <input
-              type="text"
-              placeholder="Search spot (e.g. A-1)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pe-input pl-10 text-xs bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl w-full"
-            />
+
+            <div className="relative flex-1 sm:w-64 flex items-center">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
+                <FiSearch className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search spot (e.g. A-1)..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pe-input pl-10 text-xs bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl w-full"
+              />
+            </div>
           </div>
         </div>
 
-        {/* VISUAL MATRIX */}
+        {/* VISUAL MATRIX / 2D MAP */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
             <CardSkeleton />
@@ -359,6 +392,12 @@ export default function ManageSlots() {
             description="Create spots or use the batch generator to create parking spaces."
             actionLabel="+ Add Multiple Spots"
             onAction={() => setBulkModalOpen(true)}
+          />
+        ) : viewLayout === "2D_MAP" ? (
+          <ParkingLotVisualizer
+            slots={filteredSlots}
+            readOnly={true}
+            parkingName={parking?.name}
           />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">

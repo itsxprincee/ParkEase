@@ -290,25 +290,31 @@ export default function BookParking() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] flex flex-col">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
+          <div
+            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+              toast.type === "error"
+                ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+                : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+            }`}
+          >
             {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
             <span>{toast.message}</span>
           </div>
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* TOP BAR / BACK NAVIGATION */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#e0e0e0] text-xs font-semibold text-[#0a0a0a] hover:border-[#0a0a0a] transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600 transition shadow-xs cursor-pointer"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>Back</span>
@@ -316,113 +322,113 @@ export default function BookParking() {
 
           <div className="flex items-center gap-2">
             <Badge variant="primary" size="sm">
-              Instant Reservation
+              Instant Booking
             </Badge>
             <Badge variant="success" size="sm" dot>
-              Live Availability
+              Live Spots
             </Badge>
           </div>
         </div>
 
-        {/* UBER FACILITY HEADER */}
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6 sm:p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1.5">
+        {/* PARKING LOCATION HEADER CARD */}
+        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-black text-white text-[11px] font-black uppercase">
+              <span className="px-3 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-black uppercase tracking-wider">
                 ParkEase
               </span>
-              <span className="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live Spot Locking
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
-              {parking?.name || "ParkEase Facility"}
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+              {parking?.name || "Parking Location"}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-500 flex items-center gap-1.5 font-medium">
-              <FiMapPin className="w-4 h-4 text-black shrink-0" />
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 font-medium">
+              <FiMapPin className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>{parking?.address || parking?.location || "City Location"}</span>
             </p>
 
             {/* AMENITIES */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               {parking?.has_ev && (
-                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
-                  ⚡ EV Ready
+                <span className="px-2.5 py-1 rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-bold border border-cyan-500/20">
+                  ⚡ EV Charging
                 </span>
               )}
               {parking?.has_security_guard && (
-                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
-                  🛡️ Guarded
+                <span className="px-2.5 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold border border-zinc-200 dark:border-zinc-700">
+                  🛡️ Security Guard
                 </span>
               )}
               {parking?.has_cctv && (
-                <span className="px-2 py-0.5 rounded-lg bg-neutral-100 text-black text-xs font-bold border border-neutral-200">
-                  📹 CCTV
+                <span className="px-2.5 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold border border-zinc-200 dark:border-zinc-700">
+                  📹 CCTV Monitored
                 </span>
               )}
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-right min-w-[130px]">
-            <p className="text-[10px] text-neutral-400 font-bold uppercase">Rate</p>
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 text-right min-w-[140px] shrink-0">
+            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Rate</p>
             {HOURLY_RATE === 0 ? (
-              <p className="text-2xl font-black text-emerald-600">FREE</p>
+              <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">FREE</p>
             ) : (
-              <p className="text-2xl font-black text-black">
-                ₹{HOURLY_RATE}<span className="text-xs text-neutral-400 font-normal">/hr</span>
+              <p className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white font-mono">
+                ₹{HOURLY_RATE}<span className="text-xs text-zinc-400 font-normal">/hr</span>
               </p>
             )}
           </div>
         </div>
 
         {/* 3-STEP RESERVATION GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* LEFT 2 COLUMNS */}
           <div className="lg:col-span-2 space-y-6">
-            {/* STEP 1: PRICING PASS & DURATION */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            {/* STEP 1: PRICING PLAN & DURATION */}
+            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5">
+              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     1
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-black">Booking Plan & Duration</h3>
-                    <p className="text-xs text-neutral-500">Choose between flat day pass or hourly duration.</p>
+                    <h3 className="text-base font-black text-zinc-900 dark:text-white">Booking Plan & Duration</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Choose between flat day pass or hourly booking.</p>
                   </div>
                 </div>
               </div>
 
               {/* Pass Mode Toggle (if facility supports both or day pass) */}
               {hasDailyOption && !isFacilityDailyOnly && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div
                     onClick={() => setPassType("HOURLY")}
-                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
                       passType === "HOURLY"
-                        ? "bg-black text-white border-black shadow-xs"
-                        : "bg-white text-black border-neutral-200 hover:border-neutral-400"
+                        ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-md"
+                        : "bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                     }`}
                   >
                     <p className="text-xs font-black">⏱️ Hourly Booking</p>
-                    <p className={`text-[11px] mt-0.5 ${passType === "HOURLY" ? "text-neutral-300" : "text-neutral-500"}`}>
-                      ₹{HOURLY_RATE}/hr · Custom duration
+                    <p className={`text-[11px] mt-1 ${passType === "HOURLY" ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"}`}>
+                      ₹{HOURLY_RATE}/hr · Choose exact hours
                     </p>
                   </div>
 
                   <div
                     onClick={() => setPassType("DAILY_PASS")}
-                    className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
                       passType === "DAILY_PASS"
-                        ? "bg-[#05944f] text-white border-[#05944f] shadow-xs"
-                        : "bg-[#f0fdf4] text-[#05944f] border-[#86efac] hover:border-[#05944f]"
+                        ? "bg-emerald-500 text-black border-emerald-500 shadow-md font-bold"
+                        : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500"
                     }`}
                   >
-                    <p className="text-xs font-black">🎟️ Unlimited Day Pass (₹{DAILY_RATE})</p>
-                    <p className={`text-[11px] mt-0.5 ${passType === "DAILY_PASS" ? "text-white/90" : "text-[#545454]"}`}>
-                      Multi-entry & exit all day
+                    <p className="text-xs font-black">🎟️ Full Day Pass (₹{DAILY_RATE})</p>
+                    <p className={`text-[11px] mt-1 ${passType === "DAILY_PASS" ? "text-black/80" : "text-zinc-500 dark:text-zinc-400"}`}>
+                      Unlimited entries & exits all day
                     </p>
                   </div>
                 </div>
@@ -430,16 +436,16 @@ export default function BookParking() {
 
               {/* Day Pass Curfew Banner */}
               {passType === "DAILY_PASS" && (
-                <div className="p-4 rounded-2xl bg-[#f0fdf4] border border-[#86efac] space-y-1.5 animate-fade-in">
-                  <div className="flex items-center gap-2 text-xs font-black text-[#05944f]">
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-1.5 animate-fade-in">
+                  <div className="flex items-center gap-2 text-xs font-black text-emerald-600 dark:text-emerald-400">
                     <FiCheckCircle className="w-4 h-4" />
                     <span>Flat Daily Pass — ₹{DAILY_RATE} for Entire Day</span>
                   </div>
-                  <p className="text-xs text-neutral-700 leading-relaxed">
-                    🚗 <strong>Unlimited Entry & Exit:</strong> You can drive in and out freely all day using your digital QR pass.
+                  <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                    🚗 <strong>Unlimited Entry & Exit:</strong> You can drive in and out freely all day using your QR pass.
                   </p>
-                  <p className="text-xs text-[#b45309] font-bold">
-                    ⚠️ <strong>Gate Closing Rule:</strong> Final vehicle exit must be completed before{" "}
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-bold">
+                    ⚠️ <strong>Closing Time:</strong> Final exit must be before{" "}
                     <span className="underline">{parking?.last_exit_time || "11:00 PM"}</span> tonight.
                   </p>
                 </div>
@@ -448,17 +454,17 @@ export default function BookParking() {
               {/* DURATION PILLS (Only for Hourly) */}
               {passType === "HOURLY" && (
                 <div className="space-y-2 pt-1">
-                  <label className="text-xs font-bold text-neutral-700">Quick Duration</label>
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Quick Duration</label>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {[1, 2, 3, 4, 6, 8].map((hrs) => (
                       <button
                         key={hrs}
                         type="button"
                         onClick={() => handleDurationChange(hrs)}
-                        className={`py-3 rounded-xl text-xs font-black transition-all border ${
+                        className={`py-3 rounded-2xl text-xs font-black transition-all border cursor-pointer ${
                           selectedDurationHours === hrs
-                            ? "bg-black text-white border-black shadow-md scale-105"
-                            : "bg-neutral-100 border-transparent text-black hover:bg-neutral-200"
+                            ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-md scale-105"
+                            : "bg-zinc-100 dark:bg-zinc-800/80 border-transparent text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                         }`}
                       >
                         {hrs} {hrs === 1 ? "Hour" : "Hours"}
@@ -471,41 +477,41 @@ export default function BookParking() {
               {/* DATE & TIME */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-700">Date</label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200">
-                    <FiCalendar className="text-black w-4 h-4" />
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Date</label>
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700">
+                    <FiCalendar className="text-zinc-500 dark:text-zinc-400 w-4 h-4" />
                     <input
                       type="date"
                       value={bookingDate}
                       min={formattedToday}
                       onChange={(e) => setBookingDate(e.target.value)}
-                      className="w-full bg-transparent text-xs text-black font-bold focus:outline-none"
+                      className="w-full bg-transparent text-xs text-zinc-900 dark:text-white font-bold focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     {passType === "DAILY_PASS" ? "First Entry From" : "Entry Time"}
                   </label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200">
-                    <FiClock className="text-black w-4 h-4" />
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700">
+                    <FiClock className="text-zinc-500 dark:text-zinc-400 w-4 h-4" />
                     <input
                       type="time"
                       value={startTime}
                       onChange={(e) => handleStartTimeChange(e.target.value)}
-                      className="w-full bg-transparent text-xs text-black font-bold focus:outline-none"
+                      className="w-full bg-transparent text-xs text-zinc-900 dark:text-white font-bold focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-neutral-700">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     {passType === "DAILY_PASS" ? "Final Gate Exit" : "Estimated Exit"}
                   </label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-500">
-                    <FiClock className="text-neutral-400 w-4 h-4" />
-                    <span className="text-xs font-bold text-black">
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 text-zinc-500">
+                    <FiClock className="text-zinc-400 w-4 h-4" />
+                    <span className="text-xs font-bold text-zinc-900 dark:text-white">
                       {passType === "DAILY_PASS" ? (parking?.last_exit_time || "11:00 PM") : endTime}
                     </span>
                   </div>
@@ -514,36 +520,36 @@ export default function BookParking() {
             </div>
 
             {/* STEP 2: SELECT VEHICLE */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5">
+              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     2
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-black">Vehicle</h3>
-                    <p className="text-xs text-neutral-500">Select which car or bike is parking.</p>
+                    <h3 className="text-base font-black text-zinc-900 dark:text-white">Vehicle</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Select which car or bike you are parking.</p>
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setShowAddVehicleModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-black text-white text-xs font-black hover:bg-neutral-800 transition"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition shadow-xs cursor-pointer active:scale-95"
                 >
                   + Add Vehicle
                 </button>
               </div>
 
               {vehicles.length === 0 ? (
-                <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <p className="text-xs font-bold text-neutral-700">
-                    No vehicle added yet.
+                <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    No vehicle added yet. Add one to generate your pass.
                   </p>
                   <button
                     type="button"
                     onClick={() => setShowAddVehicleModal(true)}
-                    className="px-3 py-1.5 rounded-xl bg-black text-white text-xs font-bold"
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black cursor-pointer"
                   >
                     + Add Vehicle
                   </button>
@@ -556,10 +562,10 @@ export default function BookParking() {
                       <div
                         key={veh.id}
                         onClick={() => setSelectedVehicle(veh)}
-                        className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
                           isSelected
-                            ? "bg-neutral-50 border-black shadow-sm"
-                            : "bg-white border-neutral-200 hover:border-neutral-400"
+                            ? "bg-emerald-500/10 border-emerald-500 shadow-sm"
+                            : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -567,13 +573,13 @@ export default function BookParking() {
                             <span className="license-plate-ind">IND</span>
                             <span>{veh.vehicle_number}</span>
                           </div>
-                          <span className="text-xs font-bold text-neutral-600 truncate">
+                          <span className="text-xs font-bold text-zinc-600 dark:text-zinc-300 truncate">
                             {veh.vehicle_name || veh.vehicle_type || "Vehicle"}
                           </span>
                         </div>
 
                         {isSelected && (
-                          <FiCheckCircle className="w-5 h-5 text-black shrink-0" />
+                          <FiCheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
                         )}
                       </div>
                     );
@@ -583,20 +589,20 @@ export default function BookParking() {
             </div>
 
             {/* STEP 3: PICK SPOT */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
+            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     3
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-black">Select Spot</h3>
-                    <p className="text-xs text-neutral-500">Tap an available spot to lock it.</p>
+                    <h3 className="text-base font-black text-zinc-900 dark:text-white">Select Spot</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Tap an available spot to lock it.</p>
                   </div>
                 </div>
 
                 {/* Filter */}
-                <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl">
+                <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl">
                   {[
                     { id: "ALL", label: "All" },
                     { id: "EV", label: "⚡ EV" },
@@ -607,10 +613,10 @@ export default function BookParking() {
                       key={filter.id}
                       type="button"
                       onClick={() => setSlotFilter(filter.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
                         slotFilter === filter.id
-                          ? "bg-black text-white shadow-sm"
-                          : "text-neutral-600 hover:text-black"
+                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs font-black"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                       }`}
                     >
                       {filter.label}
@@ -621,8 +627,8 @@ export default function BookParking() {
 
               {/* SLOTS GRID */}
               {slots.length === 0 ? (
-                <p className="text-center py-6 text-sm text-neutral-500 font-bold">
-                  No slots configured yet.
+                <p className="text-center py-6 text-sm text-zinc-500 font-bold">
+                  No spots configured yet.
                 </p>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -639,21 +645,21 @@ export default function BookParking() {
                         type="button"
                         disabled={isOccupied}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`relative p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2 ${
+                        className={`relative p-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all border-2 cursor-pointer ${
                           isSelected
-                            ? "bg-black border-black text-white shadow-md scale-105"
+                            ? "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-lg scale-105 ring-2 ring-emerald-500/40"
                             : isOccupied
-                            ? "bg-neutral-100 border-neutral-200 text-neutral-400 cursor-not-allowed opacity-50"
-                            : "bg-white border-neutral-300 hover:border-black text-black"
+                            ? "bg-zinc-100 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-800 text-zinc-400 cursor-not-allowed opacity-50"
+                            : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 text-zinc-900 dark:text-white"
                         }`}
                       >
                         {slot.is_ev && (
                           <span className="absolute top-1.5 right-1.5 text-[10px]">⚡</span>
                         )}
-                        <span className="text-sm font-black">{slot.slot_number}</span>
+                        <span className="text-sm font-black font-mono">{slot.slot_number}</span>
                         <span
                           className={`text-[9px] font-black uppercase ${
-                            isSelected ? "text-neutral-200" : isOccupied ? "text-neutral-400" : "text-emerald-600"
+                            isSelected ? "text-emerald-600 dark:text-emerald-400" : isOccupied ? "text-zinc-400" : "text-emerald-500"
                           }`}
                         >
                           {isSelected ? "Selected" : isOccupied ? "Busy" : "Free"}
@@ -666,76 +672,76 @@ export default function BookParking() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: UBER CHECKOUT CARD */}
-          <div>
-            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm sticky top-24 space-y-4">
-              <h3 className="text-lg font-black text-black border-b border-neutral-100 pb-3">
-                Fare Summary
+          {/* RIGHT COLUMN: CHECKOUT SUMMARY CARD */}
+          <div className="sticky top-24">
+            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-7 shadow-xl space-y-5">
+              <h3 className="text-lg font-black text-zinc-900 dark:text-white border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                Booking Summary
               </h3>
 
-              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-2 text-xs">
+              <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-2.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Plan:</span>
-                  <span className="font-black text-black">
-                    {passType === "DAILY_PASS" ? "🎟️ Unlimited Full-Day Pass" : "⏱️ Hourly Duration"}
+                  <span className="text-zinc-500 dark:text-zinc-400">Plan:</span>
+                  <span className="font-black text-zinc-900 dark:text-white">
+                    {passType === "DAILY_PASS" ? "🎟️ Full-Day Pass" : "⏱️ Hourly"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Spot:</span>
-                  <span className="font-black text-black">
-                    {selectedSlot ? selectedSlot.slot_number : "None selected"}
+                  <span className="text-zinc-500 dark:text-zinc-400">Spot:</span>
+                  <span className="font-black font-mono text-emerald-600 dark:text-emerald-400">
+                    {selectedSlot ? selectedSlot.slot_number : "None"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Vehicle:</span>
-                  <span className="font-bold text-black">
-                    {selectedVehicle?.vehicle_number || "None selected"}
+                  <span className="text-zinc-500 dark:text-zinc-400">Vehicle:</span>
+                  <span className="font-bold font-mono text-zinc-900 dark:text-white">
+                    {selectedVehicle?.vehicle_number || "None"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-500">Validity:</span>
-                  <span className="font-bold text-black">
-                    {passType === "DAILY_PASS" ? `Until ${parking?.last_exit_time || "11:00 PM"}` : `${startTime} - ${endTime}`}
+                  <span className="text-zinc-500 dark:text-zinc-400">Validity:</span>
+                  <span className="font-bold text-zinc-900 dark:text-white">
+                    {passType === "DAILY_PASS" ? `Until ${parking?.last_exit_time || "11:00 PM"}` : `${startTime} – ${endTime}`}
                   </span>
                 </div>
               </div>
 
               {/* PRICING */}
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between text-neutral-600">
-                  <span>{passType === "DAILY_PASS" ? "Flat Day Pass:" : `Parking (${selectedDurationHours}h):`}</span>
-                  <span className="font-bold text-black">
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between text-zinc-600 dark:text-zinc-300">
+                  <span>{passType === "DAILY_PASS" ? "Day Pass:" : `Parking (${selectedDurationHours}h):`}</span>
+                  <span className="font-bold font-mono text-zinc-900 dark:text-white">
                     {subtotal === 0 ? "FREE" : `₹${subtotal}`}
                   </span>
                 </div>
-                <div className="flex justify-between text-neutral-600">
-                  <span>Platform Convenience Fee:</span>
-                  <span className="font-bold text-black">₹{PLATFORM_FEE}</span>
+                <div className="flex justify-between text-zinc-600 dark:text-zinc-300">
+                  <span>Convenience Fee:</span>
+                  <span className="font-bold font-mono text-zinc-900 dark:text-white">₹{PLATFORM_FEE}</span>
                 </div>
-                <div className="pt-2 border-t border-neutral-200 flex justify-between text-base">
-                  <span className="font-black text-black">Total:</span>
-                  <span className="text-2xl font-black text-black">₹{grandTotal}</span>
+                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center text-base">
+                  <span className="font-black text-zinc-900 dark:text-white">Total:</span>
+                  <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">₹{grandTotal}</span>
                 </div>
               </div>
 
               {passType === "DAILY_PASS" && (
-                <div className="p-3 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[11px] text-[#05944f] font-bold">
-                  ✓ Includes Unlimited Entries & Exits until {parking?.last_exit_time || "11:00 PM"}
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                  ✓ Unlimited Entries & Exits until {parking?.last_exit_time || "11:00 PM"}
                 </div>
               )}
 
-              {/* UBER JET BLACK CONFIRM BUTTON */}
+              {/* CONFIRM BUTTON */}
               <button
                 type="button"
                 disabled={!selectedSlot || !selectedVehicle || bookingLoading}
                 onClick={handleConfirmBooking}
-                className="w-full py-4 px-4 rounded-xl bg-black hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-black shadow-md transition active:scale-95 text-center"
+                className="w-full py-4 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black text-base font-black shadow-lg transition-all active:scale-95 text-center cursor-pointer"
               >
-                {bookingLoading ? "Locking Spot..." : "Confirm Reservation &rarr;"}
+                {bookingLoading ? "Locking Spot..." : "Confirm & Get Pass →"}
               </button>
 
               {(!selectedSlot || !selectedVehicle) && (
-                <p className="text-xs text-rose-600 font-bold text-center">
+                <p className="text-xs text-rose-500 font-bold text-center">
                   {!selectedVehicle ? "⚠ Please choose a vehicle" : "⚠ Please pick a spot"}
                 </p>
               )}
@@ -749,11 +755,11 @@ export default function BookParking() {
         isOpen={showAddVehicleModal}
         onClose={() => setShowAddVehicleModal(false)}
         title="Add Vehicle"
-        subtitle="Add your vehicle details for instant gate pass generation."
+        subtitle="Save vehicle details for fast pass generation."
       >
         <form onSubmit={handleAddVehicle} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               License Plate Number *
             </label>
             <input
@@ -764,27 +770,27 @@ export default function BookParking() {
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_number: e.target.value.toUpperCase() })
               }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 text-xs font-bold text-zinc-900 dark:text-white focus:outline-none transition"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Vehicle Nickname (Optional)
             </label>
             <input
               type="text"
-              placeholder="e.g. My Tesla / Daily Car"
+              placeholder="e.g. Daily Car"
               value={newVehicle.vehicle_name}
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })
               }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-transparent focus-within:border-black focus-within:bg-white text-xs font-bold text-black focus:outline-none transition"
+              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 focus:border-emerald-500 text-xs font-bold text-zinc-900 dark:text-white focus:outline-none transition"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-700">
+            <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
               Vehicle Type
             </label>
             <select
@@ -792,7 +798,7 @@ export default function BookParking() {
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })
               }
-              className="w-full px-3.5 py-3 rounded-xl bg-neutral-100 border border-neutral-200 text-xs text-black font-bold focus:outline-none focus:border-black transition"
+              className="w-full px-3.5 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white font-bold focus:outline-none focus:border-emerald-500 transition"
             >
               <option value="Car">Car (Sedan/SUV/Hatchback)</option>
               <option value="EV">Electric Vehicle (EV)</option>
@@ -801,20 +807,19 @@ export default function BookParking() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-3">
-            <button
-              type="button"
+            <Button
+              variant="outline"
               onClick={() => setShowAddVehicleModal(false)}
-              className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               type="submit"
-              disabled={addingVehicle}
-              className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black transition shadow-sm"
+              loading={addingVehicle}
             >
-              {addingVehicle ? "Saving..." : "Save Vehicle"}
-            </button>
+              Save Vehicle
+            </Button>
           </div>
         </form>
       </Modal>
@@ -823,74 +828,72 @@ export default function BookParking() {
       <Modal
         isOpen={!!successModal}
         onClose={() => {}}
-        title="Reservation Confirmed"
+        title="Booking Confirmed!"
         maxWidth="max-w-md"
         showClose={false}
       >
         <div className="text-center py-2 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center mx-auto shadow-sm text-2xl font-bold">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto shadow-sm text-2xl font-bold">
             ✓
           </div>
 
           <div>
-            <h4 className="text-xl font-black text-black">
-              Pass #{successModal?.id} Ready
+            <h4 className="text-xl font-black text-zinc-900 dark:text-white">
+              Booking #{successModal?.id} Ready
             </h4>
-            <p className="text-xs text-neutral-500 font-medium mt-1">
-              Your slot <span className="font-black text-black">{successModal?.slot_number}</span> has been confirmed.
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-1">
+              Your spot <span className="font-black text-zinc-900 dark:text-white">{successModal?.slot_number}</span> has been confirmed.
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs space-y-2 text-left">
+          <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-xs space-y-2.5 text-left">
             <div className="flex justify-between">
-              <span className="text-neutral-500">Plan Type</span>
-              <span className="font-bold text-black">
-                {successModal?.pass_type === "DAILY_PASS" ? "🎟️ Unlimited Full-Day Pass" : "⏱️ Hourly Duration"}
+              <span className="text-zinc-500 dark:text-zinc-400">Plan Type</span>
+              <span className="font-bold text-zinc-900 dark:text-white">
+                {successModal?.pass_type === "DAILY_PASS" ? "🎟️ Full-Day Pass" : "⏱️ Hourly"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">Date</span>
-              <span className="font-bold text-black">{successModal?.booking_date || bookingDate}</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Date</span>
+              <span className="font-bold text-zinc-900 dark:text-white">{successModal?.booking_date || bookingDate}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">
-                {successModal?.pass_type === "DAILY_PASS" ? "Last Exit Curfew" : "Time Window"}
+              <span className="text-zinc-500 dark:text-zinc-400">
+                {successModal?.pass_type === "DAILY_PASS" ? "Last Exit Rule" : "Time Window"}
               </span>
-              <span className="font-bold text-[#b45309]">
+              <span className="font-bold text-amber-600 dark:text-amber-400">
                 {successModal?.pass_type === "DAILY_PASS"
                   ? `Must exit before ${successModal?.last_exit_rule || parking?.last_exit_time || "11:00 PM"}`
                   : `${successModal?.start_time} – ${successModal?.end_time}`}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">Vehicle</span>
-              <span className="font-bold text-black">{successModal?.vehicle_number || selectedVehicle?.vehicle_number}</span>
+              <span className="text-zinc-500 dark:text-zinc-400">Vehicle</span>
+              <span className="font-bold font-mono text-zinc-900 dark:text-white">{successModal?.vehicle_number || selectedVehicle?.vehicle_number}</span>
             </div>
-            <div className="flex justify-between pt-2 border-t border-neutral-200">
-              <span className="text-neutral-500">Total Paid</span>
-              <span className="font-black text-black text-sm">₹{grandTotal}</span>
+            <div className="flex justify-between pt-2 border-t border-zinc-200 dark:border-zinc-700">
+              <span className="text-zinc-500 dark:text-zinc-400">Total Paid</span>
+              <span className="font-black font-mono text-emerald-600 dark:text-emerald-400 text-sm">₹{grandTotal}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2">
-            <button
-              type="button"
+            <Button
+              variant="outline"
               onClick={() => navigate("/customer/my-bookings")}
-              className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-black text-xs font-bold transition"
             >
-              My Passes
-            </button>
-            <button
-              type="button"
+              My Bookings
+            </Button>
+            <Button
+              variant="primary"
               onClick={() =>
                 navigate(`/customer/qr?booking=${successModal?.id}`, {
                   state: { booking: successModal },
                 })
               }
-              className="py-3 px-4 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-black shadow-sm transition"
             >
-              View QR Pass &rarr;
-            </button>
+              View QR Pass →
+            </Button>
           </div>
         </div>
       </Modal>

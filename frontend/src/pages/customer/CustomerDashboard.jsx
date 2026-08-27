@@ -352,13 +352,13 @@ export default function CustomerDashboard() {
             <div className="space-y-3 max-w-xl">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>INSTANT DIGITAL PASS GENERATION</span>
+                <span>INSTANT PARKING PASS</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
                 Where are you parking, {getUserName().split(" ")[0]}?
               </h1>
               <p className="text-emerald-50 text-xs sm:text-sm font-medium">
-                Reserve verified parking bays with live QR entry passes and fast contactless gates.
+                Find and book safe parking spots near you with instant QR check-in.
               </p>
 
               {/* Quick Destination Shortcut Tags */}
@@ -382,18 +382,18 @@ export default function CustomerDashboard() {
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-1.5 text-xs font-black text-emerald-200">
                     <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                    <span>ACTIVE RESERVATION</span>
+                    <span>ACTIVE BOOKING</span>
                   </div>
                   <p className="text-sm font-black text-white line-clamp-1">
-                    {latestActive.parking_name || "ParkEase Facility"}
+                    {latestActive.parking_name || "Parking Location"}
                   </p>
-                  <p className="text-xs text-emerald-100 font-mono">Bay #{latestActive.slot_number}</p>
+                  <p className="text-xs text-emerald-100 font-mono">Spot #{latestActive.slot_number}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setFindCarModalBooking(latestActive)}
                     className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-white/20"
-                    title="Open Walking Compass & Radar"
+                    title="Find My Car"
                   >
                     <FiCompass className="w-4 h-4 animate-spin-slow" />
                     <span>Find Car</span>
@@ -406,7 +406,7 @@ export default function CustomerDashboard() {
                     }
                     className="px-4 py-2.5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
                   >
-                    Pass
+                    View Pass
                   </button>
                 </div>
               </div>
@@ -430,14 +430,14 @@ export default function CustomerDashboard() {
                   <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-900" />
                 </div>
                 <span className="text-xs font-semibold text-zinc-900 dark:text-white flex-1">
-                  {userCoords ? "📍 Live GPS Enabled" : "Detect Closest Parking"}
+                  {userCoords ? "📍 GPS Location Active" : "Find spots near me"}
                 </span>
                 <button
                   onClick={handleLocateNearest}
                   disabled={isLocating}
                   className="text-[11px] font-bold px-3 py-1 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white hover:border-zinc-400 transition-all active:scale-95 cursor-pointer shadow-xs"
                 >
-                  {isLocating ? "Locating…" : userCoords ? "✓ Active" : "Detect GPS"}
+                  {isLocating ? "Locating…" : userCoords ? "✓ Active" : "Near Me"}
                 </button>
               </div>
 
@@ -446,7 +446,7 @@ export default function CustomerDashboard() {
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none z-10" />
                 <input
                   type="text"
-                  placeholder="Search parking hub or area..."
+                  placeholder="Search parking name or area..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"

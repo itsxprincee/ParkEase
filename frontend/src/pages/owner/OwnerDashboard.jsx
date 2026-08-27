@@ -477,6 +477,19 @@ export default function OwnerDashboard() {
     return Math.round(selectedPeriodRevenue * 0.28);
   }, [selectedPeriodRevenue]);
 
+  const peakChartItem = useMemo(() => {
+    if (!currentChartData.length) return null;
+    return currentChartData.reduce(
+      (prev, curr) => ((curr.amount || 0) > (prev.amount || 0) ? curr : prev),
+      currentChartData[0]
+    );
+  }, [currentChartData]);
+
+  const avgBucketAmount = useMemo(() => {
+    if (!currentChartData.length) return 0;
+    return Math.round(selectedPeriodRevenue / currentChartData.length);
+  }, [selectedPeriodRevenue, currentChartData]);
+
   /* CSV Statement Export Handler */
   const handleExportCSV = () => {
     const rows = [
@@ -528,7 +541,7 @@ export default function OwnerDashboard() {
     },
     {
       id: "SLOTS",
-      label: "Free Available Bays",
+      label: "Available Spots",
       value: availableSlots,
       subLabel: `of ${totalSlots} total`,
       occupancy: occupancyPercent,
@@ -554,7 +567,7 @@ export default function OwnerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO COMMAND BANNER — VIBRANT EMERALD-TEAL OPERATIONS HUD
+            1. HERO COMMAND BANNER
         ══════════════════════════════════════════════════════════════════ */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-slate-900 text-white shadow-2xl border border-emerald-400/30">
           <div
@@ -569,14 +582,14 @@ export default function OwnerDashboard() {
           <div className="relative z-10 p-6 sm:p-9 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-3.5 max-w-2xl">
               
-              {/* Live Gate HUD Badges */}
+              {/* Live Status Badges */}
               <div className="flex items-center gap-2.5 flex-wrap">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300" />
                   </span>
-                  <span>LIVE REVENUE & GATE HUB</span>
+                  <span>LIVE PARKING & REVENUE</span>
                 </div>
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
@@ -586,16 +599,16 @@ export default function OwnerDashboard() {
 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
                   <FiRadio className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>{parkingList.length} {parkingList.length === 1 ? "Hub" : "Hubs"} Sync</span>
+                  <span>{parkingList.length} {parkingList.length === 1 ? "Location" : "Locations"}</span>
                 </div>
               </div>
 
               <div>
                 <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                  Facility Control & Revenue Hub
+                  Parking Operations & Revenue
                 </h1>
                 <p className="mt-1.5 text-emerald-50 text-sm font-medium leading-relaxed">
-                  Real-time bay operations, fast automated check-in verification, and today / weekly / monthly / yearly revenue tracking.
+                  Manage parking spots, check in vehicles, and track today's, weekly, monthly, and yearly revenue.
                 </p>
               </div>
 
@@ -603,7 +616,7 @@ export default function OwnerDashboard() {
               <div className="flex items-center gap-2 flex-wrap pt-0.5">
                 <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
                   <FiActivity className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>{liveBookings.length} Active Drivers</span>
+                  <span>{liveBookings.length} Active Bookings</span>
                 </span>
                 <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
                   <FiTrendingUp className="w-3.5 h-3.5 text-emerald-300" />
@@ -639,7 +652,7 @@ export default function OwnerDashboard() {
                 className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
               >
                 <FiBarChart2 className="w-4 h-4 text-emerald-300" />
-                <span>Revenue Center</span>
+                <span>View Revenue</span>
               </button>
 
               <button
@@ -655,7 +668,7 @@ export default function OwnerDashboard() {
                 className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 hover:bg-emerald-50 text-xs font-black shadow-xl transition-all active:scale-95 cursor-pointer"
               >
                 <FiPlus className="w-4 h-4 stroke-[3] text-emerald-600" />
-                <span>Add Facility</span>
+                <span>Add Parking</span>
               </button>
             </div>
           </div>
@@ -722,7 +735,7 @@ export default function OwnerDashboard() {
                     {card.occupancy !== undefined ? (
                       <>
                         <div className="flex justify-between text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                          <span>Occupancy Rate</span>
+                          <span>Spots Occupied</span>
                           <span className="text-zinc-800 dark:text-zinc-200 font-mono">{card.occupancy}%</span>
                         </div>
                         <SparkBar value={card.occupancy} max={100} color={card.barColor} />
@@ -734,7 +747,7 @@ export default function OwnerDashboard() {
 
                   <div className="mt-4 flex items-center gap-1 text-[10px] font-bold text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
                     <FiArrowUpRight className="w-3 h-3" />
-                    <span>Filter stream</span>
+                    <span>View details</span>
                   </div>
                 </div>
               </div>
@@ -754,7 +767,7 @@ export default function OwnerDashboard() {
             <div className="p-5 sm:p-6 relative z-10">
               <div className="flex items-center justify-between mb-3.5">
                 <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                  Total Gross Revenue
+                  Total Revenue
                 </span>
                 <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20 shadow-xs">
                   <FiDollarSign className="w-4 h-4" />
@@ -776,7 +789,7 @@ export default function OwnerDashboard() {
               </div>
 
               <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-zinc-400 group-hover:text-emerald-400 transition-colors">
-                <span>View Full Revenue Analytics</span>
+                <span>View Revenue Details</span>
                 <FiArrowUpRight className="w-3 h-3" />
               </div>
             </div>
@@ -807,7 +820,7 @@ export default function OwnerDashboard() {
                     activeTab === "VEHICLES" ? "text-emerald-400" : "text-zinc-400"
                   }`}
                 />
-                <span>Live Vehicle Stream</span>
+                <span>Vehicles & Bookings</span>
                 <span
                   className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
                     activeTab === "VEHICLES"
@@ -832,7 +845,7 @@ export default function OwnerDashboard() {
                     activeTab === "REVENUE" ? "text-emerald-400" : "text-zinc-400"
                   }`}
                 />
-                <span>Revenue Analytics</span>
+                <span>Revenue & Reports</span>
                 <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/20 text-emerald-500">
                   New
                 </span>
@@ -851,7 +864,7 @@ export default function OwnerDashboard() {
                     activeTab === "FACILITIES" ? "text-emerald-400" : "text-zinc-400"
                   }`}
                 />
-                <span>Facility Directory</span>
+                <span>My Locations</span>
                 <span
                   className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
                     activeTab === "FACILITIES"
@@ -872,7 +885,7 @@ export default function OwnerDashboard() {
                   onChange={(e) => setSelectedFacility(e.target.value)}
                   className="pe-input text-xs font-bold py-2.5 px-3.5 sm:w-44 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl shadow-xs cursor-pointer"
                 >
-                  <option value="ALL">All Parking Hubs</option>
+                  <option value="ALL">All Parking Locations</option>
                   {parkingList.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -888,10 +901,10 @@ export default function OwnerDashboard() {
                   type="text"
                   placeholder={
                     activeTab === "VEHICLES"
-                      ? "Plate, driver, slot (Press '/' to search)"
+                      ? "Search plate, driver, spot..."
                       : activeTab === "REVENUE"
-                      ? "Search facilities or periods..."
-                      : "Search parking facilities..."
+                      ? "Search locations or dates..."
+                      : "Search parking locations..."
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -910,7 +923,7 @@ export default function OwnerDashboard() {
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 1: LIVE VEHICLES STREAM WITH FEATURE #5 TAGS
+              TAB 1: LIVE VEHICLES STREAM
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "VEHICLES" && (
             <div className="space-y-4 animate-fade-in">
@@ -918,11 +931,11 @@ export default function OwnerDashboard() {
               <div className="flex items-center gap-2 flex-wrap">
                 {[
                   { id: "ALL", label: "All Vehicles", count: liveBookings.length },
-                  { id: "INSIDE", label: "Parked in Bay", count: enteredCount, dotColor: "bg-emerald-500" },
+                  { id: "INSIDE", label: "Parked Now", count: enteredCount, dotColor: "bg-emerald-500" },
                   { id: "BOOKED", label: "Arriving Soon", count: bookedCount, dotColor: "bg-sky-500" },
                   { id: "EV", label: "⚡ EV Charging", dotColor: "bg-cyan-500" },
                   { id: "VALET", label: "🧼 Valet & Wash", dotColor: "bg-amber-500" },
-                  { id: "EXITED", label: "Completed Exits", count: null, dotColor: "bg-zinc-400" },
+                  { id: "EXITED", label: "Checked Out", count: null, dotColor: "bg-zinc-400" },
                 ].map((chip) => (
                   <button
                     key={chip.id}
@@ -958,11 +971,11 @@ export default function OwnerDashboard() {
               ) : filteredBookings.length === 0 ? (
                 <EmptyState
                   icon={FiTruck}
-                  title="No vehicle activity right now"
+                  title="No vehicles found"
                   description={
                     liveBookings.length === 0
-                      ? "No vehicles are booked or checked in yet. Real-time passes will appear here when drivers reserve spots."
-                      : "No vehicles match the selected filter query."
+                      ? "No vehicles are booked or parked yet. New bookings will appear here automatically."
+                      : "No vehicles match your search or filter."
                   }
                 />
               ) : (
@@ -1014,7 +1027,7 @@ export default function OwnerDashboard() {
                           <div className="space-y-1.5 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-black text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 font-mono">
-                                Bay {b.slot_number}
+                                Spot {b.slot_number}
                               </span>
                               <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                                 {b.customer_name}
@@ -1033,7 +1046,7 @@ export default function OwnerDashboard() {
                                       ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
                                       : "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 animate-pulse"
                                   }`}
-                                  title="Manage EV Charging Telemetry"
+                                  title="Manage EV Charging"
                                 >
                                   <FiZap className="w-3 h-3 text-cyan-400" />
                                   <span>{isFullEV ? "EV Full 100%" : `EV ${evPct}% Charging`}</span>
@@ -1045,7 +1058,7 @@ export default function OwnerDashboard() {
                                   type="button"
                                   onClick={() => openServiceManager(b)}
                                   className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:scale-105 transition-transform cursor-pointer"
-                                  title="Manage Valet / Wash Add-on"
+                                  title="Manage Valet / Wash"
                                 >
                                   <FiDroplet className="w-3 h-3 text-amber-500" />
                                   <span>{washState === "COMPLETED" ? "Wash Done ✨" : "Wash In Progress 🧼"}</span>
@@ -1072,16 +1085,16 @@ export default function OwnerDashboard() {
                             type="button"
                             onClick={() => openServiceManager(b)}
                             className="p-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-xs"
-                            title="Open EV Charging & Special Services Manager"
+                            title="Manage EV Charging & Services"
                           >
                             <FiZap className="w-3.5 h-3.5 text-cyan-500" />
-                            <span>Service Hub</span>
+                            <span>Services</span>
                           </button>
 
                           {isEntered && (
                             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/25 shadow-xs">
                               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                              Parked in Bay
+                              Parked
                             </span>
                           )}
 
@@ -1109,7 +1122,7 @@ export default function OwnerDashboard() {
                               <span>
                                 {actionLoading[b.id] === "entry"
                                   ? "Checking In..."
-                                  : "Gate Check In"}
+                                  : "Check In"}
                               </span>
                             </button>
                           )}
@@ -1124,7 +1137,7 @@ export default function OwnerDashboard() {
                               <span>
                                 {actionLoading[b.id] === "exit"
                                   ? "Checking Out..."
-                                  : "Free Bay"}
+                                  : "Check Out"}
                               </span>
                             </button>
                           )}
@@ -1138,7 +1151,7 @@ export default function OwnerDashboard() {
           )}
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 2: EXECUTIVE REVENUE ANALYTICS & FINANCIAL YIELD CENTER
+              TAB 2: REVENUE & EARNINGS
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "REVENUE" && (
             <div className="space-y-6 animate-fade-in">
@@ -1151,17 +1164,17 @@ export default function OwnerDashboard() {
                       <FiBarChart2 className="w-4 h-4" />
                     </div>
                     <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight">
-                      Revenue Intelligence & Financial Center
+                      Revenue & Earnings
                     </h2>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium pl-10">
-                    Click any period card below to inspect dynamic earnings curves, velocity, and download (.CSV) statements.
+                    Click any card below to see the earnings chart and download CSV reports.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 self-start sm:self-auto pl-10 sm:pl-0">
                   <span className="text-[11px] font-bold text-zinc-400">
-                    Active View:
+                    Showing:
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1214,14 +1227,14 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "TODAY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      Today's intake across {parkingList.length} {parkingList.length === 1 ? "facility" : "facilities"}
+                      Today's earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
                     </p>
                   </div>
 
                   <div className={`pt-2 border-t text-[11px] font-bold flex items-center justify-between ${
                     revenuePeriod === "TODAY" ? "border-white/10 dark:border-zinc-200 text-emerald-400 dark:text-emerald-700" : "border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-emerald-500"
                   }`}>
-                    <span>{revenuePeriod === "TODAY" ? "✓ Active View" : "Click to view hourly"}</span>
+                    <span>{revenuePeriod === "TODAY" ? "✓ Selected" : "Click to view hourly"}</span>
                     <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
@@ -1267,14 +1280,14 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "WEEKLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      7-day rolling receipts across {parkingList.length} {parkingList.length === 1 ? "facility" : "facilities"}
+                      Last 7 days earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
                     </p>
                   </div>
 
                   <div className={`pt-2 border-t text-[11px] font-bold flex items-center justify-between ${
                     revenuePeriod === "WEEKLY" ? "border-white/10 dark:border-zinc-200 text-sky-400 dark:text-sky-700" : "border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-sky-500"
                   }`}>
-                    <span>{revenuePeriod === "WEEKLY" ? "✓ Active View" : "Click to view 7 days"}</span>
+                    <span>{revenuePeriod === "WEEKLY" ? "✓ Selected" : "Click to view 7 days"}</span>
                     <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
@@ -1320,14 +1333,14 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "MONTHLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      30-day accumulated gross receipts
+                      30-day total earnings
                     </p>
                   </div>
 
                   <div className={`pt-2 border-t text-[11px] font-bold flex items-center justify-between ${
                     revenuePeriod === "MONTHLY" ? "border-white/10 dark:border-zinc-200 text-amber-400 dark:text-amber-700" : "border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-amber-500"
                   }`}>
-                    <span>{revenuePeriod === "MONTHLY" ? "✓ Active View" : "Click to view 4 weeks"}</span>
+                    <span>{revenuePeriod === "MONTHLY" ? "✓ Selected" : "Click to view 4 weeks"}</span>
                     <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
@@ -1373,14 +1386,14 @@ export default function OwnerDashboard() {
                     <p className={`text-xs font-medium mt-1.5 ${
                       revenuePeriod === "YEARLY" ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"
                     }`}>
-                      Total gross receipts across {parkingList.length} {parkingList.length === 1 ? "facility" : "facilities"}
+                      Total yearly earnings across {parkingList.length} {parkingList.length === 1 ? "location" : "locations"}
                     </p>
                   </div>
 
                   <div className={`pt-2 border-t text-[11px] font-bold flex items-center justify-between ${
                     revenuePeriod === "YEARLY" ? "border-white/10 dark:border-zinc-200 text-emerald-400 dark:text-emerald-700" : "border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-emerald-500"
                   }`}>
-                    <span>{revenuePeriod === "YEARLY" ? "✓ Active View" : "Click to view 12 months"}</span>
+                    <span>{revenuePeriod === "YEARLY" ? "✓ Selected" : "Click to view 12 months"}</span>
                     <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </div>
                 </div>
@@ -1388,86 +1401,165 @@ export default function OwnerDashboard() {
 
               {/* Main Interactive Revenue Bar Chart Card */}
               <div className="p-6 sm:p-8 rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xl space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100 dark:border-zinc-800">
-                  <div className="space-y-1">
+                
+                {/* Chart Header & Action Controls */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
-                        {selectedPeriodTitle} HORIZON
+                      <span className="px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
+                        {selectedPeriodTitle}
                       </span>
-                      <h3 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-2 tracking-tight">
-                        <span>Dynamic Earnings Curve</span>
+                      <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+                        Earnings Chart
                       </h3>
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                      Hover over any bar to inspect exact revenue and booking velocity.
+                      Income over time across all your parking locations.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3.5 flex-wrap text-xs font-bold self-start sm:self-auto">
-                    <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
-                      <span className="w-3 h-3 rounded-md bg-emerald-500 inline-block shadow-xs" />
-                      <span>Gross Revenue (₹)</span>
-                    </span>
-                    <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
-                      <span className="w-3 h-3 rounded-md bg-sky-500 inline-block shadow-xs" />
-                      <span>Passes</span>
-                    </span>
+                  {/* Summary Metric Badges & CSV Export */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {peakChartItem && (
+                      <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 text-xs">
+                        <span className="text-amber-500 font-black">⭐ Highest:</span>
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{peakChartItem.label}</span>
+                        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+                          ₹{Math.round(peakChartItem.amount || 0).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 text-xs">
+                      <span className="text-zinc-400 font-bold">Average:</span>
+                      <span className="font-mono font-black text-zinc-900 dark:text-white">
+                        ₹{avgBucketAmount.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+
                     <button
                       type="button"
                       onClick={handleExportCSV}
-                      className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer ml-1"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer ml-auto sm:ml-0"
                       title={`Download ${revenuePeriod} CSV Statement`}
                     >
                       <FiDownload className="w-4 h-4" />
-                      <span>Export {revenuePeriod} CSV</span>
+                      <span>Download Report (.CSV)</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Dynamic Height Bars Grid */}
-                <div className="pt-6 pb-2">
-                  <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-6 items-end h-64 sm:h-72 border-b border-zinc-200 dark:border-zinc-800 pb-3">
-                    {currentChartData.map((item, idx) => {
-                      const heightPct = Math.max(
-                        12,
-                        Math.round(((item.amount || 0) / maxChartAmount) * 100)
-                      );
-                      const isPeak = heightPct >= 85;
+                {/* Interactive Chart Canvas with Reference Gridlines */}
+                <div className="relative pt-6 pb-2">
+                  
+                  {/* Background Horizontal Guide Lines */}
+                  <div className="absolute inset-x-0 top-6 bottom-10 flex flex-col justify-between pointer-events-none opacity-40 dark:opacity-20 z-0">
+                    <div className="border-b border-dashed border-zinc-300 dark:border-zinc-700 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>₹{Math.round(maxChartAmount).toLocaleString("en-IN")}</span>
+                      <span>100%</span>
+                    </div>
+                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>₹{Math.round(maxChartAmount * 0.75).toLocaleString("en-IN")}</span>
+                      <span>75%</span>
+                    </div>
+                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>₹{Math.round(maxChartAmount * 0.5).toLocaleString("en-IN")}</span>
+                      <span>50%</span>
+                    </div>
+                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>₹{Math.round(maxChartAmount * 0.25).toLocaleString("en-IN")}</span>
+                      <span>25%</span>
+                    </div>
+                    <div className="border-b border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>₹0</span>
+                      <span>0%</span>
+                    </div>
+                  </div>
 
-                      return (
-                        <div
-                          key={idx}
-                          className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
-                        >
-                          {/* Tooltip on Hover */}
-                          <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30 bg-zinc-950 text-white text-center p-2 rounded-xl shadow-2xl border border-zinc-700 whitespace-nowrap">
-                            <p className="text-xs font-black font-mono text-emerald-400">
-                              ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
-                            </p>
-                            <p className="text-[10px] text-zinc-400">
-                              {item.count || 1} Passes {isPeak ? "• 🔥 Peak Rush" : ""}
-                            </p>
-                          </div>
+                  {/* Horizontal Scrollable Bar Columns on Small Screens */}
+                  <div className="overflow-x-auto pb-2 scrollbar-thin">
+                    <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-5 items-end h-64 sm:h-76 border-b border-zinc-200 dark:border-zinc-800 pb-3 min-w-[540px] sm:min-w-0 relative z-10">
+                      {currentChartData.map((item, idx) => {
+                        const heightPct = Math.max(
+                          12,
+                          Math.round(((item.amount || 0) / maxChartAmount) * 100)
+                        );
+                        const isPeak = (item.amount || 0) === (peakChartItem?.amount || 0) && (item.amount || 0) > 0;
+                        const pctOfTotal = selectedPeriodRevenue > 0
+                          ? Math.round(((item.amount || 0) / selectedPeriodRevenue) * 100)
+                          : 0;
 
-                          {/* Bar Graphic */}
+                        return (
                           <div
-                            className={`w-full max-w-[48px] rounded-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg relative overflow-hidden ${
-                              isPeak
-                                ? "bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 shadow-emerald-500/20"
-                                : "bg-gradient-to-t from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300"
-                            }`}
-                            style={{ height: `${heightPct}%` }}
+                            key={idx}
+                            className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
                           >
-                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
+                            {/* Floating Glassmorphism Tooltip on Hover */}
+                            <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30 bg-zinc-950/95 dark:bg-zinc-900/95 backdrop-blur-md text-white text-center p-2.5 rounded-2xl shadow-2xl border border-zinc-700/80 whitespace-nowrap min-w-[130px]">
+                              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                                {item.label}
+                              </div>
+                              <p className="text-sm font-black font-mono text-emerald-400 mt-0.5">
+                                ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
+                              </p>
+                              <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 mt-1 pt-1 border-t border-zinc-800 font-medium">
+                                <span>{item.count || 1} Bookings</span>
+                                <span>•</span>
+                                <span className="text-teal-400 font-bold">{pctOfTotal}% of total</span>
+                              </div>
+                            </div>
 
-                          {/* X-axis Label */}
-                          <span className="text-[10px] sm:text-xs font-bold text-zinc-500 dark:text-zinc-400 mt-3 text-center truncate max-w-[54px] sm:max-w-none">
-                            {item.label}
-                          </span>
-                        </div>
-                      );
-                    })}
+                            {/* Peak Crown Badge */}
+                            {isPeak && (
+                              <span className="text-[10px] mb-1.5 font-black px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-500 border border-amber-500/30 animate-pulse">
+                                ⭐ Highest
+                              </span>
+                            )}
+
+                            {/* Bar Column Graphic */}
+                            <div
+                              className={`w-full max-w-[48px] rounded-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl relative overflow-hidden ${
+                                isPeak
+                                  ? "bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 shadow-lg shadow-emerald-500/25"
+                                  : "bg-gradient-to-t from-emerald-600/90 to-teal-400/90 hover:from-emerald-500 hover:to-teal-300 dark:from-emerald-600/70 dark:to-teal-400/70"
+                              }`}
+                              style={{ height: `${heightPct}%` }}
+                            >
+                              <div className="absolute top-0 inset-x-0 h-1.5 bg-white/40 rounded-t-2xl" />
+                              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+
+                            {/* X-Axis Label */}
+                            <div className="mt-3 text-center">
+                              <span className="text-[10px] sm:text-xs font-black text-zinc-700 dark:text-zinc-300 block truncate">
+                                {item.label}
+                              </span>
+                              <span className="text-[9px] font-mono text-zinc-400 font-medium hidden sm:block mt-0.5">
+                                ₹{Math.round(item.amount || 0)}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Chart Footer Legend */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
+                      <span>Total Earnings (₹)</span>
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                      <span>Highest Volume</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px]">Updated live from parking check-ins</span>
                   </div>
                 </div>
               </div>
@@ -1480,22 +1572,22 @@ export default function OwnerDashboard() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
                       <FiLayers className="w-4 h-4 text-emerald-500" />
-                      <span>Revenue by Service Stream</span>
+                      <span>Revenue by Service Type</span>
                     </h3>
                     <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                      4 Channels
+                      4 Services
                     </span>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Breakdown of gross income channels across parking bays and value-added telemetry.
+                    Breakdown of earnings from parking, EV charging, car wash, and subscriptions.
                   </p>
 
                   <div className="space-y-4 pt-2">
                     {[
-                      { name: "🚗 Standard Hourly & Day Passes", pct: 62, amt: selectedPeriodRevenue * 0.62, color: "bg-emerald-500" },
-                      { name: "⚡ EV Fast Charging Services (22kW)", pct: 20, amt: selectedPeriodRevenue * 0.20, color: "bg-cyan-500" },
-                      { name: "🧼 Valet Parking & Foam Wash", pct: 12, amt: selectedPeriodRevenue * 0.12, color: "bg-amber-500" },
-                      { name: "👑 Monthly Season Passholder Memberships", pct: 6, amt: selectedPeriodRevenue * 0.06, color: "bg-purple-500" },
+                      { name: "🚗 Hourly & Daily Parking", pct: 62, amt: selectedPeriodRevenue * 0.62, color: "bg-emerald-500" },
+                      { name: "⚡ EV Fast Charging", pct: 20, amt: selectedPeriodRevenue * 0.20, color: "bg-cyan-500" },
+                      { name: "🧼 Valet & Car Wash", pct: 12, amt: selectedPeriodRevenue * 0.12, color: "bg-amber-500" },
+                      { name: "👑 Monthly Subscriptions", pct: 6, amt: selectedPeriodRevenue * 0.06, color: "bg-purple-500" },
                     ].map((st, i) => (
                       <div key={i} className="space-y-1.5">
                         <div className="flex items-center justify-between text-xs font-bold">
@@ -1524,7 +1616,7 @@ export default function OwnerDashboard() {
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
                         <FiTrendingUp className="w-4 h-4 text-emerald-500" />
-                        <span>Facility Leaderboard</span>
+                        <span>Top Locations</span>
                       </h3>
                       <span className="text-[10px] font-black text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
                         Ranked
@@ -1546,7 +1638,7 @@ export default function OwnerDashboard() {
                                 {fac.name}
                               </p>
                               <p className="text-[11px] text-zinc-400 truncate">
-                                {fac.total_slots} bays • {fac.hourly_rate ? `₹${fac.hourly_rate}/hr` : "Free"}
+                                {fac.total_slots} spots • {fac.hourly_rate ? `₹${fac.hourly_rate}/hr` : "Free"}
                               </p>
                             </div>
                           </div>
@@ -1555,7 +1647,7 @@ export default function OwnerDashboard() {
                             <p className="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400">
                               ₹{Math.round((selectedPeriodRevenue * (0.6 - idx * 0.2)) || (selectedPeriodRevenue / (idx + 1))).toLocaleString("en-IN")}
                             </p>
-                            <span className="text-[10px] text-zinc-400 font-bold">Estimated Share</span>
+                            <span className="text-[10px] text-zinc-400 font-bold">Estimated Revenue</span>
                           </div>
                         </div>
                       ))}
@@ -1566,10 +1658,10 @@ export default function OwnerDashboard() {
                   <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/25 space-y-2.5 shadow-sm">
                     <div className="flex items-center gap-2 text-xs font-black text-indigo-600 dark:text-indigo-400">
                       <FiZap className="w-4 h-4 text-indigo-500" />
-                      <span>AI YIELD OPTIMIZER RECOMMENDATION</span>
+                      <span>💡 SMART TIP TO EARN MORE</span>
                     </div>
                     <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium leading-relaxed">
-                      💡 Peak occupancy consistently surges between <strong>5:00 PM – 8:30 PM</strong> on Fridays. Enabling a <strong>1.25x Dynamic Surge Price</strong> rule could boost this weekend's gross earnings by an estimated <strong>+₹3,850</strong>.
+                      Fridays between <strong>5:00 PM – 8:30 PM</strong> are usually your busiest times. Increasing hourly prices slightly during peak rush could boost this weekend's earnings by about <strong>+₹3,850</strong>.
                     </p>
                   </div>
                 </div>
@@ -1578,7 +1670,7 @@ export default function OwnerDashboard() {
           )}
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 3: MY FACILITIES DIRECTORY
+              TAB 3: MY LOCATIONS DIRECTORY
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "FACILITIES" && (
             <div className="space-y-4 animate-fade-in">
@@ -1591,9 +1683,9 @@ export default function OwnerDashboard() {
               ) : filteredFacilities.length === 0 ? (
                 <EmptyState
                   icon={FiGrid}
-                  title="No parking hubs listed"
-                  description="List your parking facility to start receiving automated bookings and digital pass verification."
-                  actionLabel="Add Facility"
+                  title="No parking locations yet"
+                  description="Add your parking location to start receiving customer bookings and managing spots."
+                  actionLabel="Add Parking Spot"
                   onAction={() => navigate("/owner/add-parking")}
                 />
               ) : (
@@ -1634,7 +1726,7 @@ export default function OwnerDashboard() {
                                 <FiGrid className="w-7 h-7 text-zinc-400" />
                               </div>
                               <span className="text-xs font-semibold text-zinc-500">
-                                Parking Facility
+                                Parking Location
                               </span>
                             </div>
                           )}
@@ -1657,18 +1749,18 @@ export default function OwnerDashboard() {
                               {isApproved
                                 ? "Live & Active"
                                 : isRejected
-                                ? "Verification Rejected"
-                                : "In Review"}
+                                ? "Rejected"
+                                : "Under Review"}
                             </Badge>
                             <span className="px-3 py-1 rounded-full text-xs font-black bg-black/75 text-white backdrop-blur-md border border-white/20 shadow-lg font-mono">
                               {isFree ? "FREE" : `₹${p.hourly_rate ?? 50}/hr`}
                             </span>
                           </div>
 
-                          {/* Bay Capacity on Image Bottom */}
+                          {/* Spot Capacity on Image Bottom */}
                           <div className="absolute bottom-3.5 left-3.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white text-xs font-bold">
                             <FiLayers className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>{p.total_slots || 12} bays total</span>
+                            <span>{p.total_slots || 12} spots total</span>
                           </div>
                         </div>
 
@@ -1680,13 +1772,13 @@ export default function OwnerDashboard() {
                             </h3>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-start gap-1.5 mt-1 line-clamp-1">
                               <FiMapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-400" />
-                              <span>{p.address || p.location || "City Hub"}</span>
+                              <span>{p.address || p.location || "City Location"}</span>
                             </p>
 
                             {p.total_slots > 0 && (
                               <div className="mt-3.5">
                                 <div className="flex justify-between text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                                  <span>Live Occupancy</span>
+                                  <span>Spots Occupied</span>
                                   <span className="text-zinc-800 dark:text-zinc-200 font-mono">
                                     {slotPct}%
                                   </span>
@@ -1718,7 +1810,7 @@ export default function OwnerDashboard() {
                                   navigate(`/owner/parking/${p.id}/slots`)
                                 }
                               >
-                                Manage Bays
+                                Manage Spots
                               </Button>
                               <Button
                                 variant="primary"
@@ -1726,7 +1818,7 @@ export default function OwnerDashboard() {
                                 icon={FiCamera}
                                 onClick={() => navigate("/owner/scan-qr")}
                               >
-                                Gate Pass Scan
+                                Scan QR
                               </Button>
                             </div>
 
@@ -1738,7 +1830,7 @@ export default function OwnerDashboard() {
                                 className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
                               >
                                 <FiEdit2 className="w-3.5 h-3.5" />
-                                Edit Settings
+                                Edit Details
                               </button>
                               <button
                                 onClick={() =>
@@ -1751,7 +1843,7 @@ export default function OwnerDashboard() {
                                 className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
                               >
                                 <FiTrash2 className="w-3.5 h-3.5" />
-                                Remove Hub
+                                Delete
                               </button>
                             </div>
                           </div>
@@ -1767,19 +1859,19 @@ export default function OwnerDashboard() {
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════
-          FEATURE #5: EV CHARGING & SPECIAL SERVICES DISPATCHER MODAL
+          FEATURE #5: EV CHARGING & SERVICES MODAL
       ══════════════════════════════════════════════════════════════════ */}
       {serviceModal.open && serviceModal.booking && (
         <Modal
           isOpen={serviceModal.open}
           onClose={() => setServiceModal((prev) => ({ ...prev, open: false, booking: null }))}
-          title={`Special Services • Bay ${serviceModal.booking.slot_number}`}
+          title={`Services • Spot ${serviceModal.booking.slot_number}`}
           maxWidth="max-w-md"
         >
           <div className="space-y-5 p-2">
             <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-black text-zinc-400 uppercase">Vehicle License</span>
+                <span className="text-[10px] font-black text-zinc-400 uppercase">Vehicle Number</span>
                 <div className="license-plate text-xs font-black mt-1">
                   <span className="license-plate-ind">IND</span>
                   <span>{serviceModal.booking.vehicle_number}</span>
@@ -1799,7 +1891,7 @@ export default function OwnerDashboard() {
                 <div className="flex items-center gap-2">
                   <FiZap className="w-4 h-4 text-cyan-500" />
                   <span className="text-xs font-black text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
-                    EV Fast Charging Port (22 kW)
+                    EV Charging
                   </span>
                 </div>
                 <span className="text-xs font-mono font-black text-cyan-600 dark:text-cyan-400">
@@ -1823,7 +1915,7 @@ export default function OwnerDashboard() {
                   className="w-full accent-cyan-500 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
-                  <span>0% Plugged</span>
+                  <span>0%</span>
                   <span>50%</span>
                   <span>100% Full</span>
                 </div>
@@ -1832,7 +1924,7 @@ export default function OwnerDashboard() {
               <div className="grid grid-cols-3 gap-2 pt-1">
                 {[
                   { id: "CHARGING", label: "⚡ Charging" },
-                  { id: "FULL", label: "🟢 Fully Charged" },
+                  { id: "FULL", label: "🟢 Full" },
                   { id: "OFF", label: "🔌 Unplugged" },
                 ].map((st) => (
                   <button
@@ -1860,7 +1952,7 @@ export default function OwnerDashboard() {
             {/* Valet & Car Wash Add-on Controls */}
             <div className="space-y-3 pt-1">
               <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                Valet & Detailing Status
+                Valet & Car Wash Status
               </label>
               
               <div className="grid grid-cols-2 gap-3">
@@ -1876,8 +1968,8 @@ export default function OwnerDashboard() {
                     }
                     className="pe-input text-xs font-bold w-full bg-white dark:bg-zinc-900 py-2"
                   >
-                    <option value="ASSIGNED">Attendant Assigned</option>
-                    <option value="PARKED">Parked in Safe Bay</option>
+                    <option value="ASSIGNED">Driver Assigned</option>
+                    <option value="PARKED">Car Parked</option>
                     <option value="RETURNED">Key Returned</option>
                   </select>
                 </div>
@@ -1885,7 +1977,7 @@ export default function OwnerDashboard() {
                 <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white">
                     <FiDroplet className="w-3.5 h-3.5 text-blue-500" />
-                    <span>Car Foam Wash</span>
+                    <span>Car Wash</span>
                   </div>
                   <select
                     value={serviceModal.washStatus}
@@ -1894,9 +1986,9 @@ export default function OwnerDashboard() {
                     }
                     className="pe-input text-xs font-bold w-full bg-white dark:bg-zinc-900 py-2"
                   >
-                    <option value="IN_PROGRESS">Washing in Progress 🧼</option>
-                    <option value="COMPLETED">Completed & Polished ✨</option>
-                    <option value="NONE">No Wash Ordered</option>
+                    <option value="IN_PROGRESS">Washing 🧼</option>
+                    <option value="COMPLETED">Done ✨</option>
+                    <option value="NONE">No Wash</option>
                   </select>
                 </div>
               </div>
@@ -1910,18 +2002,18 @@ export default function OwnerDashboard() {
                 Cancel
               </Button>
               <Button variant="primary" onClick={saveServiceUpdate}>
-                Save Services Update
+                Save Changes
               </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* ─── DELETE FACILITY CONFIRMATION MODAL ─── */}
+      {/* ─── DELETE LOCATION CONFIRMATION MODAL ─── */}
       <Modal
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, id: null, name: "" })}
-        title="Remove Parking Facility"
+        title="Delete Parking Location"
         maxWidth="max-w-sm"
       >
         <div className="text-center space-y-4">
@@ -1933,7 +2025,7 @@ export default function OwnerDashboard() {
               Delete "{deleteModal.name}"?
             </p>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">
-              This will permanently remove the facility and all associated parking slot records from the live map.
+              This will permanently delete this parking location and its spots.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-1">
@@ -1944,7 +2036,7 @@ export default function OwnerDashboard() {
               Cancel
             </Button>
             <Button variant="danger" loading={deleting} onClick={handleDelete}>
-              Delete Hub
+              Delete
             </Button>
           </div>
         </div>

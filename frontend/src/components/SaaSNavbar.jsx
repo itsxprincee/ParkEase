@@ -102,9 +102,9 @@ export default function SaaSNavbar() {
   };
 
   const getRoleLabel = () => {
-    if (isAdmin) return "Super Admin";
-    if (isOwner) return "Facility Owner";
-    return "Verified Driver";
+    if (isAdmin) return "Admin";
+    if (isOwner) return "Parking Owner";
+    return "Driver";
   };
 
   const brandHome = isAdmin ? "/admin" : isOwner ? "/owner" : "/customer/dashboard";
@@ -113,19 +113,19 @@ export default function SaaSNavbar() {
     ...(isCustomer
       ? [
           { name: t("findParking", "Find Parking"), path: "/customer/dashboard", icon: FiHome },
-          { name: t("myBookings", "My Passes"), path: "/customer/my-bookings", icon: FiCalendar },
+          { name: t("myBookings", "My Bookings"), path: "/customer/my-bookings", icon: FiCalendar },
           { name: t("myVehicles", "My Vehicles"), path: "/customer/my-vehicles", icon: FiTruck },
         ]
       : []),
     ...(isOwner
       ? [
-          { name: t("dashboard", "Operations"), path: "/owner", icon: FiGrid },
-          { name: t("addFacility", "Add Facility"), path: "/owner/add-parking", icon: FiPlusCircle },
-          { name: t("scanPass", "Gate Pass Scan"), path: "/owner/scan-qr", icon: FiCamera },
+          { name: t("dashboard", "Dashboard"), path: "/owner", icon: FiGrid },
+          { name: t("addFacility", "Add Parking"), path: "/owner/add-parking", icon: FiPlusCircle },
+          { name: t("scanPass", "Scan QR"), path: "/owner/scan-qr", icon: FiCamera },
         ]
       : []),
     ...(isAdmin
-      ? [{ name: t("commandCenter", "Compliance Queue"), path: "/admin", icon: FiShield }]
+      ? [{ name: t("commandCenter", "Approvals"), path: "/admin", icon: FiShield }]
       : []),
   ];
 

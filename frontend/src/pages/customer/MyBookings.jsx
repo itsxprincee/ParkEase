@@ -152,13 +152,13 @@ export default function MyBookings() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>MY DIGITAL PASS WALLET</span>
+                <span>MY PARKING PASSES</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                My Passes & Reservations
+                My Bookings & Passes
               </h1>
               <p className="text-xs sm:text-sm text-emerald-50 font-medium">
-                Instant contactless entry passes, barrier gate QR codes, and parking receipts.
+                View your active parking passes, entry QR codes, and receipts.
               </p>
             </div>
 
@@ -167,7 +167,7 @@ export default function MyBookings() {
                 onClick={() => loadBookings(true)}
                 disabled={refreshing}
                 className="p-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 shadow-md cursor-pointer"
-                title="Refresh Passes"
+                title="Refresh Bookings"
               >
                 <FiRefreshCw
                   className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-200" : ""}`}
@@ -187,21 +187,6 @@ export default function MyBookings() {
         {/* Filter Bar */}
         <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Pass Type Switcher */}
-            <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 p-1 rounded-2xl">
-              <button
-                className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-emerald-500 text-white shadow-xs"
-              >
-                🎟️ Passes ({bookings.length})
-              </button>
-              <button
-                onClick={() => navigate("/customer/subscriptions")}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <span>👑 Season Passes</span>
-              </button>
-            </div>
-
             {/* Status Tabs */}
             <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
               {tabs.map((tab) => (
@@ -224,7 +209,7 @@ export default function MyBookings() {
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search passes, hub or slot..."
+              placeholder="Search bookings, location or spot..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
@@ -249,7 +234,7 @@ export default function MyBookings() {
         ) : filteredBookings.length === 0 ? (
           <EmptyState
             icon={FiCalendar}
-            title="No passes found"
+            title="No bookings found"
             description="You don't have any bookings matching this filter."
             actionLabel="Book a Spot"
             onAction={() => navigate("/customer/dashboard")}
@@ -279,7 +264,7 @@ export default function MyBookings() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-base font-black text-zinc-900 dark:text-white line-clamp-1">
-                          {b.parking_name || "ParkEase Hub"}
+                          {b.parking_name || "Parking Location"}
                         </h3>
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
                           <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
@@ -287,7 +272,7 @@ export default function MyBookings() {
                         </p>
                       </div>
                       <span className="px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black shrink-0 font-mono shadow-xs">
-                        Bay {b.slot_number || "A-1"}
+                        Spot {b.slot_number || "A-1"}
                       </span>
                     </div>
 
@@ -301,7 +286,7 @@ export default function MyBookings() {
                       </div>
                       <div>
                         <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">
-                          {b.pass_type === "DAILY_PASS" ? "Curfew" : "Hours"}
+                          {b.pass_type === "DAILY_PASS" ? "Valid Until" : "Hours"}
                         </p>
                         <p className="text-xs font-black text-zinc-900 dark:text-white font-mono truncate">
                           {b.pass_type === "DAILY_PASS"
@@ -322,8 +307,8 @@ export default function MyBookings() {
                     {/* Unlimited Day Pass Strip */}
                     {b.pass_type === "DAILY_PASS" && (
                       <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-                        <span>🎟️ Multi-Entry Day Pass</span>
-                        <span>{b.is_inside ? "🟢 Inside Bay" : "⚪ Out (Active)"}</span>
+                        <span>🎟️ Full-Day Pass</span>
+                        <span>{b.is_inside ? "🟢 Inside Spot" : "⚪ Out (Active)"}</span>
                       </div>
                     )}
 
@@ -362,7 +347,7 @@ export default function MyBookings() {
                         }
                         className="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                       >
-                        <span>{isActive ? "Gate Pass" : "View Ticket"}</span>
+                        <span>{isActive ? "QR Pass" : "View Details"}</span>
                         <FiArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                       </button>
                     </div>
@@ -379,7 +364,7 @@ export default function MyBookings() {
         <Modal
           isOpen={Boolean(invoiceModalBooking)}
           onClose={() => setInvoiceModalBooking(null)}
-          title="Digital Parking Receipt"
+          title="Parking Receipt"
           maxWidth="max-w-md"
         >
           <div className="space-y-4 p-2">
@@ -391,16 +376,16 @@ export default function MyBookings() {
                 Payment Confirmed
               </h3>
               <p className="text-xs text-zinc-400 font-mono">
-                Receipt #{invoiceModalBooking.id} • ParkEase Verified
+                Receipt #{invoiceModalBooking.id} • ParkEase
               </p>
             </div>
 
             <div className="space-y-2 text-xs">
               {[
-                { label: "Parking Hub", value: invoiceModalBooking.parking_name || "ParkEase Hub" },
-                { label: "Bay Assigned", value: `Bay ${invoiceModalBooking.slot_number || "A-1"}` },
+                { label: "Parking Location", value: invoiceModalBooking.parking_name || "Parking Spot" },
+                { label: "Spot Assigned", value: `Spot ${invoiceModalBooking.slot_number || "A-1"}` },
                 { label: "Vehicle", value: invoiceModalBooking.vehicle_number || "MH-01" },
-                { label: "Booking Date", value: invoiceModalBooking.booking_date || "Today" },
+                { label: "Date", value: invoiceModalBooking.booking_date || "Today" },
                 {
                   label: "Amount Paid",
                   value: `₹${
@@ -420,7 +405,7 @@ export default function MyBookings() {
 
             <div className="pt-2">
               <Button fullWidth variant="primary" onClick={() => window.print()}>
-                Print / Save PDF
+                Print / Save Receipt
               </Button>
             </div>
           </div>

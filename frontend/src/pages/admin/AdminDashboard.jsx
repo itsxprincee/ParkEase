@@ -185,13 +185,13 @@ export default function AdminDashboard() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-purple-200 animate-pulse" />
-                <span>SUPER ADMIN VERIFICATION TERMINAL</span>
+                <span>ADMIN APPROVALS</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                Facility Compliance & Approvals
+                Parking Spot Approvals
               </h1>
               <p className="text-xs sm:text-sm text-purple-100 font-medium">
-                Review owner parking listings, inspect slot integrity, and authorize live booking status.
+                Review new parking spots submitted by owners and approve or reject them.
               </p>
             </div>
 
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
               className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-all active:scale-95 shadow-md self-start sm:self-auto cursor-pointer"
             >
               <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-purple-200" : ""}`} />
-              <span>Sync Applications</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function AdminDashboard() {
             },
             {
               id: "rejected",
-              label: "Rejected Compliance",
+              label: "Rejected",
               value: stats.rejected,
               border: "border-t-red-500",
               color: "text-red-500",
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
             },
             {
               id: "all",
-              label: "Total Registered",
+              label: "Total Locations",
               value: stats.total,
               border: "border-t-indigo-500",
               color: "text-indigo-500",
@@ -273,10 +273,10 @@ export default function AdminDashboard() {
         <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
             {[
-              { id: "pending", label: "⏳ Pending Verification" },
-              { id: "approved", label: "✅ Approved Live" },
+              { id: "pending", label: "⏳ Pending Review" },
+              { id: "approved", label: "✅ Approved" },
               { id: "rejected", label: "❌ Rejected" },
-              { id: "all", label: "📁 All Listings" },
+              { id: "all", label: "📁 All Locations" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -313,8 +313,8 @@ export default function AdminDashboard() {
         ) : filteredList.length === 0 ? (
           <EmptyState
             icon={FiShield}
-            title="Verification queue is all clear"
-            description="No applications currently match this filter."
+            title="No locations pending review"
+            description="All submissions have been reviewed."
           />
         ) : (
           <div className="space-y-3">

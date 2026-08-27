@@ -227,7 +227,7 @@ export default function ScanQR() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-4 h-4" />
-            <span>Facility Hub</span>
+            <span>Dashboard</span>
           </button>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
@@ -238,7 +238,7 @@ export default function ScanQR() {
             ) : (
               <FiVolumeX className="w-4 h-4 text-zinc-400" />
             )}
-            <span>{soundEnabled ? "Chime Audio On" : "Audio Muted"}</span>
+            <span>{soundEnabled ? "Sound On" : "Sound Muted"}</span>
           </button>
         </div>
 
@@ -249,18 +249,18 @@ export default function ScanQR() {
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>OPTICAL GATE TERMINAL</span>
+                <span>QR CODE SCANNER</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white">
-                Contactless Pass Scanner
+                Scan Customer QR Pass
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 font-medium">
-                Hold customer digital pass under scanner for automatic barrier gate entry and bay clearance.
+                Hold customer's QR pass under the camera for instant check-in or check-out.
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs text-zinc-400 font-bold bg-white/[0.06] px-4 py-2 rounded-2xl border border-white/10">
               <FiRadio className="w-4 h-4 text-emerald-400" />
-              <span>Camera Stream Ready</span>
+              <span>Camera Ready</span>
             </div>
           </div>
         </div>
@@ -366,10 +366,10 @@ export default function ScanQR() {
                   <FiShield className="w-8 h-8 text-zinc-400" />
                 </div>
                 <h4 className="text-sm font-black text-zinc-900 dark:text-white">
-                  Awaiting Pass Scan
+                  Awaiting QR Scan
                 </h4>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-xs mx-auto">
-                  Hold QR ticket in front of the lens or type the reservation number to inspect vehicle authorization.
+                  Scan driver's QR pass using the camera or enter the booking number to check in.
                 </p>
               </div>
             ) : (
@@ -392,7 +392,7 @@ export default function ScanQR() {
                     </h3>
                   </div>
                   <span className="text-2xl font-black text-zinc-900 dark:text-white bg-white dark:bg-zinc-800 px-4 py-1.5 rounded-2xl border border-emerald-500/30 font-mono shadow-xs">
-                    Bay {verifiedBooking.slot_number || "A-1"}
+                    Spot {verifiedBooking.slot_number || "A-1"}
                   </span>
                 </div>
 
@@ -400,7 +400,7 @@ export default function ScanQR() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
                     <p className="text-[10px] font-black text-zinc-400 uppercase mb-1.5">
-                      Vehicle License
+                      Vehicle Number
                     </p>
                     <div className="license-plate text-xs shrink-0 shadow-xs inline-flex">
                       <span className="license-plate-ind">IND</span>
@@ -411,10 +411,10 @@ export default function ScanQR() {
                   </div>
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
                     <p className="text-[10px] font-black text-zinc-400 uppercase mb-1.5">
-                      Bay Location State
+                      Current Status
                     </p>
                     <p className="text-xs font-black text-zinc-900 dark:text-white">
-                      {isInside ? "🟢 Parked Inside Bay" : "⚪ Outside Gate"}
+                      {isInside ? "🟢 Parked Now" : "⚪ Checked Out"}
                     </p>
                   </div>
                 </div>
@@ -423,8 +423,8 @@ export default function ScanQR() {
                 <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2.5 text-xs">
                   {[
                     { label: "Customer Name", value: verifiedBooking.customer_name || "Driver" },
-                    { label: "Parking Hub", value: verifiedBooking.parking_name || "ParkEase Hub" },
-                    { label: "Check-in Entries", value: `${verifiedBooking.entry_count || 1} time(s)` },
+                    { label: "Parking Location", value: verifiedBooking.parking_name || "Parking Location" },
+                    { label: "Check-in Count", value: `${verifiedBooking.entry_count || 1} time(s)` },
                     {
                       label: "Total Paid",
                       value: `₹${verifiedBooking.amount || verifiedBooking.total_amount || 25}`,
@@ -447,7 +447,7 @@ export default function ScanQR() {
                     icon={FiLogIn}
                     onClick={handleCheckIn}
                   >
-                    Check In (Open Gate)
+                    Check In
                   </Button>
                   <Button
                     variant="outline"
@@ -457,7 +457,7 @@ export default function ScanQR() {
                     icon={FiLogOut}
                     onClick={handleCheckOut}
                   >
-                    {isDaily ? "Temp Exit" : "Check Out (Exit)"}
+                    {isDaily ? "Exit (Temporary)" : "Check Out"}
                   </Button>
                 </div>
 
@@ -465,7 +465,7 @@ export default function ScanQR() {
                   onClick={() => setVerifiedBooking(null)}
                   className="w-full text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-bold transition-colors text-center pt-2 cursor-pointer"
                 >
-                  Clear & Scan Next Driver Pass
+                  Clear & Scan Next Pass
                 </button>
               </div>
             )}

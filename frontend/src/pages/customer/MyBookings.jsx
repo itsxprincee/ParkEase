@@ -194,19 +194,19 @@ export default function MyBookings() {
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* Header Hero Box */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-2xl p-6 sm:p-9 border border-emerald-400/30">
+        {/* UBER ACTIVITY COMMAND HEADER */}
+        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-6 sm:p-8 border border-zinc-800">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" />
-                <span>MY PARKING PASSES</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>ACTIVITY & TRIPS</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                My Bookings & Passes
+                My Parking Activity
               </h1>
-              <p className="text-xs sm:text-sm text-emerald-50 font-medium">
-                View your active parking passes, entry QR codes, and receipts.
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                View your active parking passes, digital gate QR tickets, and receipts.
               </p>
             </div>
 
@@ -214,16 +214,16 @@ export default function MyBookings() {
               <button
                 onClick={() => loadBookings(true)}
                 disabled={refreshing}
-                className="p-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 shadow-md cursor-pointer"
+                className="p-3 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white transition-all active:scale-95 shadow-md cursor-pointer"
                 title="Refresh Bookings"
               >
                 <FiRefreshCw
-                  className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-200" : ""}`}
+                  className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-400" : ""}`}
                 />
               </button>
               <button
                 onClick={() => navigate("/customer/dashboard")}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-full bg-white dark:bg-zinc-100 text-black hover:bg-zinc-200 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
               >
                 <FiMapPin className="w-4 h-4 text-emerald-600" />
                 <span>Find Parking</span>
@@ -232,19 +232,19 @@ export default function MyBookings() {
           </div>
         </div>
 
-        {/* Filter Bar */}
-        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+        {/* Uber Pill Filter Bar */}
+        <div className="bg-white dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Status Tabs */}
-            <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
+            <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 p-1.5 rounded-full overflow-x-auto border border-zinc-200/70 dark:border-zinc-750">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     statusFilter === tab.id
-                      ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   {tab.label}
@@ -376,16 +376,16 @@ export default function MyBookings() {
                       </div>
                     )}
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    {/* Actions (Uber Style) */}
+                    <div className="flex items-center justify-between gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         {isActive && (
                           <button
                             onClick={() => {
                               setExtendModalBooking(b);
                               setExtendingMinutes(60);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
                           >
                             <FiClock className="w-3.5 h-3.5 text-amber-500" />
                             <span>+ Extend</span>
@@ -394,15 +394,15 @@ export default function MyBookings() {
                         {isActive && (
                           <button
                             onClick={() => setFindCarModalBooking(b)}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
                           >
                             <FiCompass className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Find Car</span>
+                            <span>Locate</span>
                           </button>
                         )}
                         <button
                           onClick={() => setInvoiceModalBooking(b)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer border border-zinc-200/80 dark:border-zinc-700"
                         >
                           <FiPrinter className="w-3.5 h-3.5" />
                           <span>Receipt</span>
@@ -410,7 +410,7 @@ export default function MyBookings() {
                         {isActive && (
                           <button
                             onClick={() => setCancelModalBooking(b)}
-                            className="px-3 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                            className="px-3 py-1.5 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
@@ -421,9 +421,9 @@ export default function MyBookings() {
                         onClick={() =>
                           navigate(`/customer/qr?booking=${b.id}`, { state: { booking: b } })
                         }
-                        className="px-4.5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                        className="px-4.5 py-2 rounded-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                       >
-                        <span>{isActive ? "QR Pass" : "View Details"}</span>
+                        <span>{isActive ? "QR Pass" : "View Trip"}</span>
                         <FiArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                       </button>
                     </div>

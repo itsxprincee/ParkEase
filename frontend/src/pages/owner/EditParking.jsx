@@ -487,44 +487,109 @@ export default function EditParking() {
                 )}
               </div>
 
-              {/* AMENITIES */}
+              {/* AMENITIES & FEATURES (Uber Level) */}
               <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                  Amenities & Features
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                    Amenities & Safety Features
+                  </h3>
+                  <span className="text-[11px] font-bold text-zinc-400">
+                    Select features
+                  </span>
+                </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {[
-                    { key: "has_ev", label: "⚡ EV Charging", desc: "Fast EV ports" },
-                    { key: "has_cctv", label: "📹 24/7 CCTV", desc: "Camera monitored" },
-                    { key: "has_security_guard", label: "🛡️ Security Guard", desc: "Guard on duty" },
-                    { key: "has_covered_roof", label: "🏢 Covered Roof", desc: "Indoor covered" },
-                    { key: "is_24_7", label: "⏰ 24/7 Open", desc: "All hours access" },
-                  ].map((amenity) => (
-                    <div
-                      key={amenity.key}
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          [amenity.key]: !formData[amenity.key],
-                        })
-                      }
-                      className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
-                        formData[amenity.key]
-                          ? "bg-emerald-500/10 border-emerald-500 shadow-xs"
-                          : "bg-white dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
-                      }`}
-                    >
-                      <div>
-                        <span className="text-xs font-black text-zinc-900 dark:text-white block">
-                          {amenity.label}
-                        </span>
-                        <span className="text-[10px] text-zinc-400 mt-0.5 block">
-                          {amenity.desc}
-                        </span>
+                    {
+                      key: "has_cctv",
+                      icon: FiVideo,
+                      title: "24/7 CCTV Surveillance",
+                      desc: "Live cameras & security monitoring",
+                    },
+                    {
+                      key: "has_security_guard",
+                      icon: FiShield,
+                      title: "Security Guard on Duty",
+                      desc: "Stationed security personnel",
+                    },
+                    {
+                      key: "has_ev",
+                      icon: FiZap,
+                      title: "EV Fast Charger Bay",
+                      desc: "Equipped with EV charging port",
+                    },
+                    {
+                      key: "has_covered_roof",
+                      icon: FiLayers,
+                      title: "Covered / Indoor Roof",
+                      desc: "Protected from heat, rain & dust",
+                    },
+                    {
+                      key: "is_24_7",
+                      icon: FiClock,
+                      title: "24/7 Unrestricted Access",
+                      desc: "Open round-the-clock all days",
+                    },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const active = Boolean(formData[item.key]);
+
+                    return (
+                      <div
+                        key={item.key}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            [item.key]: !prev[item.key],
+                          }))
+                        }
+                        className={`group p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 ${
+                          active
+                            ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md scale-[1.01]"
+                            : "bg-zinc-50/70 dark:bg-zinc-850/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-750 hover:border-zinc-450 hover:bg-white dark:hover:bg-zinc-800"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                              active
+                                ? "bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black"
+                                : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700 shadow-xs"
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                          </div>
+
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all ${
+                              active
+                                ? "bg-emerald-500 text-black shadow-xs"
+                                : "bg-zinc-200/80 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-300"
+                            }`}
+                          >
+                            {active ? "✓ Added" : "+ Add"}
+                          </span>
+                        </div>
+
+                        <div className="space-y-0.5">
+                          <h3
+                            className={`text-xs font-black tracking-tight ${
+                              active ? "text-white dark:text-black" : "text-zinc-900 dark:text-white"
+                            }`}
+                          >
+                            {item.title}
+                          </h3>
+                          <p
+                            className={`text-[11px] leading-snug font-medium ${
+                              active ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"
+                            }`}
+                          >
+                            {item.desc}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

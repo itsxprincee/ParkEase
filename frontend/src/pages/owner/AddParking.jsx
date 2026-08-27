@@ -399,48 +399,117 @@ export default function AddParking() {
               </div>
             </div>
 
-            {/* 3. Amenities */}
-            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
-                  3
+            {/* 3. Amenities & Features (Uber Level) */}
+            <div className="p-6 sm:p-7 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5 backdrop-blur-xl">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-mono font-black text-xs">
+                    3
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-zinc-900 dark:text-white tracking-tight">
+                      Amenities & Safety Features
+                    </h2>
+                    <p className="text-xs text-zinc-400 font-medium">
+                      Select all safety, power, and shelter features available for drivers
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Amenities & Features</h2>
-                  <p className="text-xs text-zinc-400 font-medium">Highlight safety and convenience features</p>
-                </div>
+                <span className="text-[11px] font-bold text-zinc-400 hidden sm:inline">
+                  Optional
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
-                  { key: "has_cctv", label: "📹 24/7 CCTV" },
-                  { key: "has_security_guard", label: "🛡️ Guard on Duty" },
-                  { key: "has_ev", label: "⚡ EV Fast Charge" },
-                  { key: "has_covered_roof", label: "🏢 Covered Roof" },
-                  { key: "is_24_7", label: "⏰ 24/7 Access" },
+                  {
+                    key: "has_cctv",
+                    icon: FiVideo,
+                    title: "24/7 CCTV Surveillance",
+                    desc: "Live cameras & security monitoring",
+                  },
+                  {
+                    key: "has_security_guard",
+                    icon: FiShield,
+                    title: "Security Guard on Duty",
+                    desc: "Stationed security personnel",
+                  },
+                  {
+                    key: "has_ev",
+                    icon: FiZap,
+                    title: "EV Fast Charger Bay",
+                    desc: "Equipped with EV charging port",
+                  },
+                  {
+                    key: "has_covered_roof",
+                    icon: FiLayers,
+                    title: "Covered / Indoor Roof",
+                    desc: "Protected from heat, rain & dust",
+                  },
+                  {
+                    key: "is_24_7",
+                    icon: FiClock,
+                    title: "24/7 Unrestricted Access",
+                    desc: "Open round-the-clock all days",
+                  },
                 ].map((item) => {
-                  const active = formData[item.key];
+                  const Icon = item.icon;
+                  const active = Boolean(formData[item.key]);
+
                   return (
-                    <button
+                    <div
                       key={item.key}
-                      type="button"
                       onClick={() =>
                         setFormData((prev) => ({
                           ...prev,
                           [item.key]: !prev[item.key],
                         }))
                       }
-                      className={`p-3 rounded-2xl border text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
+                      className={`group p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 ${
                         active
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 shadow-xs"
-                          : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-500 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
+                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md scale-[1.01]"
+                          : "bg-zinc-50/70 dark:bg-zinc-850/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-750 hover:border-zinc-450 hover:bg-white dark:hover:bg-zinc-800"
                       }`}
                     >
-                      <span>{item.label}</span>
-                      <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${active ? "bg-emerald-500 text-black font-black" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-400"}`}>
-                        {active ? "✓" : "+"}
-                      </span>
-                    </button>
+                      <div className="flex items-start justify-between gap-2">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                            active
+                              ? "bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black"
+                              : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700 shadow-xs"
+                          }`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all ${
+                            active
+                              ? "bg-emerald-500 text-black shadow-xs"
+                              : "bg-zinc-200/80 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-300"
+                          }`}
+                        >
+                          {active ? "✓ Added" : "+ Add"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <h3
+                          className={`text-xs font-black tracking-tight ${
+                            active ? "text-white dark:text-black" : "text-zinc-900 dark:text-white"
+                          }`}
+                        >
+                          {item.title}
+                        </h3>
+                        <p
+                          className={`text-[11px] leading-snug font-medium ${
+                            active ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"
+                          }`}
+                        >
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
                   );
                 })}
               </div>

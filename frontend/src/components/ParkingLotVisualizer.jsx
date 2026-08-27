@@ -88,10 +88,10 @@ export default function ParkingLotVisualizer({
               key={filter.id}
               type="button"
               onClick={() => setActiveFilter(filter.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 activeFilter === filter.id
-                  ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs font-black"
-                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white border border-zinc-200 dark:border-zinc-800"
+                  ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
+                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white border border-zinc-200 dark:border-zinc-800"
               }`}
             >
               {filter.label}
@@ -100,13 +100,13 @@ export default function ParkingLotVisualizer({
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 bg-zinc-200/80 dark:bg-zinc-900 p-1 rounded-xl shrink-0 self-end sm:self-auto">
+        <div className="flex items-center gap-1 bg-zinc-200/80 dark:bg-zinc-900 p-1 rounded-full shrink-0 self-end sm:self-auto border border-zinc-300/50 dark:border-zinc-800">
           <button
             type="button"
             onClick={() => setViewMode("2D_MAP")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
               viewMode === "2D_MAP"
-                ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-black"
+                ? "bg-black dark:bg-white text-white dark:text-black shadow-xs"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
             }`}
           >
@@ -116,9 +116,9 @@ export default function ParkingLotVisualizer({
           <button
             type="button"
             onClick={() => setViewMode("GRID")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
               viewMode === "GRID"
-                ? "bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-black"
+                ? "bg-black dark:bg-white text-white dark:text-black shadow-xs"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
             }`}
           >

@@ -72,6 +72,9 @@ export default function MyBookings() {
   const [invoiceModalBooking, setInvoiceModalBooking] = useState(null);
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
   const [findCarModalBooking, setFindCarModalBooking] = useState(null);
+  const [extendModalBooking, setExtendModalBooking] = useState(null);
+  const [extendingMinutes, setExtendingMinutes] = useState(60);
+  const [extending, setExtending] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -111,6 +114,51 @@ export default function MyBookings() {
       showToast(error?.response?.data?.detail || "Failed to cancel.", "error");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleExtendBooking = async () => {
+    if (!extendModalBooking) return;
+    const additionalAmount = extendingMinutes === 30 ? 20 : extendingMinutes === 60 ? 40 : 75;
+    try {
+      setExtending(true);
+      await API.post(`/booking/extend/${extendModalBooking.id}`, {
+        additional_minutes: extendingMinutes,
+        additional_amount: additionalAmount,
+      });
+      showToast(
+        `Parking pass extended by ${extendingMinutes} minutes!`,
+        "success"
+      );
+      setExtendModalBooking(null);
+      loadBookings(true);
+    } catch (error) {
+      showToast(error?.response?.data?.detail || "Failed to extend pass.", "error");
+    } finally {
+      setExtending(false);
+    }
+  };
+
+  // Remaining time helper
+  const getRemainingTime = (b) => {
+    if (!b.end_time || b.pass_type === "DAILY_PASS") return null;
+    try {
+      const [endH, endM] = b.end_time.split(":").map(Number);
+      const now = new Date();
+      const end = new Date();
+      end.setHours(endH, endM, 0, 0);
+      const diffMs = end - now;
+      if (diffMs <= 0) return { label: "Expired", isUrgent: true, expired: true };
+      const diffMins = Math.floor(diffMs / 60000);
+      const hrs = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      return {
+        label: hrs > 0 ? `${hrs}h ${mins}m left` : `${mins}m left`,
+        isUrgent: diffMins <= 20,
+        expired: false,
+      };
+    } catch (_) {
+      return null;
     }
   };
 
@@ -245,6 +293,8 @@ export default function MyBookings() {
               const status = b.status?.toUpperCase() || "ACTIVE";
               const isActive = status === "ACTIVE" || status === "BOOKED";
 
+              const remaining = isActive ? getRemainingTime(b) : null;
+
               return (
                 <div
                   key={b.id}
@@ -252,9 +302,23 @@ export default function MyBookings() {
                 >
                   {/* Top Status Header */}
                   <div className="p-4 bg-zinc-50/80 dark:bg-zinc-800/60 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                    <Badge variant={STATUS_VARIANT[status] || "default"} dot>
-                      {status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={STATUS_VARIANT[status] || "default"} dot>
+                        {status}
+                      </Badge>
+                      {remaining && (
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border flex items-center gap-1 ${
+                            remaining.isUrgent
+                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse"
+                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                          }`}
+                        >
+                          <FiClock className="w-3 h-3" />
+                          <span>{remaining.label}</span>
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[11px] font-black text-zinc-400 font-mono">
                       Pass #{b.id}
                     </span>
@@ -317,10 +381,22 @@ export default function MyBookings() {
                       <div className="flex items-center gap-2 flex-wrap">
                         {isActive && (
                           <button
+                            onClick={() => {
+                              setExtendModalBooking(b);
+                              setExtendingMinutes(60);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                          >
+                            <FiClock className="w-3.5 h-3.5 text-amber-500" />
+                            <span>+ Extend</span>
+                          </button>
+                        )}
+                        {isActive && (
+                          <button
                             onClick={() => setFindCarModalBooking(b)}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
                           >
-                            <FiCompass className="w-3.5 h-3.5 animate-spin-slow text-emerald-500" />
+                            <FiCompass className="w-3.5 h-3.5 text-emerald-500" />
                             <span>Find Car</span>
                           </button>
                         )}
@@ -358,6 +434,79 @@ export default function MyBookings() {
           </div>
         )}
       </main>
+
+      {/* ─── EXTEND PARKING MODAL ─── */}
+      {extendModalBooking && (
+        <Modal
+          isOpen={Boolean(extendModalBooking)}
+          onClose={() => setExtendModalBooking(null)}
+          title="Extend Parking Time"
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4 p-2">
+            <div className="p-4 rounded-2xl bg-zinc-950 text-white border border-zinc-800 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-zinc-400">Current End Time</p>
+                <p className="text-lg font-black font-mono">{extendModalBooking.end_time || "12:00"}</p>
+                <p className="text-xs text-emerald-400 font-bold truncate mt-0.5">{extendModalBooking.parking_name}</p>
+              </div>
+              <div className="text-right">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-black">
+                  Spot {extendModalBooking.slot_number}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
+                Choose Extra Time
+              </label>
+              <div className="grid grid-cols-3 gap-2.5">
+                {[
+                  { mins: 30, label: "+30 Mins", price: "₹20" },
+                  { mins: 60, label: "+1 Hour", price: "₹40", popular: true },
+                  { mins: 120, label: "+2 Hours", price: "₹75" },
+                ].map((opt) => (
+                  <button
+                    key={opt.mins}
+                    type="button"
+                    onClick={() => setExtendingMinutes(opt.mins)}
+                    className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer relative ${
+                      extendingMinutes === opt.mins
+                        ? "border-emerald-500 bg-emerald-500/10 text-zinc-900 dark:text-white font-black shadow-xs ring-1 ring-emerald-500"
+                        : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400"
+                    }`}
+                  >
+                    {opt.popular && (
+                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-500 text-black text-[9px] font-black">
+                        BEST
+                      </span>
+                    )}
+                    <p className="text-sm font-black">{opt.label}</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold font-mono mt-0.5">{opt.price}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs">
+              <span className="text-zinc-500 dark:text-zinc-400">Total Due for Extension:</span>
+              <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                ₹{extendingMinutes === 30 ? 20 : extendingMinutes === 60 ? 40 : 75}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button variant="outline" onClick={() => setExtendModalBooking(null)}>
+                Cancel
+              </Button>
+              <Button variant="primary" loading={extending} onClick={handleExtendBooking}>
+                Pay & Extend Pass
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* ─── INVOICE RECEIPT MODAL ─── */}
       {invoiceModalBooking && (

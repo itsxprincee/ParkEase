@@ -39,6 +39,11 @@ class BookingCreate(BaseModel):
     pass_type: str | None = "HOURLY"
 
 
+class BookingExtend(BaseModel):
+    additional_minutes: int = 60
+    additional_amount: float = 0.0
+
+
 # =========================================================
 # HELPER - GET USER BOOKING
 # =========================================================
@@ -853,4 +858,55 @@ def get_booking(
         "status": (
             booking.status
         )
+    }
+
+
+# =========================================================
+# EXTEND BOOKING PASS DURATION
+#
+# POST /booking/extend/{booking_id}
+# =========================================================
+
+@router.post("/extend/{booking_id}")
+def extend_booking(
+    booking_id: int,
+    data: BookingExtend,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    booking = get_user_booking(booking_id, user.id, db)
+
+    if str(booking.status).upper() not in ["ACTIVE", "BOOKED", "CONFIRMED", "UPCOMING"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Only active parking passes can be extended."
+        )
+
+    # Calculate new end time
+    try:
+        if ":" in str(booking.end_time):
+            parts = str(booking.end_time).split(":")
+            h = int(parts[0])
+            m = int(parts[1])
+            total_minutes = h * 60 + m + data.additional_minutes
+            new_h = (total_minutes // 60) % 24
+            new_m = total_minutes % 60
+            booking.end_time = f"{new_h:02d}:{new_m:02d}"
+    except Exception:
+        pass
+
+    booking.amount = float(booking.amount or 0) + float(data.additional_amount)
+    db.commit()
+    db.refresh(booking)
+
+    return {
+        "message": f"Parking pass extended by {data.additional_minutes} minutes!",
+        "new_end_time": booking.end_time,
+        "total_amount": booking.amount,
+        "booking": {
+            "id": booking.id,
+            "end_time": booking.end_time,
+            "amount": booking.amount,
+            "status": booking.status
+        }
     }

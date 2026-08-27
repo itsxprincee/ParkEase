@@ -214,15 +214,15 @@ export default function Profile() {
   const initials = (name || user?.username || "DR").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Top Header Profile Card */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#276ef1] to-[#05944f] flex items-center justify-center text-white font-black text-2xl shrink-0 shadow-sm">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-black font-black text-2xl shrink-0 shadow-lg shadow-emerald-500/20">
               {initials}
             </div>
             <div className="text-center sm:text-left space-y-1">
@@ -231,14 +231,14 @@ export default function Profile() {
                   {name || "Driver Account"}
                 </h1>
                 <Badge variant="success" size="sm" dot>
-                  Verified Driver
+                  Active Account
                 </Badge>
               </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{email || "user@parkease.io"}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">{email || "user@parkease.io"}</p>
               <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
-                <span>Fleet: {vehicles.length} registered</span>
+                <span>{vehicles.length} Saved Vehicles</span>
                 <span>•</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">
                   {currentLanguage.flag} {currentLanguage.native}
                 </span>
                 <span>•</span>
@@ -263,18 +263,18 @@ export default function Profile() {
         <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
           {[
             { id: "PROFILE", label: "Profile & Contact", icon: FiUser },
-            { id: "PREFERENCES", label: `Mode & Language (${currentLanguage.name})`, icon: FiSliders },
-            { id: "VEHICLES", label: `My Fleet (${vehicles.length})`, icon: FiTruck },
-            { id: "SECURITY", label: "Security & Access", icon: FiShield },
+            { id: "PREFERENCES", label: `Theme & Language (${currentLanguage.name})`, icon: FiSliders },
+            { id: "VEHICLES", label: `Saved Vehicles (${vehicles.length})`, icon: FiTruck },
+            { id: "SECURITY", label: "Password & Security", icon: FiShield },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
-                    ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
+                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs font-black"
                     : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
                 }`}
               >
@@ -287,17 +287,17 @@ export default function Profile() {
 
         {/* TAB 1: PROFILE DETAILS */}
         {activeTab === "PROFILE" && (
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+          <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6 animate-fade-in">
             <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
               <h3 className="text-lg font-black text-zinc-900 dark:text-white">Personal Information</h3>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Update your driver contact details and profile preferences
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
+                Update your contact details for booking confirmations
               </p>
             </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-xl">
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   Full Name *
                 </label>
                 <input
@@ -305,12 +305,12 @@ export default function Profile() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pe-input text-sm font-bold"
+                  className="pe-input text-sm font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   Email Address *
                 </label>
                 <input
@@ -318,12 +318,12 @@ export default function Profile() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pe-input text-sm"
+                  className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   Phone Number
                 </label>
                 <input
@@ -331,12 +331,12 @@ export default function Profile() {
                   placeholder="+91 98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="pe-input text-sm font-mono"
+                  className="pe-input text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="pt-2">
-                <Button type="submit" icon={FiSave} loading={savingProfile} size="lg">
+                <Button type="submit" variant="primary" icon={FiSave} loading={savingProfile} size="lg">
                   {t("save", "Save Changes")}
                 </Button>
               </div>
@@ -348,18 +348,18 @@ export default function Profile() {
         {activeTab === "PREFERENCES" && (
           <div className="space-y-6 animate-fade-in">
             {/* Theme Mode Card */}
-            <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
+            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-5">
               <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
-                    <FiSliders className="w-5 h-5 text-blue-500" />
-                    {t("appearance", "Appearance & Display Mode")}
+                    <FiSliders className="w-5 h-5 text-emerald-500" />
+                    {t("appearance", "Appearance & Display Theme")}
                   </h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Choose between Light, Obsidian Dark, Cyber Midnight, or Auto System themes
+                    Choose between Light, Dark, or System mode
                   </p>
                 </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 capitalize">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 capitalize">
                   Current: {theme}
                 </span>
               </div>
@@ -374,15 +374,15 @@ export default function Profile() {
                         setTheme(tItem.id);
                         showToast(`Switched to ${tItem.label} theme!`, "success");
                       }}
-                      className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between h-32 ${
+                      className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between h-32 cursor-pointer ${
                         isActive
-                          ? "border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 ring-2 ring-blue-500/20"
+                          ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/30"
                           : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 bg-zinc-50/50 dark:bg-zinc-800/30"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">{tItem.icon}</span>
-                        {isActive && <FiCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                        {isActive && <FiCheck className="w-4 h-4 text-emerald-500" />}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-zinc-900 dark:text-white">{tItem.label}</p>
@@ -395,7 +395,7 @@ export default function Profile() {
             </div>
 
             {/* Indian Languages Card */}
-            <div className="notranslate bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-5">
+            <div className="notranslate bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-5">
               <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
@@ -406,7 +406,7 @@ export default function Profile() {
                     Select your preferred language (Default: English)
                   </p>
                 </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   {currentLanguage.flag} {currentLanguage.native} ({currentLanguage.name})
                 </span>
               </div>
@@ -421,9 +421,9 @@ export default function Profile() {
                         setLanguage(lang.code);
                         showToast(`Language changed to ${lang.native} (${lang.name})`, "success");
                       }}
-                      className={`p-3.5 rounded-2xl border text-left transition-all duration-150 flex items-center justify-between ${
+                      className={`p-3.5 rounded-2xl border text-left transition-all duration-150 flex items-center justify-between cursor-pointer ${
                         isActive
-                          ? "border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-500/20"
+                          ? "border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/20"
                           : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 bg-zinc-50/50 dark:bg-zinc-800/30"
                       }`}
                     >
@@ -437,7 +437,7 @@ export default function Profile() {
                           <p className="text-[11px] text-zinc-400 dark:text-zinc-500">{lang.region}</p>
                         </div>
                       </div>
-                      {isActive && <FiCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
+                      {isActive && <FiCheck className="w-4 h-4 text-emerald-500 shrink-0" />}
                     </button>
                   );
                 })}
@@ -446,17 +446,18 @@ export default function Profile() {
           </div>
         )}
 
-        {/* TAB 3: MY VEHICLES FLEET */}
+        {/* TAB 3: MY VEHICLES */}
         {activeTab === "VEHICLES" && (
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+          <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6 animate-fade-in">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
               <div>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-white">Registered Fleet</h3>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white">Saved Vehicles</h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                  Vehicles linked to your account for 1-tap booking and automatic gate pass sync
+                  Vehicles saved for 1-tap fast booking
                 </p>
               </div>
               <Button
+                variant="primary"
                 icon={FiPlus}
                 size="sm"
                 onClick={() => setShowAddVehicleModal(true)}
@@ -470,11 +471,11 @@ export default function Profile() {
                 <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto text-zinc-400">
                   <FiTruck className="w-8 h-8" />
                 </div>
-                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">No Vehicles Registered</h4>
+                <h4 className="text-sm font-bold text-zinc-900 dark:text-white">No Vehicles Saved</h4>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto">
-                  Add your car, EV, or motorcycle plate for streamlined spot reservations.
+                  Add your car, EV, or motorcycle plate for instant spot booking.
                 </p>
-                <Button size="md" onClick={() => setShowAddVehicleModal(true)}>
+                <Button variant="primary" size="md" onClick={() => setShowAddVehicleModal(true)}>
                   + Add First Vehicle
                 </Button>
               </div>
@@ -491,20 +492,20 @@ export default function Profile() {
                           {v.vehicle_number}
                         </span>
                         {v.vehicle_type === "EV" && (
-                          <span className="text-[10px] font-black bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800">
+                          <span className="text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">
                             ⚡ EV
                           </span>
                         )}
                       </div>
                       <p className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">
-                        {v.vehicle_name || v.vehicle_type || "Standard Vehicle"}
+                        {v.vehicle_name || v.vehicle_type || "Vehicle"}
                       </p>
                     </div>
 
                     <button
                       onClick={() => handleDeleteVehicle(v.id)}
                       disabled={deletingVehicleId === v.id}
-                      className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-[#e11900] hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                      className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors shrink-0 cursor-pointer"
                     >
                       <FiTrash2 className="w-4 h-4" />
                     </button>
@@ -517,17 +518,17 @@ export default function Profile() {
 
         {/* TAB 4: SECURITY & PASSWORD */}
         {activeTab === "SECURITY" && (
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 sm:p-8 space-y-6 animate-fade-in">
+          <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6 animate-fade-in">
             <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
-              <h3 className="text-lg font-black text-zinc-900 dark:text-white">Account Security & Password</h3>
+              <h3 className="text-lg font-black text-zinc-900 dark:text-white">Password & Security</h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Update your login credentials and authentication settings
+                Update your login password and security settings
               </p>
             </div>
 
             <form onSubmit={handleChangePassword} className="space-y-4 max-w-xl">
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   Current Password *
                 </label>
                 <input
@@ -535,12 +536,12 @@ export default function Profile() {
                   required
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="pe-input text-sm"
+                  className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   New Password *
                 </label>
                 <input
@@ -548,12 +549,12 @@ export default function Profile() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="pe-input text-sm"
+                  className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                   Confirm New Password *
                 </label>
                 <input
@@ -561,12 +562,12 @@ export default function Profile() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pe-input text-sm"
+                  className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
               </div>
 
               <div className="pt-2">
-                <Button type="submit" variant="outline" icon={FiLock} loading={savingPassword} size="lg">
+                <Button type="submit" variant="primary" icon={FiLock} loading={savingPassword} size="lg">
                   Update Password
                 </Button>
               </div>
@@ -579,7 +580,7 @@ export default function Profile() {
       <Modal
         isOpen={showAddVehicleModal}
         onClose={() => setShowAddVehicleModal(false)}
-        title="Add Vehicle to Fleet"
+        title="Add Vehicle"
       >
         <form onSubmit={handleAddVehicle} className="space-y-4">
           <div className="space-y-1.5">
@@ -594,7 +595,7 @@ export default function Profile() {
               onChange={(e) =>
                 setNewVehicle({ ...newVehicle, vehicle_number: e.target.value.toUpperCase() })
               }
-              className="pe-input uppercase font-mono font-bold tracking-widest text-base"
+              className="pe-input uppercase font-mono font-bold tracking-widest text-base bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
               autoFocus
             />
           </div>
@@ -606,7 +607,7 @@ export default function Profile() {
             <select
               value={newVehicle.vehicle_type}
               onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })}
-              className="pe-input text-sm font-medium"
+              className="pe-input text-sm font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             >
               <option value="Car">Car / Sedan / SUV 🚗</option>
               <option value="EV">Electric Vehicle (EV) ⚡</option>
@@ -624,7 +625,7 @@ export default function Profile() {
               placeholder="e.g. White Creta, Red Pulsar"
               value={newVehicle.vehicle_name}
               onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_name: e.target.value })}
-              className="pe-input text-sm"
+              className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
             />
           </div>
 
@@ -635,8 +636,8 @@ export default function Profile() {
             >
               {t("cancel", "Cancel")}
             </Button>
-            <Button type="submit" loading={addingVehicle}>
-              Register Vehicle
+            <Button type="submit" variant="primary" loading={addingVehicle}>
+              Save Vehicle
             </Button>
           </div>
         </form>

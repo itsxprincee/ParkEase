@@ -126,6 +126,7 @@ export default function OwnerDashboard() {
   // Active View Tab: 'VEHICLES' | 'FACILITIES' | 'REVENUE'
   const [activeTab, setActiveTab] = useState("VEHICLES");
   const [revenuePeriod, setRevenuePeriod] = useState("YEARLY"); // 'YEARLY' | 'TODAY' | 'WEEKLY' | 'MONTHLY'
+  const [chartType, setChartType] = useState("BAR"); // 'BAR' | 'AREA'
   const [hoveredBar, setHoveredBar] = useState(null);
 
   const [vehicleFilter, setVehicleFilter] = useState("ALL");
@@ -1222,46 +1223,6 @@ export default function OwnerDashboard() {
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "REVENUE" && (
             <div className="space-y-6 animate-fade-in">
-              
-              {/* Section Header & Subtitle */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl p-5 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black">
-                      <FiBarChart2 className="w-4 h-4" />
-                    </div>
-                    <h2 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight">
-                      Revenue & Earnings
-                    </h2>
-                  </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium pl-10">
-                    {currentFacility
-                      ? `Showing live revenue and trends specifically for ${currentFacility.name}.`
-                      : `Showing combined revenue across all ${parkingList.length} parking locations.`}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2.5 flex-wrap self-start md:self-auto pl-10 md:pl-0">
-                  <span className="text-[11px] font-bold text-zinc-400">
-                    Period:
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    {selectedPeriodTitle}
-                  </span>
-
-                  {currentFacility && (
-                    <button
-                      onClick={() => setSelectedFacility("ALL")}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 transition-colors cursor-pointer"
-                    >
-                      <FiX className="w-3 h-3" />
-                      <span>Reset to All Locations</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
               {/* 4 Interactive Period Revenue Cards (TODAY, WEEKLY, MONTHLY, YEARLY) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
@@ -1486,76 +1447,149 @@ export default function OwnerDashboard() {
                 </div>
               </div>
 
-              {/* Main Interactive Revenue Bar Chart Card */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xl space-y-6">
+              {/* Main Interactive Revenue Bar & Area Chart Card */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl space-y-6 relative overflow-hidden">
                 
+                {/* Background Ambient Glow */}
+                <div className="absolute top-0 right-1/4 w-72 h-72 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
                 {/* Chart Header & Action Controls */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 border-b border-zinc-100 dark:border-zinc-800">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 border-b border-zinc-100 dark:border-zinc-800 relative z-10">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
-                        {selectedPeriodTitle}
+                      <span className="px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-mono">
+                        {selectedPeriodTitle} EARNINGS
                       </span>
                       <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-                        Earnings Chart
+                        Revenue Analytics
                       </h3>
                     </div>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                      Income over time across all your parking locations.
+                      {currentFacility
+                        ? `Live earnings curve and breakdown for ${currentFacility.name}`
+                        : `Live income curve across all ${parkingList.length} parking locations.`}
                     </p>
                   </div>
 
-                  {/* Summary Metric Badges & CSV Export */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {peakChartItem && (
-                      <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 text-xs">
-                        <span className="text-amber-500 font-black">⭐ Highest:</span>
-                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{peakChartItem.label}</span>
-                        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
-                          ₹{Math.round(peakChartItem.amount || 0).toLocaleString("en-IN")}
-                        </span>
-                      </div>
-                    )}
+                  {/* Period Switcher + Chart Type + CSV Export */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* Period Switcher Pills */}
+                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl border border-zinc-200/70 dark:border-zinc-700/70">
+                      {[
+                        { id: "TODAY", label: "Today" },
+                        { id: "WEEKLY", label: "Week" },
+                        { id: "MONTHLY", label: "Month" },
+                        { id: "YEARLY", label: "Year" },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setRevenuePeriod(p.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                            revenuePeriod === p.id
+                              ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
+                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
 
-                    <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 text-xs">
-                      <span className="text-zinc-400 font-bold">Average:</span>
-                      <span className="font-mono font-black text-zinc-900 dark:text-white">
-                        ₹{avgBucketAmount.toLocaleString("en-IN")}
-                      </span>
+                    {/* Chart Mode Toggle: Bar vs Area Curve */}
+                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl border border-zinc-200/70 dark:border-zinc-700/70">
+                      <button
+                        onClick={() => setChartType("BAR")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          chartType === "BAR"
+                            ? "bg-emerald-500 text-black font-black shadow-xs"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                        }`}
+                        title="Bar Chart View"
+                      >
+                        <FiBarChart2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Bars</span>
+                      </button>
+                      <button
+                        onClick={() => setChartType("AREA")}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          chartType === "AREA"
+                            ? "bg-emerald-500 text-black font-black shadow-xs"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                        }`}
+                        title="Smooth Area Curve View"
+                      >
+                        <FiTrendingUp className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Trend Curve</span>
+                      </button>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleExportCSV}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer ml-auto sm:ml-0"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-all active:scale-95 cursor-pointer"
                       title={`Download ${revenuePeriod} CSV Statement`}
                     >
-                      <FiDownload className="w-4 h-4" />
-                      <span>Download Report (.CSV)</span>
+                      <FiDownload className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="hidden sm:inline">CSV Export</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Interactive Chart Canvas with Reference Gridlines */}
-                <div className="relative pt-6 pb-2">
+                {/* Key Metric Highlights Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Period Earnings</span>
+                      <p className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        ₹{Math.round(selectedPeriodRevenue).toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      {selectedPeriodTitle}
+                    </span>
+                  </div>
+
+                  {peakChartItem && (
+                    <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">⭐ Busiest Time Peak</span>
+                        <p className="text-base font-black text-zinc-900 dark:text-white mt-0.5">
+                          {peakChartItem.label}
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono font-black text-amber-500">
+                        ₹{Math.round(peakChartItem.amount || 0).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Average Velocity</span>
+                      <p className="text-base font-black font-mono text-zinc-900 dark:text-white mt-0.5">
+                        ₹{avgBucketAmount.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold text-zinc-400">per interval</span>
+                  </div>
+                </div>
+
+                {/* Interactive Chart Canvas */}
+                <div className="relative pt-4 pb-2">
                   
-                  {/* Background Horizontal Guide Lines */}
-                  <div className="absolute inset-x-0 top-6 bottom-10 flex flex-col justify-between pointer-events-none opacity-40 dark:opacity-20 z-0">
+                  {/* Background Reference Lines */}
+                  <div className="absolute inset-x-0 top-4 bottom-10 flex flex-col justify-between pointer-events-none opacity-40 dark:opacity-20 z-0">
                     <div className="border-b border-dashed border-zinc-300 dark:border-zinc-700 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
                       <span>₹{Math.round(maxChartAmount).toLocaleString("en-IN")}</span>
                       <span>100%</span>
                     </div>
                     <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount * 0.75).toLocaleString("en-IN")}</span>
-                      <span>75%</span>
+                      <span>₹{Math.round(maxChartAmount * 0.66).toLocaleString("en-IN")}</span>
+                      <span>66%</span>
                     </div>
                     <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount * 0.5).toLocaleString("en-IN")}</span>
-                      <span>50%</span>
-                    </div>
-                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount * 0.25).toLocaleString("en-IN")}</span>
-                      <span>25%</span>
+                      <span>₹{Math.round(maxChartAmount * 0.33).toLocaleString("en-IN")}</span>
+                      <span>33%</span>
                     </div>
                     <div className="border-b border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
                       <span>₹0</span>
@@ -1563,73 +1597,154 @@ export default function OwnerDashboard() {
                     </div>
                   </div>
 
-                  {/* Horizontal Scrollable Bar Columns on Small Screens */}
-                  <div className="overflow-x-auto pb-2 scrollbar-thin">
-                    <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-5 items-end h-64 sm:h-76 border-b border-zinc-200 dark:border-zinc-800 pb-3 min-w-[540px] sm:min-w-0 relative z-10">
-                      {currentChartData.map((item, idx) => {
-                        const heightPct = Math.max(
-                          12,
-                          Math.round(((item.amount || 0) / maxChartAmount) * 100)
-                        );
-                        const isPeak = (item.amount || 0) === (peakChartItem?.amount || 0) && (item.amount || 0) > 0;
-                        const pctOfTotal = selectedPeriodRevenue > 0
-                          ? Math.round(((item.amount || 0) / selectedPeriodRevenue) * 100)
-                          : 0;
+                  {/* VIEW 1: BAR CHART */}
+                  {chartType === "BAR" && (
+                    <div className="overflow-x-auto pb-2 scrollbar-thin">
+                      <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-5 items-end h-64 sm:h-76 border-b border-zinc-200 dark:border-zinc-800 pb-3 min-w-[540px] sm:min-w-0 relative z-10">
+                        {currentChartData.map((item, idx) => {
+                          const heightPct = Math.max(
+                            12,
+                            Math.round(((item.amount || 0) / maxChartAmount) * 100)
+                          );
+                          const isPeak = (item.amount || 0) === (peakChartItem?.amount || 0) && (item.amount || 0) > 0;
+                          const pctOfTotal = selectedPeriodRevenue > 0
+                            ? Math.round(((item.amount || 0) / selectedPeriodRevenue) * 100)
+                            : 0;
 
-                        return (
-                          <div
-                            key={idx}
-                            className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
-                          >
-                            {/* Floating Glassmorphism Tooltip on Hover */}
-                            <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30 bg-zinc-950/95 dark:bg-zinc-900/95 backdrop-blur-md text-white text-center p-2.5 rounded-2xl shadow-2xl border border-zinc-700/80 whitespace-nowrap min-w-[130px]">
-                              <div className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                {item.label}
-                              </div>
-                              <p className="text-sm font-black font-mono text-emerald-400 mt-0.5">
-                                ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
-                              </p>
-                              <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 mt-1 pt-1 border-t border-zinc-800 font-medium">
-                                <span>{item.count || 1} Bookings</span>
-                                <span>•</span>
-                                <span className="text-teal-400 font-bold">{pctOfTotal}% of total</span>
-                              </div>
-                            </div>
-
-                            {/* Peak Crown Badge */}
-                            {isPeak && (
-                              <span className="text-[10px] mb-1.5 font-black px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-500 border border-amber-500/30 animate-pulse">
-                                ⭐ Highest
-                              </span>
-                            )}
-
-                            {/* Bar Column Graphic */}
+                          return (
                             <div
-                              className={`w-full max-w-[48px] rounded-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-xl relative overflow-hidden ${
-                                isPeak
-                                  ? "bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 shadow-lg shadow-emerald-500/25"
-                                  : "bg-gradient-to-t from-emerald-600/90 to-teal-400/90 hover:from-emerald-500 hover:to-teal-300 dark:from-emerald-600/70 dark:to-teal-400/70"
-                              }`}
-                              style={{ height: `${heightPct}%` }}
+                              key={idx}
+                              className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
                             >
-                              <div className="absolute top-0 inset-x-0 h-1.5 bg-white/40 rounded-t-2xl" />
-                              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
+                              {/* Floating Glassmorphism Tooltip on Hover */}
+                              <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30 bg-zinc-950/95 dark:bg-zinc-900/95 backdrop-blur-md text-white text-center p-2.5 rounded-2xl shadow-2xl border border-zinc-700/80 whitespace-nowrap min-w-[130px]">
+                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                                  {item.label}
+                                </div>
+                                <p className="text-sm font-black font-mono text-emerald-400 mt-0.5">
+                                  ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
+                                </p>
+                                <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 mt-1 pt-1 border-t border-zinc-800 font-medium">
+                                  <span>{item.count || 1} Parked</span>
+                                  <span>•</span>
+                                  <span className="text-teal-400 font-bold">{pctOfTotal}% yield</span>
+                                </div>
+                              </div>
 
-                            {/* X-Axis Label */}
-                            <div className="mt-3 text-center">
-                              <span className="text-[10px] sm:text-xs font-black text-zinc-700 dark:text-zinc-300 block truncate">
-                                {item.label}
-                              </span>
-                              <span className="text-[9px] font-mono text-zinc-400 font-medium hidden sm:block mt-0.5">
-                                ₹{Math.round(item.amount || 0)}
-                              </span>
+                              {/* Peak Crown Badge */}
+                              {isPeak && (
+                                <span className="text-[10px] mb-1.5 font-black px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-500 border border-amber-500/30 animate-pulse">
+                                  ⭐ Peak
+                                </span>
+                              )}
+
+                              {/* Bar Column Graphic */}
+                              <div
+                                className={`w-full max-w-[48px] rounded-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden ${
+                                  isPeak
+                                    ? "bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 shadow-lg shadow-emerald-500/30"
+                                    : "bg-gradient-to-t from-emerald-600/90 to-teal-400/90 hover:from-emerald-500 hover:to-teal-300 dark:from-emerald-600/70 dark:to-teal-400/70"
+                                }`}
+                                style={{ height: `${heightPct}%` }}
+                              >
+                                <div className="absolute top-0 inset-x-0 h-1.5 bg-white/50 rounded-t-2xl shadow-xs" />
+                                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+
+                              {/* X-Axis Label */}
+                              <div className="mt-3 text-center">
+                                <span className="text-[10px] sm:text-xs font-black text-zinc-700 dark:text-zinc-300 block truncate">
+                                  {item.label}
+                                </span>
+                                <span className="text-[9px] font-mono text-zinc-400 font-medium hidden sm:block mt-0.5">
+                                  ₹{Math.round(item.amount || 0)}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* VIEW 2: SMOOTH AREA SPLINE CURVE */}
+                  {chartType === "AREA" && (
+                    <div className="relative w-full h-64 sm:h-76 z-10 pt-4">
+                      <svg
+                        className="w-full h-full overflow-visible"
+                        viewBox="0 0 1000 240"
+                        preserveAspectRatio="none"
+                      >
+                        <defs>
+                          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+                            <stop offset="60%" stopColor="#06b6d4" stopOpacity="0.1" />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                          </linearGradient>
+                          <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#10b981" />
+                            <stop offset="50%" stopColor="#14b8a6" />
+                            <stop offset="100%" stopColor="#06b6d4" />
+                          </linearGradient>
+                        </defs>
+
+                        {/* Generate points & SVG Path */}
+                        {(() => {
+                          const len = currentChartData.length;
+                          if (len === 0) return null;
+                          const points = currentChartData.map((d, i) => {
+                            const x = (i / Math.max(1, len - 1)) * 920 + 40;
+                            const y = 200 - ((d.amount || 0) / maxChartAmount) * 160;
+                            return { x, y, ...d };
+                          });
+
+                          let pathD = `M ${points[0].x},${points[0].y}`;
+                          for (let i = 0; i < points.length - 1; i++) {
+                            const p0 = points[i];
+                            const p1 = points[i + 1];
+                            const cpX = (p0.x + p1.x) / 2;
+                            pathD += ` C ${cpX},${p0.y} ${cpX},${p1.y} ${p1.x},${p1.y}`;
+                          }
+
+                          const areaD = `${pathD} L ${points[points.length - 1].x},220 L ${points[0].x},220 Z`;
+
+                          return (
+                            <>
+                              <path d={areaD} fill="url(#areaGradient)" />
+                              <path
+                                d={pathD}
+                                fill="none"
+                                stroke="url(#strokeGradient)"
+                                strokeWidth="3.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              {points.map((pt, idx) => (
+                                <g key={idx} className="cursor-pointer group">
+                                  <circle
+                                    cx={pt.x}
+                                    cy={pt.y}
+                                    r="5.5"
+                                    className="fill-white dark:fill-zinc-900 stroke-emerald-500 hover:scale-150 transition-transform"
+                                    strokeWidth="3"
+                                  />
+                                </g>
+                              ))}
+                            </>
+                          );
+                        })()}
+                      </svg>
+
+                      {/* X-Axis Labels for Area Mode */}
+                      <div className="flex items-center justify-between pt-3 border-t border-zinc-200 dark:border-zinc-800 text-[10px] sm:text-xs font-black text-zinc-600 dark:text-zinc-400">
+                        {currentChartData.map((item, idx) => (
+                          <span key={idx} className="text-center truncate px-1">
+                            {item.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bottom Chart Footer Legend */}

@@ -150,6 +150,12 @@ export default function ParkingLotVisualizer({
             <span>Quick Grid</span>
           </button>
         </div>
+
+        {/* Live IoT Gateway Status Indicator */}
+        <div className="hidden md:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-black shrink-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Live IoT Deck Sync</span>
+        </div>
       </div>
 
       {/* ── 2D PARKING LOT FLOORPLAN VIEW ── */}

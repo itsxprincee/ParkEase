@@ -22,6 +22,7 @@ import SaaSNavbar from "../../components/SaaSNavbar";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import { CardSkeleton } from "../../components/Skeleton";
+import FindMyCarModal from "../../components/FindMyCarModal";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -81,6 +82,7 @@ export default function QRCode() {
   const [loading, setLoading] = useState(!location.state?.booking);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showLocateModal, setShowLocateModal] = useState(false);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -347,20 +349,73 @@ export default function QRCode() {
                   </Badge>
                 </div>
 
+                {/* Integrated Tax Receipt & Payment Breakdown */}
+                <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-750 space-y-2 text-xs">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200/60 dark:border-zinc-700">
+                    <span className="font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                      <FiPrinter className="w-3.5 h-3.5 text-emerald-500" />
+                      Payment & Tax Invoice
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      PAID ✓
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+                    <span>Parking Rate ({booking.duration_hours || 2}h)</span>
+                    <span className="font-mono text-zinc-900 dark:text-white">
+                      ₹{Math.max(0, (booking.amount || booking.total_amount || 40) - 5)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+                    <span>Convenience & Platform Fee</span>
+                    <span className="font-mono text-zinc-900 dark:text-white">₹5.00</span>
+                  </div>
+
+                  <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+                    <span>GST (18% Included)</span>
+                    <span className="font-mono text-zinc-900 dark:text-white">
+                      ₹{Math.round((booking.amount || booking.total_amount || 40) * 0.18)}
+                    </span>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-zinc-200/60 dark:border-zinc-700 flex justify-between font-black text-zinc-900 dark:text-white">
+                    <span>Total Paid</span>
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400 text-sm">
+                      ₹{booking.amount || booking.total_amount || 40}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Action Buttons */}
-                <div className="space-y-2 pt-2">
-                  <button
-                    onClick={() => {
-                      const dest = booking.parking_latitude && booking.parking_longitude
-                        ? `${booking.parking_latitude},${booking.parking_longitude}`
-                        : encodeURIComponent(booking.parking_name || "Parking");
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, "_blank");
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <FiNavigation className="w-4 h-4" />
-                    <span>Get Directions on Map</span>
-                  </button>
+                <div className="space-y-2 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const dest = booking.parking_latitude && booking.parking_longitude
+                          ? `${booking.parking_latitude},${booking.parking_longitude}`
+                          : encodeURIComponent(booking.parking_name || "Parking");
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, "_blank");
+                      }}
+                      className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <FiNavigation className="w-4 h-4" />
+                      <span>Get Directions</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowLocateModal(true)}
+                      className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer border border-zinc-800 dark:border-zinc-200"
+                    >
+                      <FiCompass className="w-4 h-4 text-emerald-400" />
+                      <span>
+                        {String(booking.vehicle_type || "").toLowerCase().includes("bike")
+                          ? "Locate My Bike Spot"
+                          : "Locate My Car Spot"}
+                      </span>
+                    </button>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -375,7 +430,7 @@ export default function QRCode() {
                       className="flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
                     >
                       <FiPrinter className="w-3.5 h-3.5" />
-                      <span>Print Receipt</span>
+                      <span>Print Tax Receipt</span>
                     </button>
                   </div>
                 </div>
@@ -383,6 +438,13 @@ export default function QRCode() {
             </div>
           </div>
         )}
+
+        {/* FIND MY CAR / BIKE MODAL */}
+        <FindMyCarModal
+          isOpen={showLocateModal}
+          onClose={() => setShowLocateModal(false)}
+          booking={booking}
+        />
       </main>
     </div>
   );

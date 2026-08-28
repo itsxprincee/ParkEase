@@ -1,20 +1,20 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FiCalendar,
-  FiClock,
   FiMapPin,
-  FiTruck,
-  FiSearch,
+  FiClock,
+  FiCalendar,
   FiCheckCircle,
   FiAlertCircle,
-  FiPrinter,
-  FiX,
   FiArrowRight,
+  FiSearch,
   FiRefreshCw,
-  FiShield,
+  FiSliders,
   FiCompass,
-  FiNavigation,
+  FiXCircle,
+  FiCheck,
+  FiDownload,
+  FiPrinter,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -51,15 +51,7 @@ function Toast({ toast }) {
   );
 }
 
-const STATUS_VARIANT = {
-  ACTIVE: "success",
-  BOOKED: "success",
-  UPCOMING: "info",
-  CONFIRMED: "info",
-  COMPLETED: "default",
-  CANCELLED: "danger",
-};
-
+// ── Date & Time Formatters (Bulletproof Zero-NaN) ─────────────────────────────
 function formatPassDate(dateVal) {
   if (!dateVal) return "Today";
   try {
@@ -75,6 +67,101 @@ function formatPassDate(dateVal) {
   }
 }
 
+function cleanSingleTime(str) {
+  if (!str) return "";
+  const cleaned = String(str).trim();
+
+  // If already "11:00 AM" or "01:00 PM"
+  const ampmMatch = cleaned.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i);
+  if (ampmMatch) {
+    let h = parseInt(ampmMatch[1], 10);
+    const m = ampmMatch[2];
+    const ampm = ampmMatch[3].toUpperCase();
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+  }
+
+  // If 24hr "14:00" or "2026-08-24 14:00"
+  const match24 = cleaned.match(/(\d{1,2}):(\d{2})/);
+  if (match24) {
+    let h = parseInt(match24[1], 10);
+    const m = match24[2];
+    const ampm = h >= 12 ? "PM" : "AM";
+    if (h > 12) h -= 12;
+    if (h === 0) h = 12;
+    return `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+  }
+
+  return cleaned;
+}
+
+function formatTimeWindow(startStr, endStr) {
+  if (!startStr && !endStr) return "Flexible Timing";
+  if (startStr && startStr.includes("–")) return startStr;
+  const start = cleanSingleTime(startStr || "10:00");
+  const end = cleanSingleTime(endStr || "12:00");
+  return `${start} – ${end}`;
+}
+
+// ── Bulletproof Countdown Calculator ─────────────────────────────────────────
+function getRemainingTime(booking) {
+  if (booking.pass_type === "DAILY_PASS") {
+    return {
+      label: `Valid until ${booking.last_exit_rule || "11:00 PM"}`,
+      isUrgent: false,
+      isExpired: false,
+    };
+  }
+
+  const endStr = booking.end_time;
+  if (!endStr) return null;
+
+  try {
+    const now = new Date();
+    const targetDate = booking.booking_date ? new Date(booking.booking_date) : new Date();
+    const end = isNaN(targetDate.getTime()) ? new Date() : new Date(targetDate);
+
+    // Extract hours and minutes safely
+    let h = 0;
+    let m = 0;
+    const isPM = /pm/i.test(endStr);
+    const isAM = /am/i.test(endStr);
+    const match = endStr.match(/(\d{1,2}):(\d{2})/);
+
+    if (match) {
+      h = parseInt(match[1], 10);
+      m = parseInt(match[2], 10);
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+    } else {
+      return null;
+    }
+
+    end.setHours(h, m, 0, 0);
+
+    const diffMs = end.getTime() - now.getTime();
+    if (diffMs <= 0) {
+      return {
+        label: "Expired",
+        isUrgent: true,
+        isExpired: true,
+      };
+    }
+
+    const diffMins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+
+    return {
+      label: hrs > 0 ? `${hrs}h ${mins}m left` : `${mins}m left`,
+      isUrgent: diffMins <= 20,
+      isExpired: false,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 export default function MyBookings() {
   const navigate = useNavigate();
 
@@ -83,7 +170,6 @@ export default function MyBookings() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [invoiceModalBooking, setInvoiceModalBooking] = useState(null);
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
   const [findCarModalBooking, setFindCarModalBooking] = useState(null);
   const [extendModalBooking, setExtendModalBooking] = useState(null);
@@ -140,39 +226,13 @@ export default function MyBookings() {
         additional_minutes: extendingMinutes,
         additional_amount: additionalAmount,
       });
-      showToast(
-        `Parking pass extended by ${extendingMinutes} minutes!`,
-        "success"
-      );
+      showToast(`Parking pass extended by ${extendingMinutes} minutes!`, "success");
       setExtendModalBooking(null);
       loadBookings(true);
     } catch (error) {
       showToast(error?.response?.data?.detail || "Failed to extend pass.", "error");
     } finally {
       setExtending(false);
-    }
-  };
-
-  // Remaining time helper
-  const getRemainingTime = (b) => {
-    if (!b.end_time || b.pass_type === "DAILY_PASS") return null;
-    try {
-      const [endH, endM] = b.end_time.split(":").map(Number);
-      const now = new Date();
-      const end = new Date();
-      end.setHours(endH, endM, 0, 0);
-      const diffMs = end - now;
-      if (diffMs <= 0) return { label: "Expired", isUrgent: true, expired: true };
-      const diffMins = Math.floor(diffMs / 60000);
-      const hrs = Math.floor(diffMins / 60);
-      const mins = diffMins % 60;
-      return {
-        label: hrs > 0 ? `${hrs}h ${mins}m left` : `${mins}m left`,
-        isUrgent: diffMins <= 20,
-        expired: false,
-      };
-    } catch (_) {
-      return null;
     }
   };
 
@@ -185,42 +245,53 @@ export default function MyBookings() {
         String(item.id).includes(q) ||
         item.vehicle_number?.toLowerCase().includes(q);
       if (!matchesSearch) return false;
-      const status = item.status?.toUpperCase() || "ACTIVE";
-      if (statusFilter === "ACTIVE") return status === "ACTIVE" || status === "BOOKED";
-      if (statusFilter === "UPCOMING") return status === "UPCOMING" || status === "CONFIRMED";
-      if (statusFilter === "COMPLETED") return status === "COMPLETED";
-      if (statusFilter === "CANCELLED") return status === "CANCELLED";
+
+      const rawStatus = (item.status || "ACTIVE").toUpperCase();
+      if (statusFilter === "ACTIVE") return rawStatus === "ACTIVE" || rawStatus === "BOOKED";
+      if (statusFilter === "UPCOMING") return rawStatus === "UPCOMING" || rawStatus === "CONFIRMED";
+      if (statusFilter === "COMPLETED") return rawStatus === "COMPLETED";
+      if (statusFilter === "CANCELLED") return rawStatus === "CANCELLED";
       return true;
     });
   }, [bookings, search, statusFilter]);
 
   const tabs = [
-    { id: "ALL", label: "All Passes" },
-    { id: "ACTIVE", label: "Active Passes" },
-    { id: "UPCOMING", label: "Upcoming" },
-    { id: "COMPLETED", label: "Completed" },
-    { id: "CANCELLED", label: "Cancelled" },
+    { id: "ALL", label: `All Passes (${bookings.length})` },
+    {
+      id: "ACTIVE",
+      label: `🟢 Active (${bookings.filter((b) => (b.status || "").toUpperCase() === "ACTIVE" || (b.status || "").toUpperCase() === "BOOKED").length})`,
+    },
+    {
+      id: "COMPLETED",
+      label: `⚪ Completed (${bookings.filter((b) => (b.status || "").toUpperCase() === "COMPLETED").length})`,
+    },
+    {
+      id: "CANCELLED",
+      label: `🔴 Cancelled (${bookings.filter((b) => (b.status || "").toUpperCase() === "CANCELLED").length})`,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#08080c] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* UBER ACTIVITY COMMAND HEADER */}
-        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-6 sm:p-8 border border-zinc-800">
+        {/* Header Command Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#090b10] via-zinc-950 to-black text-white shadow-2xl p-6 sm:p-8 border border-zinc-800">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
+          
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>ACTIVITY & TRIPS</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-black tracking-wide border border-emerald-500/25">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>MY PARKING PASSES & TAX RECEIPTS</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
                 My Parking Activity
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 font-medium">
-                View your active parking passes, digital gate QR tickets, and receipts.
+                Live gate entry passes, active parking timers, receipts, and vehicle spot recall.
               </p>
             </div>
 
@@ -228,7 +299,7 @@ export default function MyBookings() {
               <button
                 onClick={() => loadBookings(true)}
                 disabled={refreshing}
-                className="p-3 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white transition-all active:scale-95 shadow-md cursor-pointer"
+                className="p-3 rounded-full bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 text-white transition-all active:scale-95 shadow-md cursor-pointer"
                 title="Refresh Bookings"
               >
                 <FiRefreshCw
@@ -237,57 +308,48 @@ export default function MyBookings() {
               </button>
               <button
                 onClick={() => navigate("/customer/dashboard")}
-                className="flex items-center gap-2 px-5 py-3 rounded-full bg-white dark:bg-zinc-100 text-black hover:bg-zinc-200 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
               >
-                <FiMapPin className="w-4 h-4 text-emerald-600" />
-                <span>Find Parking</span>
+                <FiMapPin className="w-4 h-4" />
+                <span>Book a Spot</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Uber Pill Filter Bar */}
-        <div className="bg-white dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Status Tabs */}
-            <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 p-1.5 rounded-full overflow-x-auto border border-zinc-200/70 dark:border-zinc-750">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-black whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                    statusFilter === tab.id
-                      ? "bg-black dark:bg-white text-white dark:text-black shadow-sm"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        {/* Tab Switcher & Search Filter Bar */}
+        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                className={`px-4 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+                  statusFilter === tab.id
+                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="relative sm:w-64">
+          <div className="relative lg:w-72">
             <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search bookings, location or spot..."
+              placeholder="Search by facility, spot, pass #..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
             />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white p-0.5"
-              >
-                <FiX className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Passes Grid */}
+        {/* ══════════════════════════════════════════════════════════════════
+            BOOKING CARDS GRID (DISTINCT HIGH-CONTRAST PASS STATUSES)
+        ══════════════════════════════════════════════════════════════════ */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <CardSkeleton />
@@ -295,37 +357,81 @@ export default function MyBookings() {
           </div>
         ) : filteredBookings.length === 0 ? (
           <EmptyState
-            icon={FiCalendar}
-            title="No bookings found"
-            description="You don't have any bookings matching this filter."
-            actionLabel="Book a Spot"
+            icon={FiClock}
+            title="No parking passes found"
+            description="You don't have any bookings matching this category."
+            actionLabel="Reserve a Spot Now"
             onAction={() => navigate("/customer/dashboard")}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredBookings.map((b) => {
-              const status = b.status?.toUpperCase() || "ACTIVE";
-              const isActive = status === "ACTIVE" || status === "BOOKED";
-
+              const rawStatus = (b.status || "ACTIVE").toUpperCase();
+              const isCompleted = rawStatus === "COMPLETED";
+              const isCancelled = rawStatus === "CANCELLED";
+              const isActive = rawStatus === "ACTIVE" || rawStatus === "BOOKED";
               const remaining = isActive ? getRemainingTime(b) : null;
+              const isExpired = remaining?.isExpired;
+              const isBike = String(b.vehicle_type || "").toLowerCase().includes("bike");
 
               return (
                 <div
                   key={b.id}
-                  className="group relative bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+                  className={`group relative rounded-3xl backdrop-blur-xl border-2 transition-all duration-300 overflow-hidden flex flex-col justify-between ${
+                    isActive
+                      ? isExpired
+                        ? "bg-amber-500/5 dark:bg-amber-950/10 border-amber-500/50 shadow-[0_4px_24px_rgba(245,158,11,0.15)]"
+                        : "bg-white/95 dark:bg-zinc-900/90 border-emerald-500/40 dark:border-emerald-500/40 shadow-[0_4px_25px_rgba(16,185,129,0.15)] hover:shadow-2xl"
+                      : isCompleted
+                      ? "bg-white/90 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800 opacity-90 shadow-xs"
+                      : "bg-red-500/5 dark:bg-red-950/10 border-red-200 dark:border-red-900/40 opacity-75"
+                  }`}
                 >
-                  {/* Top Status Header */}
-                  <div className="p-4 bg-zinc-50/80 dark:bg-zinc-800/60 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={STATUS_VARIANT[status] || "default"} dot>
-                        {status}
-                      </Badge>
+                  {/* Top Status Header Bar */}
+                  <div
+                    className={`p-4 border-b flex items-center justify-between ${
+                      isActive
+                        ? isExpired
+                          ? "bg-amber-500/10 border-amber-500/20"
+                          : "bg-emerald-500/10 border-emerald-500/20"
+                        : isCompleted
+                        ? "bg-zinc-50 dark:bg-zinc-850 border-zinc-200 dark:border-zinc-800"
+                        : "bg-red-500/10 border-red-500/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Distinct Status Badges */}
+                      {isActive ? (
+                        isExpired ? (
+                          <span className="px-3 py-1 rounded-full bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                            <span>⚠️ TIME EXPIRED</span>
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
+                            <span>🟢 ACTIVE GATE PASS</span>
+                          </span>
+                        )
+                      ) : isCompleted ? (
+                        <span className="px-3 py-1 rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <FiCheckCircle className="w-3 h-3 text-emerald-500" />
+                          <span>COMPLETED</span>
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <FiXCircle className="w-3 h-3 text-red-500" />
+                          <span>CANCELLED</span>
+                        </span>
+                      )}
+
+                      {/* Remaining Time Pill */}
                       {remaining && (
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wide border flex items-center gap-1 ${
                             remaining.isUrgent
-                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse"
-                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                              ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 animate-pulse"
+                              : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                           }`}
                         >
                           <FiClock className="w-3 h-3" />
@@ -333,73 +439,82 @@ export default function MyBookings() {
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] font-black text-zinc-400 font-mono">
+
+                    <span className="text-xs font-black font-mono text-zinc-500 dark:text-zinc-400">
                       Pass #{b.id}
                     </span>
                   </div>
 
-                  <div className="p-5 flex-1 space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-base font-black text-zinc-900 dark:text-white line-clamp-1">
-                          {b.parking_name || "Parking Location"}
-                        </h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
-                          <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
-                          <span>{b.parking_address || "City Location"}</span>
-                        </p>
+                  {/* Body Content */}
+                  <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-0.5 min-w-0">
+                          <h3 className="text-base font-black text-zinc-900 dark:text-white truncate">
+                            {b.parking_name || "ParkEase Hub"}
+                          </h3>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
+                            <FiMapPin className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                            <span>{b.parking_address || "City Center Location"}</span>
+                          </p>
+                        </div>
+
+                        {/* Assigned Bay Badge */}
+                        <div className="px-3 py-1.5 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-black shrink-0 font-mono shadow-xs">
+                          Bay {b.slot_number || "A-01"}
+                        </div>
                       </div>
-                      <span className="px-3 py-1.5 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black shrink-0 font-mono shadow-xs">
-                        Spot {b.slot_number || "A-1"}
-                      </span>
+
+                      {/* Metadata Triple Grid */}
+                      <div className="grid grid-cols-3 gap-2 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-750 text-xs">
+                        <div>
+                          <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">Date</p>
+                          <p className="text-xs font-black text-zinc-900 dark:text-white truncate">
+                            {formatPassDate(b.booking_date)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">
+                            {b.pass_type === "DAILY_PASS" ? "Validity" : "Time Window"}
+                          </p>
+                          <p className="text-xs font-black text-zinc-900 dark:text-white truncate font-mono">
+                            {b.pass_type === "DAILY_PASS"
+                              ? `< ${b.last_exit_rule || "11 PM"}`
+                              : formatTimeWindow(b.start_time, b.end_time)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">
+                            Vehicle Plate
+                          </p>
+                          <div className="license-plate text-[10px] shrink-0 inline-flex shadow-xs">
+                            <span className="license-plate-ind">IND</span>
+                            <span className="font-mono font-black tracking-wider">
+                              {b.vehicle_number || "MH-01"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Day Pass Alert */}
+                      {b.pass_type === "DAILY_PASS" && (
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+                          <span>🎟️ Unlimited Full-Day Pass</span>
+                          <span>{b.is_inside ? "🟢 Vehicle Inside" : "⚪ Ready for Entry"}</span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Metadata Triple Grid */}
-                    <div className="grid grid-cols-3 gap-2 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/70">
-                      <div>
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">Date</p>
-                        <p className="text-xs font-black text-zinc-900 dark:text-white">
-                          {formatPassDate(b.booking_date)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">
-                          {b.pass_type === "DAILY_PASS" ? "Valid Until" : "Hours"}
-                        </p>
-                        <p className="text-xs font-black text-zinc-900 dark:text-white font-mono truncate">
-                          {b.pass_type === "DAILY_PASS"
-                            ? `< ${b.last_exit_rule || "11 PM"}`
-                            : `${b.start_time || "10:00"}–${b.end_time || "12:00"}`}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">
-                          Vehicle
-                        </p>
-                        <p className="text-xs font-black text-zinc-900 dark:text-white font-mono truncate">
-                          {b.vehicle_number || "MH-01"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Unlimited Day Pass Strip */}
-                    {b.pass_type === "DAILY_PASS" && (
-                      <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-                        <span>🎟️ Full-Day Pass</span>
-                        <span>{b.is_inside ? "🟢 Inside Spot" : "⚪ Out (Active)"}</span>
-                      </div>
-                    )}
-
-                    {/* Actions (Uber Style) */}
+                    {/* Action Row */}
                     <div className="flex items-center justify-between gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex-wrap">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {isActive && (
+                        {isActive && !isExpired && (
                           <button
                             onClick={() => {
                               setExtendModalBooking(b);
                               setExtendingMinutes(60);
                             }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
                           >
                             <FiClock className="w-3.5 h-3.5 text-amber-500" />
                             <span>+ Extend</span>
@@ -408,36 +523,34 @@ export default function MyBookings() {
                         {isActive && (
                           <button
                             onClick={() => setFindCarModalBooking(b)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95"
                           >
                             <FiCompass className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Locate</span>
+                            <span>{isBike ? "Locate Bike" : "Locate Car"}</span>
                           </button>
                         )}
-                        <button
-                          onClick={() => setInvoiceModalBooking(b)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer border border-zinc-200/80 dark:border-zinc-700"
-                        >
-                          <FiPrinter className="w-3.5 h-3.5" />
-                          <span>Receipt</span>
-                        </button>
-                        {isActive && (
+                        {isActive && !b.is_inside && (
                           <button
                             onClick={() => setCancelModalBooking(b)}
-                            className="px-3 py-1.5 rounded-full text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                            className="px-3 py-1.5 rounded-full text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
                         )}
                       </div>
 
+                      {/* Primary Pass / Receipt Trigger */}
                       <button
                         onClick={() =>
                           navigate(`/customer/qr?booking=${b.id}`, { state: { booking: b } })
                         }
-                        className="px-4.5 py-2 rounded-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                        className={`px-4.5 py-2 rounded-full text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                          isActive
+                            ? "bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20"
+                            : "bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-950"
+                        }`}
                       >
-                        <span>{isActive ? "QR Pass" : "View Trip"}</span>
+                        <span>{isActive ? "🎟️ Gate Boarding Pass" : "🧾 View Tax Receipt & Pass"}</span>
                         <FiArrowRight className="w-3.5 h-3.5 stroke-[3]" />
                       </button>
                     </div>
@@ -452,169 +565,116 @@ export default function MyBookings() {
       {/* ─── EXTEND PARKING MODAL ─── */}
       {extendModalBooking && (
         <Modal
-          isOpen={Boolean(extendModalBooking)}
+          isOpen={!!extendModalBooking}
           onClose={() => setExtendModalBooking(null)}
-          title="Extend Parking Time"
+          title="Extend Parking Duration"
           maxWidth="max-w-md"
         >
-          <div className="space-y-4 p-2">
-            <div className="p-4 rounded-2xl bg-zinc-950 text-white border border-zinc-800 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-zinc-400">Current End Time</p>
-                <p className="text-lg font-black font-mono">{extendModalBooking.end_time || "12:00"}</p>
-                <p className="text-xs text-emerald-400 font-bold truncate mt-0.5">{extendModalBooking.parking_name}</p>
-              </div>
-              <div className="text-right">
-                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-black">
-                  Spot {extendModalBooking.slot_number}
-                </span>
-              </div>
+          <div className="space-y-4 p-1">
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 space-y-1">
+              <p className="text-xs text-zinc-400">Current Facility & Spot</p>
+              <p className="text-sm font-black text-zinc-900 dark:text-white">
+                {extendModalBooking.parking_name} • Spot {extendModalBooking.slot_number}
+              </p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Scheduled End Time: {cleanSingleTime(extendModalBooking.end_time || "12:00")}
+              </p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                Choose Extra Time
+              <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Select Additional Time:
               </label>
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { mins: 30, label: "+30 Mins", price: "₹20" },
-                  { mins: 60, label: "+1 Hour", price: "₹40", popular: true },
-                  { mins: 120, label: "+2 Hours", price: "₹75" },
+                  { mins: 30, price: 20 },
+                  { mins: 60, price: 40 },
+                  { mins: 120, price: 75 },
                 ].map((opt) => (
                   <button
                     key={opt.mins}
                     type="button"
                     onClick={() => setExtendingMinutes(opt.mins)}
-                    className={`p-3 rounded-2xl border-2 text-center transition-all cursor-pointer relative ${
+                    className={`p-3 rounded-2xl border-2 transition-all cursor-pointer text-center ${
                       extendingMinutes === opt.mins
-                        ? "border-emerald-500 bg-emerald-500/10 text-zinc-900 dark:text-white font-black shadow-xs ring-1 ring-emerald-500"
-                        : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400"
+                        ? "border-emerald-500 bg-emerald-500/10 text-zinc-900 dark:text-white font-black"
+                        : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400"
                     }`}
                   >
-                    {opt.popular && (
-                      <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-emerald-500 text-black text-[9px] font-black">
-                        BEST
-                      </span>
-                    )}
-                    <p className="text-sm font-black">{opt.label}</p>
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold font-mono mt-0.5">{opt.price}</p>
+                    <p className="text-sm font-black">+{opt.mins} min</p>
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                      ₹{opt.price}
+                    </p>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between text-xs">
-              <span className="text-zinc-500 dark:text-zinc-400">Total Due for Extension:</span>
-              <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                ₹{extendingMinutes === 30 ? 20 : extendingMinutes === 60 ? 40 : 75}
-              </span>
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setExtendModalBooking(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                loading={extending}
+                onClick={handleExtendBooking}
+              >
+                Confirm Extension
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ─── CANCEL BOOKING MODAL ─── */}
+      {cancelModalBooking && (
+        <Modal
+          isOpen={!!cancelModalBooking}
+          onClose={() => setCancelModalBooking(null)}
+          title="Cancel Parking Pass"
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4 p-1">
+            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 space-y-1">
+              <p className="text-xs font-black text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                <FiAlertCircle className="w-4 h-4" />
+                Are you sure you want to cancel Pass #{cancelModalBooking.id}?
+              </p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Your spot reservation for <strong>Spot {cancelModalBooking.slot_number}</strong> will be released immediately for other drivers. Full refund will be credited.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <Button variant="outline" onClick={() => setExtendModalBooking(null)}>
-                Cancel
-              </Button>
-              <Button variant="primary" loading={extending} onClick={handleExtendBooking}>
-                Pay & Extend Pass
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* ─── INVOICE RECEIPT MODAL ─── */}
-      {invoiceModalBooking && (
-        <Modal
-          isOpen={Boolean(invoiceModalBooking)}
-          onClose={() => setInvoiceModalBooking(null)}
-          title="Parking Receipt"
-          maxWidth="max-w-md"
-        >
-          <div className="space-y-4 p-2">
-            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-center space-y-1">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto mb-2">
-                <FiCheckCircle className="w-5 h-5" />
-              </div>
-              <h3 className="font-black text-base text-zinc-900 dark:text-white">
-                Payment Confirmed
-              </h3>
-              <p className="text-xs text-zinc-400 font-mono">
-                Receipt #{invoiceModalBooking.id} • ParkEase
-              </p>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              {[
-                { label: "Parking Location", value: invoiceModalBooking.parking_name || "Parking Spot" },
-                { label: "Spot Assigned", value: `Spot ${invoiceModalBooking.slot_number || "A-1"}` },
-                { label: "Vehicle", value: invoiceModalBooking.vehicle_number || "MH-01" },
-                { label: "Date", value: formatPassDate(invoiceModalBooking.booking_date) },
-                {
-                  label: "Amount Paid",
-                  value: `₹${
-                    invoiceModalBooking.amount || invoiceModalBooking.total_amount || 25
-                  }`,
-                },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800"
-                >
-                  <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
-                  <span className="font-bold text-zinc-900 dark:text-white font-mono">{value}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2">
-              <Button fullWidth variant="primary" onClick={() => window.print()}>
-                Print / Save Receipt
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* ─── CANCEL MODAL ─── */}
-      {cancelModalBooking && (
-        <Modal
-          isOpen={Boolean(cancelModalBooking)}
-          onClose={() => setCancelModalBooking(null)}
-          title="Cancel Reservation"
-          maxWidth="max-w-sm"
-        >
-          <div className="text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto">
-              <FiAlertCircle className="w-7 h-7" />
-            </div>
-            <div>
-              <p className="font-black text-zinc-900 dark:text-white">
-                Cancel Pass #{cancelModalBooking.id}?
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Your slot reservation will be released for other drivers.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <Button variant="outline" onClick={() => setCancelModalBooking(null)}>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setCancelModalBooking(null)}
+              >
                 Keep Pass
               </Button>
-              <Button variant="danger" loading={cancelling} onClick={handleCancelBooking}>
-                Yes, Cancel
+              <Button
+                variant="danger"
+                loading={cancelling}
+                onClick={handleCancelBooking}
+              >
+                Yes, Cancel Pass
               </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* ─── FIND MY CAR & WALKING RADAR MODAL ─── */}
-      {findCarModalBooking && (
-        <FindMyCarModal
-          isOpen={Boolean(findCarModalBooking)}
-          onClose={() => setFindCarModalBooking(null)}
-          booking={findCarModalBooking}
-        />
-      )}
+      {/* ─── FIND MY CAR / BIKE MODAL ─── */}
+      <FindMyCarModal
+        isOpen={!!findCarModalBooking}
+        onClose={() => setFindCarModalBooking(null)}
+        booking={findCarModalBooking}
+      />
     </div>
   );
 }

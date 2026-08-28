@@ -1,0 +1,16 @@
+{
+  "name": "ParkEase - Smart Urban Parking & EV Mobility",
+  "short_name": "ParkEase",
+  "description": "Instant 2D parking spot reservation, digital QR passes, and EV charging network",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090a0f",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

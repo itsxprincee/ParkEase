@@ -20,8 +20,9 @@ import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import { Card } from "../../components/Card";
 import Modal from "../../components/Modal";
-import { Skeleton } from "../../components/Skeleton";
+import Skeleton from "../../components/Skeleton";
 import ParkingLotVisualizer from "../../components/ParkingLotVisualizer";
+import PaymentModal from "../../components/PaymentModal";
 
 const VEHICLE_TYPES = [
   { value: "Car", label: "🚗 Car", desc: "Sedan, SUV, Hatchback" },
@@ -217,8 +218,10 @@ export default function BookParking() {
     });
   }, [slots, slotFilter]);
 
-  // Submit Booking
-  const handleConfirmBooking = async () => {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Validate before opening payment
+  const handleConfirmBooking = () => {
     if (!selectedSlot) {
       showToast("Please select an available parking slot.", "error");
       return;
@@ -239,6 +242,11 @@ export default function BookParking() {
       return;
     }
 
+    setShowPaymentModal(true);
+  };
+
+  // Execute booking after payment authorization
+  const handlePaymentSuccess = async (paymentData) => {
     try {
       setBookingLoading(true);
 
@@ -256,6 +264,8 @@ export default function BookParking() {
         amount: grandTotal,
         total_amount: grandTotal,
         pass_type: passType,
+        payment_id: paymentData?.payment_id,
+        payment_method: paymentData?.method,
       };
 
       const response = await API.post("/booking/create", payload);
@@ -267,6 +277,7 @@ export default function BookParking() {
         last_exit_rule: parking?.last_exit_time || "11:00 PM",
       };
 
+      setShowPaymentModal(false);
       setSuccessModal(bookedData);
     } catch (error) {
       console.error("Booking error:", error);
@@ -836,6 +847,18 @@ export default function BookParking() {
           </div>
         </form>
       </Modal>
+
+      {/* PAYMENT GATEWAY MODAL */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        amount={grandTotal}
+        bookingDetails={{
+          parking_name: parking?.name,
+          slot_number: selectedSlot?.slot_number,
+        }}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
 
       {/* SUCCESS CONFIRMATION MODAL */}
       <Modal

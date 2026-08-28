@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiMapPin,
   FiCompass,
@@ -8,15 +8,15 @@ import {
   FiExternalLink,
   FiNavigation,
   FiEdit3,
-  FiInfo,
+  FiCrosshair,
   FiAlertCircle,
-  FiX,
+  FiCheckCircle,
 } from "react-icons/fi";
 import Modal from "./Modal";
 import Button from "./Button";
 
-/* ─── Web Audio API Car Horn Synthesizer ────────────────────────────────── */
-function playCarHornSound() {
+/* ─── Web Audio API Vehicle Horn / Beep Synthesizer ──────────────────────── */
+function playVehicleSound(isBike) {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
@@ -26,12 +26,14 @@ function playCarHornSound() {
     const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc1.type = "sawtooth";
-    osc2.type = "triangle";
+    osc1.type = isBike ? "sine" : "sawtooth";
+    osc2.type = isBike ? "sine" : "triangle";
 
-    // Dual-tone European/Indian automotive horn (420Hz & 490Hz)
-    osc1.frequency.setValueAtTime(420, ctx.currentTime);
-    osc2.frequency.setValueAtTime(490, ctx.currentTime);
+    const freq1 = isBike ? 520 : 420;
+    const freq2 = isBike ? 680 : 490;
+
+    osc1.frequency.setValueAtTime(freq1, ctx.currentTime);
+    osc2.frequency.setValueAtTime(freq2, ctx.currentTime);
 
     gain.gain.setValueAtTime(0.001, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
@@ -48,17 +50,16 @@ function playCarHornSound() {
     osc1.stop(ctx.currentTime + 0.35);
     osc2.stop(ctx.currentTime + 0.35);
 
-    // Second short beep
     setTimeout(() => {
       try {
         const ctx2 = new AudioContext();
         const o1 = ctx2.createOscillator();
         const o2 = ctx2.createOscillator();
         const g = ctx2.createGain();
-        o1.type = "sawtooth";
-        o2.type = "triangle";
-        o1.frequency.setValueAtTime(420, ctx2.currentTime);
-        o2.frequency.setValueAtTime(490, ctx2.currentTime);
+        o1.type = isBike ? "sine" : "sawtooth";
+        o2.type = isBike ? "sine" : "triangle";
+        o1.frequency.setValueAtTime(freq1, ctx2.currentTime);
+        o2.frequency.setValueAtTime(freq2, ctx2.currentTime);
         g.gain.setValueAtTime(0.001, ctx2.currentTime);
         g.gain.exponentialRampToValueAtTime(0.3, ctx2.currentTime + 0.05);
         g.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 0.3);
@@ -77,19 +78,69 @@ function playCarHornSound() {
 export default function FindMyCarModal({ isOpen, onClose, booking }) {
   if (!isOpen || !booking) return null;
 
+  const isBike =
+    String(booking.vehicle_type || "").toLowerCase().includes("bike") ||
+    String(booking.vehicle_name || "").toLowerCase().includes("bike") ||
+    String(booking.vehicle_name || "").toLowerCase().includes("scooter");
+
+  const vehicleNoun = isBike ? "Bike" : "Car";
+  const vehicleEmoji = isBike ? "🛵" : "🚗";
+
   const [notes, setNotes] = useState(() => {
     try {
-      return localStorage.getItem(`parkease_car_note_${booking.id}`) || "Near Pillar B-04, 2nd row from Lift 3";
+      return (
+        localStorage.getItem(`parkease_car_note_${booking.id}`) ||
+        `Parked at Bay ${booking.slot_number || "A-01"}, near Pillar B-04`
+      );
     } catch {
-      return "Near Pillar B-04, 2nd row from Lift 3";
+      return `Parked at Bay ${booking.slot_number || "A-01"}, near Pillar B-04`;
     }
   });
 
+  const [markedGps, setMarkedGps] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`parkease_car_gps_${booking.id}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [markingGps, setMarkingGps] = useState(false);
+  const [gpsSuccess, setGpsSuccess] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
   const [tempNote, setTempNote] = useState(notes);
   const [isHornActive, setIsHornActive] = useState(false);
   const [isHazardActive, setIsHazardActive] = useState(false);
-  const [distance, setDistance] = useState(38); // Simulated distance in meters
+  const [distance] = useState(38); // Estimated walking distance
+
+  const handleMarkSpotGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setMarkingGps(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMarkedGps(coords);
+        try {
+          localStorage.setItem(`parkease_car_gps_${booking.id}`, JSON.stringify(coords));
+        } catch (_) {}
+        setMarkingGps(false);
+        setGpsSuccess(true);
+        setTimeout(() => setGpsSuccess(false), 3000);
+      },
+      () => {
+        setMarkingGps(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const saveNote = () => {
     setNotes(tempNote);
@@ -101,7 +152,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
 
   const triggerHorn = () => {
     setIsHornActive(true);
-    playCarHornSound();
+    playVehicleSound(isBike);
     setTimeout(() => setIsHornActive(false), 800);
   };
 
@@ -110,41 +161,45 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
     setTimeout(() => setIsHazardActive(false), 3000);
   };
 
-  // Google maps walking link
   const openExternalMaps = () => {
-    const lat = booking.latitude || "19.0760";
-    const lng = booking.longitude || "72.8777";
+    const lat = markedGps?.lat || booking.parking_latitude || booking.latitude || "19.0760";
+    const lng = markedGps?.lng || booking.parking_longitude || booking.longitude || "72.8777";
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
     window.open(url, "_blank");
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="📍 Find My Parked Car" maxWidth="max-w-lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`📍 Locate My ${vehicleNoun} (${vehicleEmoji} Spot ${booking.slot_number || "A-01"})`}
+      maxWidth="max-w-lg"
+    >
       <div className="space-y-5 p-1">
-        
         {/* Radar & Compass Walking HUD */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-950 via-[#0d0d12] to-black border border-zinc-800 text-white p-6 shadow-2xl">
           <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            
             {/* Animated Radar Pulse Visualizer */}
             <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
               <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-ping opacity-50" />
               <div className="absolute inset-2 rounded-full border border-emerald-500/30 animate-pulse" />
               <div className="absolute inset-4 rounded-full bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center">
                 <div className="relative z-10 flex flex-col items-center">
-                  <FiCompass className="w-7 h-7 text-emerald-400 animate-spin-slow" />
-                  <span className="text-[10px] font-black text-emerald-400 mt-1">RADAR</span>
+                  <span className="text-2xl">{vehicleEmoji}</span>
+                  <span className="text-[9px] font-black text-emerald-400 mt-0.5 tracking-wider">
+                    SPOT LOCATOR
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Distance & Bay Coordinates */}
+            {/* Distance & Bay Details */}
             <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wide">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>ACTIVE WALKING NAVIGATOR</span>
+                <span>INDOOR SPOT LOCATOR</span>
               </div>
 
               <div>
@@ -152,29 +207,60 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                   {distance}m <span className="text-sm font-normal text-zinc-400">away</span>
                 </h3>
                 <p className="text-xs text-zinc-400 font-medium mt-0.5">
-                  Approx. <strong className="text-white">1 min walk</strong> to your vehicle
+                  Approx. <strong className="text-white">1 min walk</strong> to your parked {vehicleNoun.toLowerCase()}
                 </p>
               </div>
 
-              {/* Bay Tag */}
+              {/* Bay & Plate Tag */}
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap pt-1">
                 <span className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-black font-mono border border-white/15">
-                  Level 2 • Bay {booking.slot_number || "A-1"}
+                  Bay {booking.slot_number || "A-01"}
                 </span>
                 <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 text-xs font-black font-mono border border-emerald-500/30">
-                  {booking.vehicle_number || "MH-01"}
+                  {booking.vehicle_number || "MH-01-AB-1234"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Turn-by-Turn Walking Directions Card */}
+        {/* Spot GPS Memory Pin Button */}
+        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black text-zinc-900 dark:text-white flex items-center gap-1.5">
+                <FiMapPin className="w-4 h-4 text-emerald-500" />
+                Marked Spot Location
+              </p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                {markedGps
+                  ? `GPS saved at ${markedGps.timestamp} (${markedGps.lat}, ${markedGps.lng})`
+                  : `Mark your exact GPS pin after parking your ${vehicleNoun.toLowerCase()}`}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleMarkSpotGPS}
+              disabled={markingGps}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs ${
+                gpsSuccess
+                  ? "bg-emerald-500 text-black font-black"
+                  : "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 hover:opacity-90"
+              }`}
+            >
+              <FiCrosshair className={`w-3.5 h-3.5 ${markingGps ? "animate-spin" : ""}`} />
+              <span>{markingGps ? "Marking GPS..." : gpsSuccess ? "✓ Spot Saved!" : "Mark My Spot"}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Turn-by-Turn Indoor Walking Steps */}
         <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-1.5">
               <FiNavigation className="w-3.5 h-3.5 text-emerald-500" />
-              Walking Steps to Bay
+              Walking Steps to {vehicleNoun}
             </span>
             <span className="text-[11px] text-zinc-400 font-bold">Indoor Deck Path</span>
           </div>
@@ -185,7 +271,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                 1
               </div>
               <p className="text-zinc-700 dark:text-zinc-300">
-                Enter via <strong>Gate 2 Pedestrian Lobby</strong> and take Lift to <strong>Level 2</strong>.
+                Enter via <strong>Main Pedestrian Gate</strong> or Lift to parking level.
               </p>
             </div>
             <div className="flex items-start gap-2.5">
@@ -193,7 +279,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                 2
               </div>
               <p className="text-zinc-700 dark:text-zinc-300">
-                Walk straight 20m along <strong>Zone B corridor</strong> towards Pillar B-04.
+                Follow the <strong>Zone A/B aisle</strong> towards your marked pillar.
               </p>
             </div>
             <div className="flex items-start gap-2.5">
@@ -201,13 +287,13 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                 3
               </div>
               <p className="text-zinc-900 dark:text-white font-bold">
-                Your vehicle is safely parked in <strong>Bay {booking.slot_number || "A-1"}</strong> on your left.
+                Your {vehicleNoun.toLowerCase()} is parked in <strong>Bay {booking.slot_number || "A-01"}</strong>.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Driver Landmark Memory Note */}
+        {/* Spot Landmark Memory Note */}
         <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide flex items-center gap-1.5">
@@ -234,7 +320,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                 type="text"
                 value={tempNote}
                 onChange={(e) => setTempNote(e.target.value)}
-                placeholder="e.g. Near Pillar B-04, next to stairs"
+                placeholder="e.g. Near Pillar B-04, next to Exit 2"
                 className="pe-input text-xs w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl"
               />
               <div className="flex justify-end gap-2">
@@ -248,7 +334,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
                 <button
                   type="button"
                   onClick={saveNote}
-                  className="px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 text-black shadow-xs cursor-pointer"
+                  className="px-3 py-1 text-xs font-bold rounded-lg bg-emerald-500 text-black shadow-xs cursor-pointer font-black"
                 >
                   Save
                 </button>
@@ -261,14 +347,12 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
           )}
         </div>
 
-        {/* Remote Car Locator: Sound Horn & Flash Hazards Simulator */}
+        {/* Remote Spot Locator: Sound Horn & Flash Hazards Simulator */}
         <div className="space-y-2 pt-1">
           <label className="block text-xs font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-            Spot Locator Triggers
+            Remote Vehicle Triggers
           </label>
           <div className="grid grid-cols-2 gap-3">
-            
-            {/* Beep Horn Button */}
             <button
               type="button"
               onClick={triggerHorn}
@@ -279,10 +363,9 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
               }`}
             >
               <FiVolume2 className={`w-4 h-4 ${isHornActive ? "animate-bounce" : "text-amber-500"}`} />
-              <span>{isHornActive ? "Beeping Horn 🔊..." : "Beep Car Horn"}</span>
+              <span>{isHornActive ? "Beeping 🔊..." : isBike ? "Beep Scooter Horn" : "Beep Car Horn"}</span>
             </button>
 
-            {/* Flash Hazard Lights Button */}
             <button
               type="button"
               onClick={triggerHazard}
@@ -293,12 +376,12 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
               }`}
             >
               <FiZap className={`w-4 h-4 ${isHazardActive ? "text-black" : "text-amber-500"}`} />
-              <span>{isHazardActive ? "Flashing Hazards 🚨..." : "Flash Hazards"}</span>
+              <span>{isHazardActive ? "Flashing 🚨..." : isBike ? "Flash Beacon" : "Flash Hazards"}</span>
             </button>
           </div>
         </div>
 
-        {/* External GPS Navigation Link & Close */}
+        {/* Turn-by-Turn GPS Walking Directions Link & Close */}
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
           <button
             type="button"
@@ -306,7 +389,7 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
             className="px-4 py-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-black text-zinc-900 dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
           >
             <FiExternalLink className="w-4 h-4" />
-            <span>Google Maps</span>
+            <span>Walking Directions</span>
           </button>
           <Button variant="primary" onClick={onClose}>
             Back to Passes

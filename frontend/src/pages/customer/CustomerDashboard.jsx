@@ -38,11 +38,10 @@ function Toast({ toast }) {
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
       <div
-        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
-          toast.type === "error"
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${toast.type === "error"
             ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
             : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
-        }`}
+          }`}
       >
         {toast.type === "error" ? (
           <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
@@ -68,8 +67,8 @@ function calcDistance(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((Number(lat1) * Math.PI) / 180) *
-      Math.cos((Number(lat2) * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos((Number(lat2) * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
   const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
 }
@@ -82,8 +81,8 @@ function numericDistance(userCoords, parking) {
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos((Number(userCoords.lat) * Math.PI) / 180) *
-      Math.cos((Number(parking.latitude) * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos((Number(parking.latitude) * Math.PI) / 180) *
+    Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -151,13 +150,12 @@ function ParkingListCard({ parking, userCoords, onClick }) {
       <div className="space-y-1.5 pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
         <div className="flex items-center justify-between text-[11px] font-bold">
           <span
-            className={`inline-flex items-center gap-1.5 ${
-              isFull
+            className={`inline-flex items-center gap-1.5 ${isFull
                 ? "text-rose-600 dark:text-rose-400"
                 : isLow
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-emerald-600 dark:text-emerald-400"
-            }`}
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-emerald-600 dark:text-emerald-400"
+              }`}
           >
             <span className={`w-2 h-2 rounded-full ${isFull ? "bg-rose-500" : isLow ? "bg-amber-500" : "bg-emerald-500 animate-pulse"}`} />
             {isFull ? "Lot Completely Full" : isLow ? `Only ${available} spots remaining!` : `${available} spots available`}
@@ -172,9 +170,8 @@ function ParkingListCard({ parking, userCoords, onClick }) {
 
         <div className="w-full h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              occupancyPct > 85 ? "bg-rose-500" : occupancyPct > 60 ? "bg-amber-500" : "bg-emerald-500"
-            }`}
+            className={`h-full rounded-full transition-all duration-500 ${occupancyPct > 85 ? "bg-rose-500" : occupancyPct > 60 ? "bg-amber-500" : "bg-emerald-500"
+              }`}
             style={{ width: `${occupancyPct}%` }}
           />
         </div>
@@ -233,7 +230,7 @@ export default function CustomerDashboard() {
       if (stored) {
         try {
           setUser(JSON.parse(stored));
-        } catch (_) {}
+        } catch (_) { }
       }
 
       const [parkingRes, bookingRes] = await Promise.allSettled([
@@ -246,10 +243,10 @@ export default function CustomerDashboard() {
         const list = Array.isArray(raw)
           ? raw
           : Array.isArray(raw?.parking_locations)
-          ? raw.parking_locations
-          : Array.isArray(raw?.data)
-          ? raw.data
-          : [];
+            ? raw.parking_locations
+            : Array.isArray(raw?.data)
+              ? raw.data
+              : [];
         setParkingLocations(list);
       }
 
@@ -258,8 +255,8 @@ export default function CustomerDashboard() {
         const list = Array.isArray(raw)
           ? raw
           : Array.isArray(raw?.bookings)
-          ? raw.bookings
-          : [];
+            ? raw.bookings
+            : [];
         setBookings(list);
       }
     } catch (_) {
@@ -362,7 +359,7 @@ export default function CustomerDashboard() {
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        
+
         {/* ══════════════════════════════════════════════════════════════════
             1. HERO COMMAND HUB & LIVE PASS WIDGET
         ══════════════════════════════════════════════════════════════════ */}
@@ -461,11 +458,10 @@ export default function CustomerDashboard() {
             <button
               onClick={handleLocateNearest}
               disabled={isLocating}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-xs ${
-                userCoords
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-xs ${userCoords
                   ? "bg-emerald-500 text-white font-black"
                   : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700"
-              }`}
+                }`}
             >
               <FiNavigation className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
               <span>{isLocating ? "Locating…" : userCoords ? "📍 GPS Near Me" : "Detect Location"}</span>
@@ -476,11 +472,10 @@ export default function CustomerDashboard() {
               <button
                 type="button"
                 onClick={() => setViewLayout("SPLIT")}
-                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  viewLayout === "SPLIT"
+                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewLayout === "SPLIT"
                     ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                }`}
+                  }`}
                 title="Split View"
               >
                 <FiLayers className="w-4 h-4" />
@@ -488,11 +483,10 @@ export default function CustomerDashboard() {
               <button
                 type="button"
                 onClick={() => setViewLayout("GRID")}
-                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  viewLayout === "GRID"
+                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewLayout === "GRID"
                     ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                }`}
+                  }`}
                 title="Grid Cards Only"
               >
                 <FiGrid className="w-4 h-4" />
@@ -510,11 +504,10 @@ export default function CustomerDashboard() {
                 if (f.id === "NEARBY" && !userCoords) handleLocateNearest();
                 else setSelectedFilter(f.id);
               }}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer active:scale-95 ${
-                selectedFilter === f.id
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer active:scale-95 ${selectedFilter === f.id
                   ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
                   : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800"
-              }`}
+                }`}
             >
               {f.label}
             </button>

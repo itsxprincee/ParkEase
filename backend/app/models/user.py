@@ -36,6 +36,26 @@ class User(Base):
         default="customer"
     )
 
+    phone = Column(
+        String(20),
+        nullable=True
+    )
+
+    emergency_contact_name = Column(
+        String(100),
+        nullable=True
+    )
+
+    emergency_contact_phone = Column(
+        String(20),
+        nullable=True
+    )
+
+    emergency_contact_note = Column(
+        String(255),
+        nullable=True
+    )
+
     # =====================================================
     # EMAIL VERIFICATION
     # =====================================================

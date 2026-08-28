@@ -178,10 +178,44 @@ try:
                             if col not in b_cols:
                                 cur.execute(f"ALTER TABLE bookings ADD COLUMN {col} {col_type}")
                                 conn.connection.commit()
+
+                    # users
+                    cur.execute("PRAGMA table_info(users)")
+                    u_cols = [row[1] for row in cur.fetchall()]
+                    if u_cols:
+                        sqlite_user_cols = {
+                            "phone": "TEXT DEFAULT NULL",
+                            "emergency_contact_name": "TEXT DEFAULT NULL",
+                            "emergency_contact_phone": "TEXT DEFAULT NULL",
+                            "emergency_contact_note": "TEXT DEFAULT NULL",
+                        }
+                        for col, col_type in sqlite_user_cols.items():
+                            if col not in u_cols:
+                                cur.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
+                                conn.connection.commit()
                 except Exception as e:
                     print("SQLite schema migration error:", e)
             else:
                 # MySQL information_schema migrations
+                try:
+                    user_columns = conn.execute(
+                        text("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = :database_name AND TABLE_NAME = 'users'"),
+                        {"database_name": DB_NAME},
+                    ).fetchall()
+                    if user_columns:
+                        user_col_names = [c.COLUMN_NAME for c in user_columns]
+                        user_expected = {
+                            "phone": "VARCHAR(20) NULL DEFAULT NULL",
+                            "emergency_contact_name": "VARCHAR(100) NULL DEFAULT NULL",
+                            "emergency_contact_phone": "VARCHAR(20) NULL DEFAULT NULL",
+                            "emergency_contact_note": "VARCHAR(255) NULL DEFAULT NULL",
+                        }
+                        for col_name, col_def in user_expected.items():
+                            if col_name not in user_col_names:
+                                conn.execute(text(f"ALTER TABLE `users` ADD COLUMN `{col_name}` {col_def}"))
+                                conn.commit()
+                except Exception as user_mig_err:
+                    print("User migration note:", user_mig_err)
                 try:
                     vehicle_columns = conn.execute(
                         text("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = :database_name AND TABLE_NAME = 'vehicles'"),

@@ -1289,6 +1289,10 @@ def reset_password(
 class UpdateProfileRequest(BaseModel):
     name: str
     email: EmailStr
+    phone: str | None = None
+    emergency_contact_name: str | None = None
+    emergency_contact_phone: str | None = None
+    emergency_contact_note: str | None = None
 
 
 class ChangePasswordRequest(BaseModel):
@@ -1310,6 +1314,10 @@ def get_my_profile(
         "name": current_user.name,
         "email": current_user.email,
         "role": current_user.role,
+        "phone": getattr(current_user, "phone", None),
+        "emergency_contact_name": getattr(current_user, "emergency_contact_name", None),
+        "emergency_contact_phone": getattr(current_user, "emergency_contact_phone", None),
+        "emergency_contact_note": getattr(current_user, "emergency_contact_note", None),
         "is_verified": getattr(current_user, "is_verified", True)
     }
 
@@ -1351,6 +1359,14 @@ def update_profile(
         current_user.email = new_email
 
     current_user.name = new_name
+    if hasattr(current_user, "phone"):
+        current_user.phone = request.phone.strip() if request.phone else None
+    if hasattr(current_user, "emergency_contact_name"):
+        current_user.emergency_contact_name = request.emergency_contact_name.strip() if request.emergency_contact_name else None
+    if hasattr(current_user, "emergency_contact_phone"):
+        current_user.emergency_contact_phone = request.emergency_contact_phone.strip() if request.emergency_contact_phone else None
+    if hasattr(current_user, "emergency_contact_note"):
+        current_user.emergency_contact_note = request.emergency_contact_note.strip() if request.emergency_contact_note else None
 
     db.commit()
     db.refresh(current_user)
@@ -1362,7 +1378,11 @@ def update_profile(
             "id": current_user.id,
             "name": current_user.name,
             "email": current_user.email,
-            "role": current_user.role
+            "role": current_user.role,
+            "phone": getattr(current_user, "phone", None),
+            "emergency_contact_name": getattr(current_user, "emergency_contact_name", None),
+            "emergency_contact_phone": getattr(current_user, "emergency_contact_phone", None),
+            "emergency_contact_note": getattr(current_user, "emergency_contact_note", None),
         }
     }
 

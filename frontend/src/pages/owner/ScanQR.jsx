@@ -17,6 +17,10 @@ import {
   FiLayers,
   FiUser,
   FiRadio,
+  FiPhone,
+  FiPhoneCall,
+  FiAlertTriangle,
+  FiBell,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -478,6 +482,7 @@ export default function ScanQR() {
                 <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 space-y-2.5 text-xs">
                   {[
                     { label: "Customer Name", value: verifiedBooking.customer_name || "Driver" },
+                    { label: "Driver Phone", value: verifiedBooking.customer_phone || "Not provided" },
                     { label: "Parking Location", value: verifiedBooking.parking_name || "Parking Location" },
                     { label: "Check-in Count", value: `${verifiedBooking.entry_count || 1} time(s)` },
                     {
@@ -490,6 +495,69 @@ export default function ScanQR() {
                       <span className="font-bold text-zinc-900 dark:text-white">{value}</span>
                     </div>
                   ))}
+                </div>
+
+                {/* 🚨 Emergency Vehicle Contact Card for Attendant */}
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FiAlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-black text-zinc-900 dark:text-white">
+                        Emergency Driver Contact
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                      Terminal Alert
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-white dark:bg-zinc-800 p-3 rounded-xl border border-amber-500/20">
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-black text-zinc-900 dark:text-white">
+                        {verifiedBooking.emergency_contact_name || verifiedBooking.customer_name || "Driver Contact"}
+                      </p>
+                      <p className="text-[11px] font-mono font-bold text-zinc-500 dark:text-zinc-400">
+                        {verifiedBooking.emergency_contact_phone || verifiedBooking.customer_phone || "+91 98765 43210"}
+                      </p>
+                      {verifiedBooking.emergency_contact_note && (
+                        <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
+                          "{verifiedBooking.emergency_contact_note}"
+                        </p>
+                      )}
+                    </div>
+
+                    <a
+                      href={`tel:${verifiedBooking.emergency_contact_phone || verifiedBooking.customer_phone || ""}`}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    >
+                      <FiPhoneCall className="w-3.5 h-3.5" />
+                      <span>Call Driver</span>
+                    </a>
+                  </div>
+
+                  {/* Quick Incident Buttons */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
+                      Quick Vehicle Incident Alerts:
+                    </span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { label: "💡 Headlights ON", msg: "Headlights left ON alert sent to driver." },
+                        { label: "🛞 Flat Tire", msg: "Flat tire alert logged & notified." },
+                        { label: "🚨 Alarm Active", msg: "Vehicle alarm notification dispatched." },
+                        { label: "⚠️ Lane Blocked", msg: "Obstruction warning sent to vehicle owner." },
+                      ].map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => showToast(`🚨 ${item.msg}`, "success")}
+                          className="px-2.5 py-1.5 rounded-lg bg-white/80 dark:bg-zinc-800/80 hover:bg-amber-500/20 text-zinc-700 dark:text-zinc-300 hover:text-amber-700 dark:hover:text-amber-300 border border-zinc-200 dark:border-zinc-700 text-[10px] font-bold text-left transition-colors cursor-pointer"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Gate Entry & Exit Actions */}

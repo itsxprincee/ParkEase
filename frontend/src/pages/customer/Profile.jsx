@@ -66,6 +66,9 @@ export default function Profile() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [emergencyContactName, setEmergencyContactName] = useState("");
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  const [emergencyContactNote, setEmergencyContactNote] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -101,8 +104,8 @@ export default function Profile() {
       try {
         const res = await API.get("/auth/me");
         if (res.data) {
-          currentUser = res.data;
-          localStorage.setItem("user", JSON.stringify(res.data));
+          currentUser = { ...currentUser, ...res.data };
+          localStorage.setItem("user", JSON.stringify(currentUser));
         }
       } catch (_) {}
       if (currentUser) {
@@ -110,6 +113,9 @@ export default function Profile() {
         setName(currentUser.name || currentUser.full_name || currentUser.username || "");
         setEmail(currentUser.email || "");
         setPhone(currentUser.phone || "");
+        setEmergencyContactName(currentUser.emergency_contact_name || "");
+        setEmergencyContactPhone(currentUser.emergency_contact_phone || "");
+        setEmergencyContactNote(currentUser.emergency_contact_note || "");
       }
 
       // Load fleet
@@ -131,16 +137,40 @@ export default function Profile() {
     e.preventDefault();
     try {
       setSavingProfile(true);
-      const res = await API.put("/auth/profile", { name, email, phone });
-      const updated = { ...user, name, email, phone, ...(res.data || {}) };
+      const res = await API.put("/auth/profile", {
+        name,
+        email,
+        phone,
+        emergency_contact_name: emergencyContactName,
+        emergency_contact_phone: emergencyContactPhone,
+        emergency_contact_note: emergencyContactNote,
+      });
+      const updated = {
+        ...user,
+        name,
+        email,
+        phone,
+        emergency_contact_name: emergencyContactName,
+        emergency_contact_phone: emergencyContactPhone,
+        emergency_contact_note: emergencyContactNote,
+        ...(res.data?.user || res.data || {}),
+      };
       setUser(updated);
       localStorage.setItem("user", JSON.stringify(updated));
-      showToast("Profile details updated successfully!", "success");
+      showToast("Profile & Emergency details saved successfully!", "success");
     } catch (_) {
-      const updated = { ...user, name, email, phone };
+      const updated = {
+        ...user,
+        name,
+        email,
+        phone,
+        emergency_contact_name: emergencyContactName,
+        emergency_contact_phone: emergencyContactPhone,
+        emergency_contact_note: emergencyContactNote,
+      };
       setUser(updated);
       localStorage.setItem("user", JSON.stringify(updated));
-      showToast("Profile saved!", "success");
+      showToast("Profile & Emergency details saved!", "success");
     } finally {
       setSavingProfile(false);
     }
@@ -295,44 +325,110 @@ export default function Profile() {
               </p>
             </div>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-xl">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pe-input text-sm font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                />
+            <form onSubmit={handleUpdateProfile} className="space-y-6 max-w-2xl">
+              {/* Basic Contact Info */}
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pe-input text-sm font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
+                      Primary Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pe-input text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pe-input text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                />
-              </div>
+              {/* 🚨 Emergency Vehicle Contact Card */}
+              <div className="p-5 sm:p-6 rounded-3xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-500/30 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <FiShield className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                      <span>🚨 Emergency Vehicle Contact</span>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase">
+                        Safety Feature
+                      </span>
+                    </h4>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                      Displayed on parking attendant terminal during active parking in case of emergencies (lights left ON, flat tire, alarm triggered, or blocking exit).
+                    </p>
+                  </div>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="pe-input text-sm font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Emergency Contact Person
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Spouse / Family Member / Driver"
+                      value={emergencyContactName}
+                      onChange={(e) => setEmergencyContactName(e.target.value)}
+                      className="pe-input text-sm bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-700 rounded-2xl w-full"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Emergency Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +91 98111 22233"
+                      value={emergencyContactPhone}
+                      onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                      className="pe-input text-sm font-mono bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-700 rounded-2xl w-full"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    Emergency Note / Instructions
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Call immediately if headlights are ON or alarm is sounding."
+                    value={emergencyContactNote}
+                    onChange={(e) => setEmergencyContactNote(e.target.value)}
+                    className="pe-input text-sm bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-700 rounded-2xl w-full"
+                  />
+                </div>
               </div>
 
               <div className="pt-2">

@@ -19,10 +19,10 @@ export function ThemeProvider({ children }) {
     } catch {
       // ignore
     }
-    return "light"; // Default to clean light background
+    return "dark"; // Default to Obsidian Dark mode
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState("light");
+  const [resolvedTheme, setResolvedTheme] = useState("dark");
 
   useEffect(() => {
     const root = document.documentElement;

@@ -167,7 +167,6 @@ export default function AdminDashboard() {
   const AMENITY_TAGS = [
     { key: "has_cctv", label: "📹 CCTV" },
     { key: "has_security_guard", label: "🛡️ Security" },
-    { key: "has_ev", label: "⚡ EV Charging" },
     { key: "has_covered_roof", label: "🏢 Covered" },
     { key: "is_24_7", label: "⏰ 24/7" },
   ];

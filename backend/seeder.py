@@ -73,12 +73,12 @@ def seed_demo_data():
                 "daily_rate": 120.0,
                 "pricing_type": "BOTH",
                 "supported_vehicles": "BOTH",
-                "has_ev": True,
+                "has_ev": False,
                 "has_cctv": True,
                 "has_security_guard": True,
                 "has_covered_roof": True,
                 "is_24_7": True,
-                "has_valet": True,
+                "has_valet": False,
                 "allow_multi_entry": True,
                 "last_exit_time": "11:00 PM",
                 "verification_status": "APPROVED",
@@ -93,7 +93,7 @@ def seed_demo_data():
                 "daily_rate": 100.0,
                 "pricing_type": "BOTH",
                 "supported_vehicles": "CAR",
-                "has_ev": True,
+                "has_ev": False,
                 "has_cctv": True,
                 "has_security_guard": True,
                 "has_covered_roof": True,
@@ -113,12 +113,12 @@ def seed_demo_data():
                 "daily_rate": 150.0,
                 "pricing_type": "BOTH",
                 "supported_vehicles": "BOTH",
-                "has_ev": True,
+                "has_ev": False,
                 "has_cctv": True,
                 "has_security_guard": True,
                 "has_covered_roof": True,
                 "is_24_7": True,
-                "has_valet": True,
+                "has_valet": False,
                 "allow_multi_entry": True,
                 "last_exit_time": "11:00 PM",
                 "verification_status": "APPROVED",
@@ -133,7 +133,7 @@ def seed_demo_data():
                 "daily_rate": 90.0,
                 "pricing_type": "BOTH",
                 "supported_vehicles": "BIKE",
-                "has_ev": True,
+                "has_ev": False,
                 "has_cctv": True,
                 "has_security_guard": True,
                 "has_covered_roof": True,
@@ -161,13 +161,12 @@ def seed_demo_data():
             if existing_slots == 0:
                 for i in range(1, facility.total_slots + 1):
                     slot_num = f"A{i:02d}"
-                    is_ev_slot = (i <= 3) and facility.has_ev
                     is_occupied = (i > 8)
                     slot = ParkingSlot(
                         parking_id=facility.id,
                         slot_number=slot_num,
-                        vehicle_type="Car",
-                        is_ev=is_ev_slot,
+                        vehicle_type="Bike" if facility.supported_vehicles == "BIKE" else "Car",
+                        is_ev=False,
                         status="OCCUPIED" if is_occupied else "AVAILABLE"
                     )
                     db.add(slot)

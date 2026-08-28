@@ -78,7 +78,6 @@ export default function AddParking() {
     daily_rate: "10",
     allow_multi_entry: true,
     last_exit_time: "11:00 PM",
-    has_ev: true,
     has_cctv: true,
     has_security_guard: true,
     has_covered_roof: true,
@@ -166,7 +165,6 @@ export default function AddParking() {
       submitData.append("daily_rate", formData.daily_rate || "10");
       submitData.append("allow_multi_entry", formData.allow_multi_entry);
       submitData.append("last_exit_time", formData.last_exit_time || "11:00 PM");
-      submitData.append("has_ev", formData.has_ev);
       submitData.append("has_cctv", formData.has_cctv);
       submitData.append("has_security_guard", formData.has_security_guard);
       submitData.append("has_covered_roof", formData.has_covered_roof);
@@ -464,12 +462,6 @@ export default function AddParking() {
                     icon: FiShield,
                     title: "Security Guard on Duty",
                     desc: "Stationed security personnel",
-                  },
-                  {
-                    key: "has_ev",
-                    icon: FiZap,
-                    title: "EV Fast Charger Bay",
-                    desc: "Equipped with EV charging port",
                   },
                   {
                     key: "has_covered_roof",

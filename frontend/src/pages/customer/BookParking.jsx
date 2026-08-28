@@ -371,11 +371,6 @@ export default function BookParking() {
 
             {/* AMENITIES */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              {parking?.has_ev && (
-                <span className="px-2.5 py-1 rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-xs font-bold border border-cyan-500/20">
-                  ⚡ EV Charging
-                </span>
-              )}
               {parking?.has_security_guard && (
                 <span className="px-2.5 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold border border-zinc-200 dark:border-zinc-700">
                   🛡️ Security Guard
@@ -873,7 +868,22 @@ export default function BookParking() {
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500 dark:text-zinc-400">Date</span>
-              <span className="font-bold text-zinc-900 dark:text-white">{successModal?.booking_date || bookingDate}</span>
+              <span className="font-bold text-zinc-900 dark:text-white">
+                {(() => {
+                  const dVal = successModal?.booking_date || bookingDate;
+                  try {
+                    const d = new Date(dVal);
+                    if (!isNaN(d.getTime())) {
+                      return d.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      });
+                    }
+                  } catch (_) {}
+                  return dVal;
+                })()}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-zinc-500 dark:text-zinc-400">

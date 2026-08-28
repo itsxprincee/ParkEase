@@ -10,30 +10,37 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiArrowRight,
-  FiZap,
   FiShield,
   FiTruck,
   FiLayers,
+  FiZap,
+  FiStar,
+  FiClock,
+  FiRadio,
 } from "react-icons/fi";
 import API from "../api/axios";
 import Button from "../components/Button";
 
-// ── Toast ────────────────────────────────────────────────────────────────────
+// ── Toast Notification ────────────────────────────────────────────────────────
 function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
       <div
-        className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] border text-sm font-semibold ${
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
           toast.type === "error"
-            ? "bg-white text-[#e11900] border-[#fca5a5]"
-            : "bg-white text-[#05944f] border-[#86efac]"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
         }`}
       >
         {toast.type === "error" ? (
-          <FiAlertCircle className="w-4 h-4 shrink-0" />
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
         ) : (
-          <FiCheckCircle className="w-4 h-4 shrink-0" />
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
         )}
         <span>{toast.message}</span>
       </div>
@@ -41,16 +48,16 @@ function Toast({ toast }) {
   );
 }
 
-// ── Input Field ───────────────────────────────────────────────────────────────
+// ── Form Input Field ──────────────────────────────────────────────────────────
 function InputField({ label, icon: Icon, type = "text", value, onChange, placeholder, action }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-[#545454] uppercase tracking-wide">
+      <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
         {label}
       </label>
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none text-[#737373] z-10">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none text-zinc-400 z-10">
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -59,13 +66,13 @@ function InputField({ label, icon: Icon, type = "text", value, onChange, placeho
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`pe-input ${Icon ? "pe-input-icon-left" : ""} ${action ? "pe-input-icon-right" : ""}`}
+          className={`pe-input ${Icon ? "pe-input-icon-left" : ""} ${action ? "pe-input-icon-right" : ""} text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20`}
         />
         {action && (
           <button
             type="button"
             onClick={action.onClick}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] hover:text-[#0a0a0a] transition-colors z-10"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors z-10 cursor-pointer"
           >
             {action.icon}
           </button>
@@ -75,7 +82,7 @@ function InputField({ label, icon: Icon, type = "text", value, onChange, placeho
   );
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Login & Auth Page ───────────────────────────────────────────────────
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -115,7 +122,6 @@ export default function Login() {
   }, [searchParams]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!signInEmail || !signInPassword) {
@@ -137,7 +143,7 @@ export default function Login() {
         if (userRole === "admin") navigate("/admin", { replace: true });
         else if (userRole === "owner") navigate("/owner", { replace: true });
         else navigate("/customer/dashboard", { replace: true });
-      }, 400);
+      }, 500);
     } catch (error) {
       showToast(error?.response?.data?.detail || "Invalid email or password.", "error");
     } finally {
@@ -148,22 +154,18 @@ export default function Login() {
   const handleRequestOTP = async (e) => {
     e.preventDefault();
     if (!name || !signUpEmail || !signUpPassword) {
-      return showToast("Please fill all required fields.", "error");
+      return showToast("Please complete all registration fields.", "error");
     }
     if (signUpPassword.length < 6) {
       return showToast("Password must be at least 6 characters.", "error");
     }
     try {
       setLoading(true);
-      await API.post("/auth/send-otp", {
-        name,
-        email: signUpEmail,
-        role,
-      });
-      showToast("Verification code generated!", "success");
+      await API.post("/auth/send-otp", { email: signUpEmail });
       setStep(2);
+      showToast("Verification OTP sent to your email!", "success");
     } catch (error) {
-      showToast(error?.response?.data?.detail || "Failed to send OTP. Try again.", "error");
+      showToast(error?.response?.data?.detail || "Failed to send verification code.", "error");
     } finally {
       setLoading(false);
     }
@@ -171,6 +173,7 @@ export default function Login() {
 
   const handleConfirmSignUp = async (e) => {
     e.preventDefault();
+    if (!otp) return showToast("Enter the 6-digit verification code.", "error");
     try {
       setLoading(true);
       const res = await API.post("/auth/register", {
@@ -178,19 +181,19 @@ export default function Login() {
         email: signUpEmail,
         password: signUpPassword,
         role,
-        otp: otp || "123456",
+        otp,
       });
       const token = res.data?.token || res.data?.access_token;
       const user = res.data?.user || res.data;
       if (token) localStorage.setItem("token", token);
       if (user) localStorage.setItem("user", JSON.stringify(user));
       showToast("Account created successfully!", "success");
-      const userRole = (user?.role || role).toLowerCase();
+      const userRole = role?.toLowerCase();
       setTimeout(() => {
         if (userRole === "admin") navigate("/admin", { replace: true });
         else if (userRole === "owner") navigate("/owner", { replace: true });
         else navigate("/customer/dashboard", { replace: true });
-      }, 400);
+      }, 600);
     } catch (error) {
       showToast(error?.response?.data?.detail || "Registration failed.", "error");
     } finally {
@@ -220,106 +223,125 @@ export default function Login() {
     setForgotSent(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-slate-50/80 dark:bg-[#08080c] transition-colors relative selection:bg-emerald-500 selection:text-white">
       <Toast toast={toast} />
 
-      {/* ── LEFT PANEL ── */}
-      <div className="hidden lg:flex w-[480px] xl:w-[540px] shrink-0 bg-[#0a0a0a] text-white flex-col relative overflow-hidden">
-        {/* Background grid */}
+      {/* ── LEFT HERO PANEL ── */}
+      <div className="hidden lg:flex w-[480px] xl:w-[540px] shrink-0 bg-[#090b10] text-white flex-col relative overflow-hidden border-r border-zinc-800">
+        {/* Subtle grid background */}
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
               "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
+            backgroundSize: "36px 36px",
           }}
         />
 
-        {/* Gradient orbs */}
-        <div className="absolute top-1/4 -left-16 w-64 h-64 rounded-full bg-[#276ef1]/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-0 w-48 h-48 rounded-full bg-[#05944f]/15 blur-3xl pointer-events-none" />
+        {/* Ambient Gradient Glows */}
+        <div className="absolute top-1/4 -left-16 w-80 h-80 rounded-full bg-blue-600/20 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-0 w-80 h-80 rounded-full bg-emerald-500/20 blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col h-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
-              <FiMapPin className="w-5 h-5 text-[#0a0a0a]" />
+            <div className="w-11 h-11 rounded-2xl bg-white text-zinc-950 flex items-center justify-center font-black shadow-xl">
+              <span className="font-mono text-base">PE</span>
             </div>
-            <span className="text-2xl font-black tracking-tight">
-              Park<span className="text-[#3a3a3a] font-light">Ease</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black tracking-tight leading-none text-white">
+                ParkEase
+              </span>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 mt-0.5">
+                Smart Mobility Network
+              </span>
+            </div>
           </div>
 
           {/* Hero copy */}
-          <div className="mt-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping" />
-              <span className="text-xs font-semibold text-[#a0a0a0] tracking-wide">
-                Smart Parking Platform
+          <div className="mt-auto mb-10 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-zinc-700/80">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-xs font-black text-zinc-300 tracking-wide uppercase">
+                Zero Friction Parking
               </span>
             </div>
 
-            <h2 className="text-4xl xl:text-5xl font-black tracking-tight leading-[1.1] mb-4">
+            <h2 className="text-4xl xl:text-5xl font-black tracking-tight leading-[1.1]">
               Drive in.
               <br />
-              Park instantly.
+              <span className="text-emerald-400">Park instantly.</span>
               <br />
-              <span className="text-[#3a3a3a]">Go.</span>
+              Go hassle-free.
             </h2>
 
-            <p className="text-[#737373] text-sm leading-relaxed max-w-sm">
-              Reserve your spot in advance with digital QR passes, live slot tracking, and automated gate access — all from your phone.
+            <p className="text-zinc-400 text-sm leading-relaxed max-w-sm">
+              Reserve verified parking spots with encrypted QR passes, real-time floorplan maps, and automated barrier scans.
             </p>
 
-            {/* Feature list */}
-            <div className="mt-8 space-y-3">
+            {/* Feature Highlights */}
+            <div className="space-y-3 pt-2">
               {[
-                { icon: FiZap, text: "Instant QR pass generation" },
-                { icon: FiShield, text: "Verified & secure facilities" },
-                { icon: FiTruck, text: "Multi-vehicle management" },
-                { icon: FiLayers, text: "Real-time slot availability" },
+                { icon: FiZap, text: "Instant 1-tap QR gate access" },
+                { icon: FiShield, text: "CCTV & Security verified parking hubs" },
+                { icon: FiTruck, text: "Multi-vehicle & license plate memory" },
+                { icon: FiLayers, text: "Live 2D floorplan availability tracker" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-[#1a1a1a] flex items-center justify-center shrink-0">
-                    <Icon className="w-3.5 h-3.5 text-[#05944f]" />
+                  <div className="w-7 h-7 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+                    <Icon className="w-3.5 h-3.5 text-emerald-400" />
                   </div>
-                  <span className="text-sm text-[#a0a0a0] font-medium">{text}</span>
+                  <span className="text-xs text-zinc-300 font-bold">{text}</span>
                 </div>
               ))}
             </div>
+
+            {/* Verified metric chip */}
+            <div className="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between">
+              <div>
+                <p className="text-lg font-black text-white font-mono">99.8%</p>
+                <p className="text-[10px] text-zinc-400 uppercase font-bold">Slot Accuracy</p>
+              </div>
+              <div className="h-8 w-px bg-zinc-800" />
+              <div>
+                <p className="text-lg font-black text-emerald-400 font-mono">&lt; 12s</p>
+                <p className="text-[10px] text-zinc-400 uppercase font-bold">Barrier Clearance</p>
+              </div>
+              <div className="h-8 w-px bg-zinc-800" />
+              <div>
+                <p className="text-lg font-black text-white font-mono">4.9 ★</p>
+                <p className="text-[10px] text-zinc-400 uppercase font-bold">Driver Rating</p>
+              </div>
+            </div>
           </div>
 
-          {/* Footer */}
-          <p className="text-xs text-[#3a3a3a]">© 2026 ParkEase · All rights reserved</p>
+          <p className="text-xs text-zinc-600 font-medium">© 2026 ParkEase Technologies · All rights reserved</p>
         </div>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-slate-50/80 dark:bg-[#0a0a0f] transition-colors relative selection:bg-emerald-500 selection:text-white">
-        <div className="w-full max-w-md bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-black font-black">
-              <FiMapPin className="w-4 h-4" />
+      {/* ── RIGHT AUTH FORM CARD ── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 transition-colors relative">
+        <div className="w-full max-w-md bg-white/95 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-7 sm:p-9 shadow-2xl space-y-6">
+          {/* Mobile Logo */}
+          <div className="flex items-center gap-2.5 mb-6 lg:hidden">
+            <div className="w-9 h-9 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black">
+              <span className="font-mono text-sm">PE</span>
             </div>
             <span className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
               Park<span className="text-emerald-500 font-light">Ease</span>
             </span>
           </div>
 
-          {/* ── SIGN IN ── */}
+          {/* ── SIGN IN MODE ── */}
           {mode === "signin" && (
             <div className="animate-fade-in space-y-6">
               <div>
-                <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
                   Welcome back
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-                  Sign in to your ParkEase account
+                  Sign in to manage your parking passes and reservations
                 </p>
               </div>
 
@@ -330,7 +352,7 @@ export default function Login() {
                   type="email"
                   value={signInEmail}
                   onChange={(e) => setSignInEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="driver@parkease.io"
                 />
                 <InputField
                   label="Password"
@@ -356,14 +378,14 @@ export default function Login() {
                 </div>
 
                 <Button type="submit" fullWidth size="lg" variant="primary" loading={loading} iconRight={FiArrowRight}>
-                  Sign In
+                  Sign In to Account
                 </Button>
               </form>
 
-              {/* 1-Tap Quick Demo Logins */}
+              {/* 1-Tap Quick Demo Personas */}
               <div className="pt-5 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 text-center">
-                  1-Tap Instant Demo Access
+                <p className="text-[10px] font-black uppercase tracking-wider text-zinc-400 text-center">
+                  Instant Demo Persona Switcher
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <button
@@ -372,13 +394,13 @@ export default function Login() {
                       setSignInEmail("customer@parkease.io");
                       setSignInPassword("password123");
                     }}
-                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200/90 dark:border-zinc-700/90 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
+                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
                   >
                     <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
                       <FiTruck className="w-3.5 h-3.5 text-sky-500" />
                       <span>Driver</span>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">customer@</p>
+                    <p className="text-[9px] text-zinc-400 mt-0.5 truncate">customer@</p>
                   </button>
 
                   <button
@@ -387,13 +409,13 @@ export default function Login() {
                       setSignInEmail("owner@parkease.io");
                       setSignInPassword("password123");
                     }}
-                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200/90 dark:border-zinc-700/90 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
+                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
                   >
                     <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
                       <FiLayers className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Owner</span>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">owner@</p>
+                    <p className="text-[9px] text-zinc-400 mt-0.5 truncate">owner@</p>
                   </button>
 
                   <button
@@ -402,40 +424,40 @@ export default function Login() {
                       setSignInEmail("admin@parkease.io");
                       setSignInPassword("password123");
                     }}
-                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200/90 dark:border-zinc-700/90 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
+                    className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 hover:border-emerald-500 hover:bg-emerald-500/10 text-left transition-all active:scale-95 group cursor-pointer shadow-xs"
                   >
                     <div className="flex items-center gap-1.5 text-zinc-900 dark:text-white font-bold text-xs">
                       <FiShield className="w-3.5 h-3.5 text-purple-500" />
                       <span>Admin</span>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-0.5 truncate">admin@</p>
+                    <p className="text-[9px] text-zinc-400 mt-0.5 truncate">admin@</p>
                   </button>
                 </div>
               </div>
 
               <p className="text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                Don't have an account?{" "}
+                New to ParkEase?{" "}
                 <button
                   onClick={() => switchMode("signup")}
-                  className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                  className="text-emerald-600 dark:text-emerald-400 font-black hover:underline cursor-pointer"
                 >
-                  Create account
+                  Create free account
                 </button>
               </p>
             </div>
           )}
 
-          {/* ── SIGN UP ── */}
+          {/* ── SIGN UP MODE ── */}
           {mode === "signup" && (
             <div className="animate-fade-in space-y-6">
               <div>
-                <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-                  {step === 1 ? "Create account" : "Verify email"}
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                  {step === 1 ? "Create account" : "Verify Email OTP"}
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
                   {step === 1
-                    ? "Join ParkEase and start parking smarter"
-                    : `We sent a code to ${signUpEmail}`}
+                    ? "Join thousands of drivers finding seamless parking"
+                    : `Enter the 6-digit code sent to ${signUpEmail}`}
                 </p>
               </div>
 
@@ -446,18 +468,18 @@ export default function Login() {
                     icon={FiUser}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Your full name"
+                    placeholder="e.g. Rahul Sharma"
                   />
 
-                  {/* Role selector */}
+                  {/* Role Switcher */}
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                      I'm registering as
+                      I want to
                     </label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
-                        { value: "customer", label: "Driver", icon: FiTruck, desc: "Find & book parking" },
-                        { value: "owner", label: "Owner", icon: FiLayers, desc: "List my parking spot" },
+                        { value: "customer", label: "Driver", icon: FiTruck, desc: "Find & reserve spots" },
+                        { value: "owner", label: "Facility Owner", icon: FiLayers, desc: "List & monetize space" },
                       ].map((opt) => (
                         <button
                           key={opt.value}
@@ -465,15 +487,13 @@ export default function Login() {
                           onClick={() => setRole(opt.value)}
                           className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                             role === opt.value
-                              ? "border-emerald-500 bg-emerald-500/10 text-zinc-900 dark:text-white font-bold"
+                              ? "border-emerald-500 bg-emerald-500/10 text-zinc-900 dark:text-white font-black"
                               : "border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400"
                           }`}
                         >
-                          <opt.icon className="w-4 h-4 mb-1.5 text-emerald-500" />
+                          <opt.icon className="w-4 h-4 mb-1 text-emerald-500" />
                           <p className="text-xs font-black">{opt.label}</p>
-                          <p className="text-[10px] text-zinc-400 mt-0.5">
-                            {opt.desc}
-                          </p>
+                          <p className="text-[10px] text-zinc-400">{opt.desc}</p>
                         </button>
                       ))}
                     </div>
@@ -493,7 +513,7 @@ export default function Login() {
                     type={showSignUpPw ? "text" : "password"}
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder="Minimum 6 characters"
                     action={{
                       icon: showSignUpPw ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />,
                       onClick: () => setShowSignUpPw(!showSignUpPw),
@@ -501,7 +521,7 @@ export default function Login() {
                   />
 
                   <Button type="submit" fullWidth size="lg" variant="primary" loading={loading} iconRight={FiArrowRight}>
-                    Send Verification Code
+                    Continue & Verify OTP
                   </Button>
                 </form>
               )}
@@ -510,20 +530,20 @@ export default function Login() {
                 <form onSubmit={handleConfirmSignUp} className="space-y-4">
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                      Verification Code
+                      6-Digit Security Code
                     </label>
                     <input
                       type="text"
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter 6-digit code"
+                      placeholder="123456"
                       maxLength={6}
-                      className="pe-input text-center text-xl font-black font-mono tracking-[0.3em] bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl w-full"
+                      className="pe-input text-center text-2xl font-black font-mono tracking-[0.35em] bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl w-full"
                     />
                   </div>
 
                   <Button type="submit" fullWidth size="lg" variant="primary" loading={loading}>
-                    Create Account
+                    Confirm & Sign In
                   </Button>
 
                   <button
@@ -531,16 +551,16 @@ export default function Login() {
                     onClick={() => setStep(1)}
                     className="w-full text-xs text-zinc-400 hover:text-zinc-900 dark:hover:text-white font-bold transition-colors text-center cursor-pointer"
                   >
-                    ← Back to details
+                    ← Edit details
                   </button>
                 </form>
               )}
 
               <p className="text-center text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-                Already have an account?{" "}
+                Already registered?{" "}
                 <button
                   onClick={() => switchMode("signin")}
-                  className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                  className="text-emerald-600 dark:text-emerald-400 font-black hover:underline cursor-pointer"
                 >
                   Sign in
                 </button>
@@ -548,22 +568,22 @@ export default function Login() {
             </div>
           )}
 
-          {/* ── FORGOT PASSWORD ── */}
+          {/* ── FORGOT PASSWORD MODE ── */}
           {mode === "forgot" && (
             <div className="animate-fade-in space-y-6">
               <div>
-                <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-                  Reset password
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                  Reset Password
                 </h1>
                 <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-                  We'll email you a link to reset your password
+                  We'll generate a secure password reset link for your account
                 </p>
               </div>
 
               {!forgotSent ? (
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <InputField
-                    label="Email Address"
+                    label="Registered Email Address"
                     icon={FiMail}
                     type="email"
                     value={forgotEmail}
@@ -580,9 +600,9 @@ export default function Login() {
                     <FiCheckCircle className="w-7 h-7 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="font-black text-zinc-900 dark:text-white">Check your inbox</p>
+                    <p className="font-black text-zinc-900 dark:text-white">Reset link generated</p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                      We sent a reset link to <strong>{forgotEmail}</strong>
+                      Check inbox at <strong>{forgotEmail}</strong>
                     </p>
                   </div>
                 </div>

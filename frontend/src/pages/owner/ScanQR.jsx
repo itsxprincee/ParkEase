@@ -122,32 +122,87 @@ export default function ScanQR() {
   }, []);
 
   const handleDecodedData = async (rawString) => {
-    let bookingId = rawString;
+    if (!rawString) return;
+    let extractedId = null;
+    let qrPayload = null;
+
     try {
       const parsed = JSON.parse(rawString);
-      if (parsed.booking_id) bookingId = parsed.booking_id;
-    } catch (_) {}
-    verifyBookingId(bookingId);
+      if (parsed.booking_id) {
+        extractedId = parsed.booking_id;
+        qrPayload = parsed;
+      } else if (parsed.id) {
+        extractedId = parsed.id;
+        qrPayload = parsed;
+      }
+    } catch (_) {
+      // Plain text or manual string
+    }
+
+    if (!extractedId) {
+      const match = String(rawString).match(/\b\d+\b/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        // Exclude timestamp millisecond strings (> 100 million)
+        if (num < 100000000) {
+          extractedId = num;
+        }
+      }
+    }
+
+    if (!extractedId || isNaN(Number(extractedId))) {
+      playChime("error");
+      showToast("Invalid QR code: Not a valid ParkEase booking pass.", "error");
+      return;
+    }
+
+    verifyBookingId(Number(extractedId), qrPayload);
   };
 
-  const verifyBookingId = async (idToVerify) => {
-    if (!idToVerify) return;
+  const verifyBookingId = async (idToVerify, payload = null) => {
+    const numericId = parseInt(String(idToVerify).replace(/\D/g, ""), 10);
+    if (!numericId || isNaN(numericId) || numericId > 100000000) {
+      playChime("error");
+      return showToast("Please enter a valid booking number (e.g. 101, 102).", "error");
+    }
+
     try {
       setLoading(true);
-      const res = await API.get(`/booking/verify/${idToVerify}`);
+
+      // Try /qr/verify if payload is available
+      if (payload && payload.type === "PARKEASE_BOOKING") {
+        try {
+          const qrRes = await API.post("/qr/verify", {
+            type: "PARKEASE_BOOKING",
+            booking_id: numericId,
+            user_id: payload.user_id || null,
+            parking_location_id: payload.parking_location_id || null,
+            slot_id: payload.slot_id || null,
+          });
+          const data = qrRes.data?.booking || qrRes.data;
+          setVerifiedBooking(data);
+          playChime("success");
+          showToast("Pass verified successfully!", "success");
+          return;
+        } catch (_) {
+          // Fall back to /booking/verify/
+        }
+      }
+
+      const res = await API.get(`/booking/verify/${numericId}`);
       const data = res.data?.booking || res.data;
       setVerifiedBooking(data);
       playChime("success");
       showToast("Pass verified successfully!", "success");
     } catch (_) {
       try {
-        const res = await API.get(`/booking/${idToVerify}`);
+        const res = await API.get(`/booking/${numericId}`);
         const data = res.data?.booking || res.data;
         setVerifiedBooking(data);
         playChime("success");
         showToast("Pass verified!", "success");
       } catch (e) {
-        showToast("Invalid or expired booking pass.", "error");
+        showToast("Booking pass not found or not active.", "error");
         playChime("error");
       }
     } finally {

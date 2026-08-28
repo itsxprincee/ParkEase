@@ -6,7 +6,6 @@ import {
   FiTrash2,
   FiCheckCircle,
   FiAlertCircle,
-  FiZap,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -20,9 +19,23 @@ function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
-        {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
-        {toast.message}
+      <div
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+          toast.type === "error"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+        }`}
+      >
+        {toast.type === "error" ? (
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
+        )}
+        <span>{toast.message}</span>
       </div>
     </div>
   );
@@ -113,7 +126,6 @@ export default function MyVehicles() {
 
   const getVehicleIcon = (v) => {
     const type = v.vehicle_type?.toLowerCase();
-    if (type === "ev" || v.vehicle_name?.toLowerCase().includes("ev") || v.vehicle_name?.toLowerCase().includes("tesla")) return "⚡";
     if (type === "bike") return "🛵";
     return "🚗";
   };
@@ -130,8 +142,8 @@ export default function MyVehicles() {
               <span>SAVED VEHICLES</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">My Vehicles</h1>
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} saved for quick 1-tap booking
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
+              {vehicles.length} vehicle{vehicles.length !== 1 ? "s" : ""} saved for fast pass generation
             </p>
           </div>
           <Button icon={FiPlus} variant="primary" onClick={handleOpenAdd}>Add Vehicle</Button>
@@ -145,14 +157,13 @@ export default function MyVehicles() {
           <EmptyState
             icon={FiTruck}
             title="No vehicles saved"
-            description="Add your car, bike, or EV for instant booking without typing your plate number each time."
+            description="Add your car or bike for instant spot reservation without typing your license plate each time."
             actionLabel="Add Your Vehicle"
             onAction={handleOpenAdd}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {vehicles.map((v) => {
-              const isEV = v.vehicle_type?.toLowerCase() === "ev" || v.vehicle_name?.toLowerCase().includes("ev");
               const isBike = v.vehicle_type?.toLowerCase() === "bike";
 
               return (
@@ -162,12 +173,12 @@ export default function MyVehicles() {
                 >
                   {/* Top */}
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${isEV ? "bg-amber-500/15 border border-amber-500/30" : isBike ? "bg-purple-500/15 border border-purple-500/30" : "bg-emerald-500/15 border border-emerald-500/30"}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${isBike ? "bg-amber-500/15 border border-amber-500/30" : "bg-blue-500/15 border border-blue-500/30"}`}>
                       {getVehicleIcon(v)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant={isEV ? "warning" : isBike ? "purple" : "success"} size="sm">
+                        <Badge variant={isBike ? "warning" : "info"} size="sm">
                           {v.vehicle_type || "Car"}
                         </Badge>
                       </div>

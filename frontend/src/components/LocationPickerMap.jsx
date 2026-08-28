@@ -135,8 +135,16 @@ export default function LocationPickerMap({
     <div className={`space-y-3 ${className}`}>
       {/* Search and Quick Controls Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-        <form onSubmit={handleSearchAddress} className="flex-1 relative flex items-center">
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-[#737373] pointer-events-none z-10">
+        <div
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSearchAddress(e);
+            }
+          }}
+          className="flex-1 relative flex items-center"
+        >
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
             <FiSearch className="w-4 h-4" />
           </div>
           <input
@@ -144,16 +152,17 @@ export default function LocationPickerMap({
             placeholder="Search landmark, mall, metro station, or address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pe-input pe-input-icon-left text-xs pr-24"
+            className="pe-input pe-input-icon-left text-xs pr-24 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700"
           />
           <button
-            type="submit"
+            type="button"
+            onClick={handleSearchAddress}
             disabled={isSearching || !searchQuery.trim()}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-[#0a0a0a] hover:bg-[#262626] disabled:opacity-40 text-white text-[11px] font-bold transition-colors z-10"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl bg-zinc-950 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-40 text-white dark:text-zinc-950 text-[11px] font-bold transition-colors z-10 cursor-pointer shadow-xs"
           >
             {isSearching ? "Searching..." : "Find on Map"}
           </button>
-        </form>
+        </div>
 
         <button
           type="button"

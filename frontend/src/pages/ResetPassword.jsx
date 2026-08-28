@@ -17,13 +17,21 @@ function Toast({ toast }) {
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
       <div
-        className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] border text-sm font-semibold ${
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
           toast.type === "error"
-            ? "bg-white text-[#e11900] border-[#fca5a5]"
-            : "bg-white text-[#05944f] border-[#86efac]"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
         }`}
       >
-        {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
+        {toast.type === "error" ? (
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
+        )}
         <span>{toast.message}</span>
       </div>
     </div>

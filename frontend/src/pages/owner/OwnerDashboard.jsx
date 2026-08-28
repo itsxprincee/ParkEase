@@ -991,7 +991,6 @@ export default function OwnerDashboard() {
                   { id: "ALL", label: "All Vehicles", count: liveBookings.length },
                   { id: "INSIDE", label: "Parked Now", count: enteredCount, dotColor: "bg-emerald-500" },
                   { id: "BOOKED", label: "Arriving Soon", count: bookedCount, dotColor: "bg-sky-500" },
-                  { id: "EV", label: "⚡ EV Charging", dotColor: "bg-cyan-500" },
                   { id: "EXITED", label: "Checked Out", count: null, dotColor: "bg-zinc-400" },
                 ].map((chip) => (
                   <button
@@ -1092,23 +1091,6 @@ export default function OwnerDashboard() {
                               <span className="text-xs text-zinc-400 font-medium">
                                 • {b.vehicle_type || "Car"}
                               </span>
-
-                              {/* Special Service Badges */}
-                              {isEV && (
-                                <button
-                                  type="button"
-                                  onClick={() => openServiceManager(b)}
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black border transition-transform hover:scale-105 cursor-pointer ${
-                                    isFullEV
-                                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                                      : "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30 animate-pulse"
-                                  }`}
-                                  title="Manage EV Charging"
-                                >
-                                  <FiZap className="w-3 h-3 text-cyan-400" />
-                                  <span>{isFullEV ? "EV Full 100%" : `EV ${evPct}% Charging`}</span>
-                                </button>
-                              )}
                             </div>
 
                             <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
@@ -1126,16 +1108,6 @@ export default function OwnerDashboard() {
 
                         {/* Status + Actions */}
                         <div className="flex items-center gap-2.5 self-end md:self-center shrink-0 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => openServiceManager(b)}
-                            className="p-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-xs"
-                            title="Manage EV Charging & Services"
-                          >
-                            <FiZap className="w-3.5 h-3.5 text-cyan-500" />
-                            <span>Services</span>
-                          </button>
-
                           {isEntered && (
                             <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/25 shadow-xs">
                               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -1711,112 +1683,6 @@ export default function OwnerDashboard() {
           )}
         </div>
       </main>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          FEATURE #5: EV CHARGING & SERVICES MODAL
-      ══════════════════════════════════════════════════════════════════ */}
-      {serviceModal.open && serviceModal.booking && (
-        <Modal
-          isOpen={serviceModal.open}
-          onClose={() => setServiceModal((prev) => ({ ...prev, open: false, booking: null }))}
-          title={`Services • Spot ${serviceModal.booking.slot_number}`}
-          maxWidth="max-w-md"
-        >
-          <div className="space-y-5 p-2">
-            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black text-zinc-400 uppercase">Vehicle Number</span>
-                <div className="license-plate text-xs font-black mt-1">
-                  <span className="license-plate-ind">IND</span>
-                  <span>{serviceModal.booking.vehicle_number}</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase">Driver</span>
-                <p className="text-xs font-black text-zinc-900 dark:text-white">
-                  {serviceModal.booking.customer_name}
-                </p>
-              </div>
-            </div>
-
-            {/* EV Fast Charging Control */}
-            <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FiZap className="w-4 h-4 text-cyan-500" />
-                  <span className="text-xs font-black text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
-                    EV Charging
-                  </span>
-                </div>
-                <span className="text-xs font-mono font-black text-cyan-600 dark:text-cyan-400">
-                  {serviceModal.evPercentage}%
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={serviceModal.evPercentage}
-                  onChange={(e) =>
-                    setServiceModal((prev) => ({
-                      ...prev,
-                      evPercentage: parseInt(e.target.value, 10),
-                      evStatus: parseInt(e.target.value, 10) >= 100 ? "FULL" : "CHARGING",
-                    }))
-                  }
-                  className="w-full accent-cyan-500 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-zinc-400 font-mono">
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100% Full</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                {[
-                  { id: "CHARGING", label: "⚡ Charging" },
-                  { id: "FULL", label: "🟢 Full" },
-                  { id: "OFF", label: "🔌 Unplugged" },
-                ].map((st) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() =>
-                      setServiceModal((prev) => ({
-                        ...prev,
-                        evStatus: st.id,
-                        evPercentage: st.id === "FULL" ? 100 : st.id === "OFF" ? 0 : 75,
-                      }))
-                    }
-                    className={`py-2 px-1 text-[11px] font-bold rounded-xl border transition-all cursor-pointer ${
-                      serviceModal.evStatus === st.id
-                        ? "bg-cyan-500 text-black border-cyan-500 shadow-xs"
-                        : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-              <Button
-                variant="outline"
-                onClick={() => setServiceModal((prev) => ({ ...prev, open: false, booking: null }))}
-              >
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={saveServiceUpdate}>
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
 
       {/* ─── DELETE LOCATION CONFIRMATION MODAL ─── */}
       <Modal

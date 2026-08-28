@@ -160,9 +160,9 @@ export default function ParkingMapView({
             : "bg-white text-zinc-900 border-zinc-200 hover:border-zinc-950 hover:bg-zinc-50"
         }">
           <div class="w-5 h-5 rounded-lg ${
-            parking.has_ev ? "bg-amber-400 text-zinc-950" : isSelected || isNearest ? "bg-zinc-800 text-white" : "bg-zinc-100 text-zinc-900"
+            isSelected || isNearest ? "bg-zinc-800 text-white" : "bg-zinc-100 text-zinc-900"
           } flex items-center justify-center text-xs font-black shrink-0">
-            ${parking.has_ev ? "⚡" : "🅿️"}
+            🅿️
           </div>
           <div class="flex flex-col leading-tight text-left">
             <span class="text-[11px] font-black tracking-tight whitespace-nowrap">${rateLabel}</span>
@@ -383,7 +383,7 @@ export default function ParkingMapView({
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 border border-zinc-200 dark:border-zinc-800 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center font-black text-2xl shrink-0">
-                {selectedParking.has_ev ? "⚡" : "🚗"}
+                🚗
               </div>
 
               <div>

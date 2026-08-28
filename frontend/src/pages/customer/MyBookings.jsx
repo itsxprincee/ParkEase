@@ -13,7 +13,6 @@ import {
   FiArrowRight,
   FiRefreshCw,
   FiShield,
-  FiZap,
   FiCompass,
   FiNavigation,
 } from "react-icons/fi";
@@ -60,6 +59,21 @@ const STATUS_VARIANT = {
   COMPLETED: "default",
   CANCELLED: "danger",
 };
+
+function formatPassDate(dateVal) {
+  if (!dateVal) return "Today";
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return String(dateVal).split("T")[0] || "Today";
+    return d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch (_) {
+    return String(dateVal).split("T")[0] || "Today";
+  }
+}
 
 export default function MyBookings() {
   const navigate = useNavigate();
@@ -344,8 +358,8 @@ export default function MyBookings() {
                     <div className="grid grid-cols-3 gap-2 p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/70">
                       <div>
                         <p className="text-[10px] text-zinc-400 font-bold uppercase mb-0.5">Date</p>
-                        <p className="text-xs font-black text-zinc-900 dark:text-white font-mono">
-                          {b.booking_date || "Today"}
+                        <p className="text-xs font-black text-zinc-900 dark:text-white">
+                          {formatPassDate(b.booking_date)}
                         </p>
                       </div>
                       <div>
@@ -534,7 +548,7 @@ export default function MyBookings() {
                 { label: "Parking Location", value: invoiceModalBooking.parking_name || "Parking Spot" },
                 { label: "Spot Assigned", value: `Spot ${invoiceModalBooking.slot_number || "A-1"}` },
                 { label: "Vehicle", value: invoiceModalBooking.vehicle_number || "MH-01" },
-                { label: "Date", value: invoiceModalBooking.booking_date || "Today" },
+                { label: "Date", value: formatPassDate(invoiceModalBooking.booking_date) },
                 {
                   label: "Amount Paid",
                   value: `₹${

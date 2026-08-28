@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FiZap,
   FiCalendar,
   FiCheck,
   FiCheckCircle,
@@ -77,14 +76,14 @@ const COMMUTER_PLANS = [
     id: "MASTER_24_7",
     title: "24/7 Unlimited Master Pass",
     badge: "All-Access VIP Pass",
-    icon: "⚡",
+    icon: "👑",
     price: 2499,
     originalPrice: 3800,
     savePercent: "40% OFF",
     hours: "24/7 • 30 Days Round-the-Clock",
     features: [
       "24/7 Round-the-Clock Unrestricted Access",
-      "Priority EV Fast Charger Bay Allocation",
+      "Prime Covered Reserved Bay Allocation",
       "Dedicated Reserved Prime Bay with Plate Tag",
       "Priority Reserved Parking Guarantee",
     ],

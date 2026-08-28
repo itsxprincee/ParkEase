@@ -10,6 +10,12 @@ import {
   FiRefreshCw,
   FiNavigation,
   FiAlertCircle,
+  FiCalendar,
+  FiClock,
+  FiTruck,
+  FiShield,
+  FiShare2,
+  FiCompass,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -21,12 +27,44 @@ function Toast({ toast }) {
   if (!toast) return null;
   return (
     <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] border text-sm font-semibold ${toast.type === "error" ? "bg-white text-[#e11900] border-[#fca5a5]" : "bg-white text-[#05944f] border-[#86efac]"}`}>
-        {toast.type === "error" ? <FiAlertCircle className="w-4 h-4 shrink-0" /> : <FiCheckCircle className="w-4 h-4 shrink-0" />}
-        {toast.message}
+      <div
+        className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
+          toast.type === "error"
+            ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+            : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
+        }`}
+      >
+        {toast.type === "error" ? (
+          <div className="w-6 h-6 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+            <FiAlertCircle className="w-3.5 h-3.5" />
+          </div>
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center shrink-0">
+            <FiCheckCircle className="w-3.5 h-3.5" />
+          </div>
+        )}
+        <span>{toast.message}</span>
       </div>
     </div>
   );
+}
+
+// ── Date Formatter ────────────────────────────────────────────────────────────
+function formatPassDate(dateVal) {
+  if (!dateVal) return "Today";
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) {
+      return String(dateVal).split("T")[0] || "Today";
+    }
+    return d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch (_) {
+    return String(dateVal).split("T")[0] || "Today";
+  }
 }
 
 export default function QRCode() {
@@ -77,9 +115,24 @@ export default function QRCode() {
       link.href = url;
       link.download = `ParkEase-Pass-${booking?.id || "ticket"}.png`;
       link.click();
-      showToast("Pass QR downloaded!", "success");
+      showToast("Pass QR downloaded to device!", "success");
     } catch (_) {
       showToast("Download failed.", "error");
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `ParkEase Pass #${booking?.id} - Spot ${booking?.slot_number}`,
+          text: `My ParkEase reservation at ${booking?.parking_name}, Spot ${booking?.slot_number}.`,
+          url: window.location.href,
+        });
+      } catch (_) {}
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      showToast("Pass link copied to clipboard!", "success");
     }
   };
 
@@ -90,7 +143,7 @@ export default function QRCode() {
     parking_location_id: booking?.parking_location_id || booking?.parking_id,
     slot_id: booking?.slot_id,
     slot: booking?.slot_number,
-    vehicle: booking?.vehicle_number,
+    vehicle: booking?.vehicle_number || booking?.vehicle || "MH-01-AB-1234",
     facility: booking?.parking_name,
     date: booking?.booking_date,
     pass_type: booking?.pass_type || "HOURLY",
@@ -101,29 +154,41 @@ export default function QRCode() {
   const isDaily = booking?.pass_type === "DAILY_PASS";
   const isInside = booking?.is_inside;
   const statusUpper = String(booking?.status || "ACTIVE").toUpperCase();
+  const vehiclePlate = booking?.vehicle_number || booking?.vehicle || "MH-01-AB-1234";
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#08080c] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/customer/my-bookings")}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>My Bookings</span>
           </button>
-          <button
-            onClick={() => loadBooking(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer"
-          >
-            <FiRefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${refreshing ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer"
+              title="Share Pass"
+            >
+              <FiShare2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+            <button
+              onClick={() => loadBooking(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer"
+            >
+              <FiRefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${refreshing ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -135,50 +200,56 @@ export default function QRCode() {
             </div>
             <h3 className="text-lg font-black text-zinc-900 dark:text-white">No Active Pass Found</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-              You don't have an active booking. Book a parking spot to get your QR pass.
+              You don't have an active booking. Book a parking spot to get your instant QR pass.
             </p>
             <Button onClick={() => navigate("/customer/dashboard")} variant="primary">Find Parking</Button>
           </div>
         ) : (
-          /* DIGITAL PARKING PASS CARD */
-          <div id="printable-receipt" className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-2xl overflow-hidden">
+          /* ══════════════════════════════════════════════════════════════════
+             DIGITAL PARKING BOARDING PASS CARD (AIRLINE & WALLET STYLE)
+          ══════════════════════════════════════════════════════════════════ */
+          <div id="printable-receipt" className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-2xl overflow-hidden">
 
-            {/* Dark header */}
-            <div className="bg-gradient-to-r from-zinc-950 via-[#0d0d14] to-black text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800/80">
+            {/* Dark Brand Header */}
+            <div className="bg-gradient-to-r from-[#090b10] via-zinc-950 to-black text-white p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800">
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider border border-emerald-500/30">
                     {isDaily ? "🎟️ Full-Day Pass" : "⏱️ Hourly Parking"}
                   </span>
-                  <span className="text-xs text-zinc-400 font-mono font-bold">Pass #{booking.id}</span>
+                  <span className="text-xs text-zinc-400 font-mono font-black">Pass #{booking.id}</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  {booking.parking_name || "Parking Location"}
+                  {booking.parking_name || "ParkEase Hub"}
                 </h2>
-                <p className="text-xs text-zinc-400 flex items-center gap-1.5">
+                <p className="text-xs text-zinc-400 flex items-center gap-1.5 font-medium">
                   <FiMapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{booking.parking_address || "City Location"}</span>
+                  <span>{booking.parking_address || "City Center Location"}</span>
                 </p>
               </div>
-              <div className="text-left sm:text-right bg-white/10 sm:bg-transparent p-3 sm:p-0 rounded-2xl w-full sm:w-auto">
-                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">Assigned Spot</p>
-                <p className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">{booking.slot_number || "A-1"}</p>
+
+              {/* Assigned Spot Badge */}
+              <div className="text-left sm:text-right bg-zinc-900 sm:bg-transparent p-3 sm:p-0 rounded-2xl w-full sm:w-auto border border-zinc-800 sm:border-0">
+                <p className="text-[10px] text-zinc-400 uppercase tracking-widest font-black">Assigned Bay</p>
+                <p className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono tracking-tight">
+                  {booking.slot_number || "A-01"}
+                </p>
               </div>
             </div>
 
-            {/* Perforated divider */}
-            <div className="relative flex items-center justify-between px-6 py-2.5 bg-zinc-50 dark:bg-zinc-800/50 border-y border-dashed border-zinc-200 dark:border-zinc-700">
-              <div className="w-5 h-8 rounded-r-full bg-slate-50/80 dark:bg-[#0a0a0f] border-r border-t border-b border-zinc-200 dark:border-zinc-700 -ml-6 shadow-inner" />
+            {/* Perforated Ticket Notch Divider */}
+            <div className="relative flex items-center justify-between px-6 py-2.5 bg-zinc-50 dark:bg-zinc-800/40 border-y border-dashed border-zinc-200 dark:border-zinc-750">
+              <div className="w-5 h-8 rounded-r-full bg-slate-50/80 dark:bg-[#08080c] border-r border-t border-b border-zinc-200 dark:border-zinc-750 -ml-6 shadow-inner" />
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-400">
-                  Scan at Parking Gate
+                <span className="text-[10px] uppercase tracking-widest font-black text-zinc-500 dark:text-zinc-400">
+                  Scan at Automated Gate Barrier
                 </span>
               </div>
-              <div className="w-5 h-8 rounded-l-full bg-slate-50/80 dark:bg-[#0a0a0f] border-l border-t border-b border-zinc-200 dark:border-zinc-700 -mr-6 shadow-inner" />
+              <div className="w-5 h-8 rounded-l-full bg-slate-50/80 dark:bg-[#08080c] border-l border-t border-b border-zinc-200 dark:border-zinc-750 -mr-6 shadow-inner" />
             </div>
 
-            {/* Day Pass Alert */}
+            {/* Day Pass Alert Banner */}
             {isDaily && (
               <div className="mx-6 sm:mx-8 mt-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="space-y-0.5">
@@ -186,8 +257,8 @@ export default function QRCode() {
                     <FiCheckCircle className="w-4 h-4" />
                     Full-Day Pass Active (Entry #{booking.entry_count || 1})
                   </p>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    Drive in and out freely all day. Valid until final exit tonight.
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                    Unlimited daily entries & exits allowed using this QR pass.
                   </p>
                 </div>
                 <div className="px-3 py-1 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-500/30 text-xs font-black text-amber-600 dark:text-amber-400 shrink-0">
@@ -196,21 +267,21 @@ export default function QRCode() {
               </div>
             )}
 
-            {/* Ticket body */}
+            {/* Ticket Body */}
             <div className="p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-              {/* QR Code */}
+              {/* QR Code Container */}
               <div className="flex flex-col items-center space-y-3 shrink-0">
                 <div ref={qrRef} className="p-4 bg-white rounded-3xl border-2 border-zinc-900 dark:border-zinc-700 shadow-xl">
                   <QRCodeCanvas value={qrValue} size={180} level="H" includeMargin={false} />
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-bold">
+                <div className="flex items-center gap-1.5 text-xs font-black">
                   {statusUpper === "COMPLETED" ? (
                     <span className="text-zinc-500 flex items-center gap-1">
                       <FiCheckCircle className="w-3.5 h-3.5 text-emerald-500" /> Checked Out
                     </span>
                   ) : isInside ? (
                     <span className="text-emerald-500 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Currently Parked
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Vehicle Parked Inside
                     </span>
                   ) : (
                     <span className="text-sky-500 flex items-center gap-1">
@@ -220,41 +291,54 @@ export default function QRCode() {
                 </div>
               </div>
 
-              {/* Details + Actions */}
+              {/* Metadata Details & Actions */}
               <div className="flex-1 w-full space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Date</p>
-                    <p className="text-sm font-black font-mono text-zinc-900 dark:text-white">{booking.booking_date || "Today"}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                      Date
+                    </p>
+                    <p className="text-sm font-black text-zinc-900 dark:text-white">
+                      {formatPassDate(booking.booking_date)}
+                    </p>
                   </div>
+
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
                       {isDaily ? "Valid Until" : "Time Window"}
                     </p>
                     <p className="text-sm font-black text-zinc-900 dark:text-white truncate">
-                      {isDaily ? `Before ${booking.last_exit_rule || "11:00 PM"}` : `${booking.start_time || "10:00"} – ${booking.end_time || "12:00"}`}
+                      {isDaily
+                        ? `Before ${booking.last_exit_rule || "11:00 PM"}`
+                        : `${booking.start_time || "10:00 AM"} – ${booking.end_time || "12:00 PM"}`}
                     </p>
                   </div>
+
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Plan</p>
                     <p className="text-sm font-black text-zinc-900 dark:text-white">
                       {isDaily ? "Full-Day Pass" : `${booking.duration_hours || 2} Hours`}
                     </p>
                   </div>
+
                   <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80">
                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Total Paid</p>
-                    <p className="text-sm font-black font-mono text-emerald-600 dark:text-emerald-400">₹{booking.amount || booking.total_amount || 15}</p>
+                    <p className="text-sm font-black font-mono text-emerald-600 dark:text-emerald-400">
+                      ₹{booking.amount || booking.total_amount || 40}
+                    </p>
                   </div>
                 </div>
 
-                {/* Vehicle plate */}
+                {/* Vehicle License Plate Display */}
                 <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Vehicle Number</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                      Registered Vehicle
+                    </p>
                     <div className="license-plate text-xs shrink-0 shadow-xs inline-flex">
                       <span className="license-plate-ind">IND</span>
                       <span className="font-mono font-black tracking-wider">
-                        {booking.vehicle_number || "MH-01-AB-1234"}
+                        {vehiclePlate}
                       </span>
                     </div>
                   </div>
@@ -263,7 +347,7 @@ export default function QRCode() {
                   </Badge>
                 </div>
 
-                {/* Actions */}
+                {/* Action Buttons */}
                 <div className="space-y-2 pt-2">
                   <button
                     onClick={() => {
@@ -281,14 +365,14 @@ export default function QRCode() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={handleDownloadQR}
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
                     >
                       <FiDownload className="w-3.5 h-3.5" />
-                      <span>Save QR Image</span>
+                      <span>Save QR Pass</span>
                     </button>
                     <button
                       onClick={() => window.print()}
-                      className="flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
                     >
                       <FiPrinter className="w-3.5 h-3.5" />
                       <span>Print Receipt</span>

@@ -142,11 +142,6 @@ export default function OwnerParkingDetails() {
                         🛡️ Security Guard
                       </span>
                     )}
-                    {parking.has_ev && (
-                      <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold border border-amber-500/20">
-                        ⚡ EV Charging
-                      </span>
-                    )}
                     {parking.has_covered_roof && (
                       <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-bold border border-purple-500/20">
                         🏢 Covered Roof

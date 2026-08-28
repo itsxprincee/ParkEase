@@ -291,7 +291,7 @@ export default function ManageSlots() {
               {parking?.name || "Parking Spots Grid"}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-              {parking?.address || "Manage real-time parking spot statuses and EV charging."}
+              {parking?.address || "Manage real-time parking spot statuses."}
             </p>
           </div>
 

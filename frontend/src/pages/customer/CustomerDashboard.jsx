@@ -337,20 +337,15 @@ export default function CustomerDashboard() {
       return 0;
     });
 
-  const filters = [
+  const allFilters = [
     { id: "ALL", label: "🌟 All Hubs" },
     { id: "CAR", label: "🚗 Cars" },
     { id: "BIKE", label: "🛵 Bikes" },
-    { id: "NEARBY", label: "📍 Near Me" },
+    { id: "EV", label: "⚡ EV Charging", query: "EV" },
+    { id: "AIRPORT", label: "✈️ Airports", query: "Airport" },
+    { id: "MALL", label: "🛍️ Malls", query: "Mall" },
+    { id: "TECH", label: "🏢 Tech Parks", query: "Tech" },
     { id: "DAILY_PASS", label: "🎟️ Daily Pass" },
-    { id: "FREE", label: "🆓 Free" },
-  ];
-
-  const destinationShortcuts = [
-    { label: "✈️ Airport Hubs", query: "Airport" },
-    { label: "🛍️ Shopping Mall", query: "Mall" },
-    { label: "🏢 Tech Parks", query: "Tech" },
-    { label: "🚆 Metro Station", query: "Station" },
   ];
 
   return (
@@ -358,160 +353,124 @@ export default function CustomerDashboard() {
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-5">
 
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO COMMAND HUB & LIVE PASS WIDGET
+            PREMIUM UBER-GRADE "FIND PARKING" COMMAND HUB
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#090b10] text-white p-6 sm:p-8 shadow-2xl border border-zinc-800">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-3 max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700/80">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>REAL-TIME SPOT ALLOCATION</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                Where are you heading, {getUserName().split(" ")[0]}?
-              </h1>
-              <p className="text-zinc-400 text-xs sm:text-sm font-medium">
-                Reserve parking spots with live 2D floorplan visualizers and encrypted gate QR passes.
-              </p>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-zinc-900 to-zinc-950 text-white p-6 sm:p-8 shadow-2xl border border-zinc-800 space-y-5">
+          {/* Subtle Ambient Emerald Accent */}
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/70 to-transparent" />
 
-              {/* Quick Destination Shortcut Tags */}
-              <div className="flex items-center gap-2 flex-wrap pt-1">
-                {destinationShortcuts.map((tag) => (
-                  <button
-                    key={tag.label}
-                    onClick={() => setSearch(tag.query)}
-                    className="px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-white transition-all active:scale-95 cursor-pointer"
-                  >
-                    {tag.label}
-                  </button>
-                ))}
+          {/* Header Bar */}
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-black tracking-wide border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>LIVE PARKING NETWORK • 99.8% AVAILABILITY</span>
               </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Where would you like to park?
+              </h1>
             </div>
 
-            {/* Active Pass Widget */}
-            {latestActive && (
-              <div className="shrink-0 p-5 rounded-3xl bg-zinc-900/95 border border-emerald-500/40 shadow-2xl flex items-center justify-between gap-4 max-w-md text-white backdrop-blur-md">
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span>ACTIVE RESERVATION</span>
-                  </div>
-                  <p className="text-sm font-black text-white truncate">
-                    {latestActive.parking_name || "Parking Location"}
-                  </p>
-                  <p className="text-xs text-zinc-400 font-mono">Spot #{latestActive.slot_number}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setFindCarModalBooking(latestActive)}
-                    className="p-2.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-zinc-700"
-                    title="Find My Car"
-                  >
-                    <FiCompass className="w-4 h-4 text-emerald-400" />
-                    <span>Locate</span>
-                  </button>
-                  <button
-                    onClick={() =>
-                      navigate(`/customer/qr?booking=${latestActive.id}`, {
-                        state: { booking: latestActive },
-                      })
-                    }
-                    className="px-4 py-2.5 rounded-2xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-black shadow-lg transition-all active:scale-95 cursor-pointer"
-                  >
-                    Pass QR
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════════════════
-            2. LAYOUT VIEW CONTROLS & SEARCH BAR
-        ══════════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/95 dark:bg-zinc-900/90 p-4 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-xs backdrop-blur-xl">
-          {/* Search Input */}
-          <div className="relative flex-1 flex items-center">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none z-10" />
-            <input
-              type="text"
-              placeholder="Search parking facilities by name, neighborhood, city..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pe-input pe-input-icon-left text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white z-10 p-0.5"
-              >
-                <FiX className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* GPS Locate Action */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleLocateNearest}
-              disabled={isLocating}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-xs ${userCoords
-                  ? "bg-emerald-500 text-white font-black"
-                  : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700"
-                }`}
-            >
-              <FiNavigation className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
-              <span>{isLocating ? "Locating…" : userCoords ? "📍 GPS Near Me" : "Detect Location"}</span>
-            </button>
-
-            {/* Layout Toggle */}
-            <div className="hidden sm:flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+            {/* Split / Grid View Toggle */}
+            <div className="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-2xl border border-zinc-800 shrink-0 self-start sm:self-auto shadow-inner">
               <button
                 type="button"
                 onClick={() => setViewLayout("SPLIT")}
-                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewLayout === "SPLIT"
-                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
-                title="Split View"
+                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  viewLayout === "SPLIT"
+                    ? "bg-white text-zinc-950 shadow-md font-black"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+                title="Split View (Map + List)"
               >
                 <FiLayers className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setViewLayout("GRID")}
-                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${viewLayout === "GRID"
-                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                  }`}
+                className={`p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  viewLayout === "GRID"
+                    ? "bg-white text-zinc-950 shadow-md font-black"
+                    : "text-zinc-400 hover:text-white"
+                }`}
                 title="Grid Cards Only"
               >
                 <FiGrid className="w-4 h-4" />
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Filter Pills Carousel */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {filters.map((f) => (
+          {/* Search Bar & GPS Action Capsule */}
+          <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            {/* Search Input */}
+            <div className="relative flex-1 flex items-center">
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400 pointer-events-none z-10" />
+              <input
+                type="text"
+                placeholder="Search destination, mall, airport, or tech park..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-750 text-white placeholder-zinc-500 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all shadow-inner"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1 rounded-full hover:bg-zinc-800 transition-colors"
+                >
+                  <FiX className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* 1-Tap Near Me Button */}
             <button
-              key={f.id}
-              onClick={() => {
-                if (f.id === "NEARBY" && !userCoords) handleLocateNearest();
-                else setSelectedFilter(f.id);
-              }}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer active:scale-95 ${selectedFilter === f.id
-                  ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
-                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800"
-                }`}
+              onClick={handleLocateNearest}
+              disabled={isLocating}
+              className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-lg shrink-0 ${
+                userCoords
+                  ? "bg-emerald-500 text-black font-black shadow-emerald-500/25 ring-2 ring-emerald-400/40"
+                  : "bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-750"
+              }`}
             >
-              {f.label}
+              <FiCompass className={`w-4 h-4 ${userCoords ? "text-black" : "text-emerald-400"} ${isLocating ? "animate-spin" : ""}`} />
+              <span>{isLocating ? "Detecting GPS..." : userCoords ? "📍 Near Me (Active)" : "📍 Find Near Me"}</span>
             </button>
-          ))}
+          </div>
+
+          {/* Tactile Category Filter Chips */}
+          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-1 pt-1.5 border-t border-zinc-800/80">
+            {allFilters.map((f) => {
+              const isSelected =
+                f.query
+                  ? search.toLowerCase() === f.query.toLowerCase()
+                  : selectedFilter === f.id && !search;
+
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => {
+                    if (f.query) {
+                      setSearch(search.toLowerCase() === f.query.toLowerCase() ? "" : f.query);
+                      setSelectedFilter("ALL");
+                    } else {
+                      setSearch("");
+                      setSelectedFilter(f.id);
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer active:scale-95 shadow-xs border ${
+                    isSelected
+                      ? "bg-white text-zinc-950 font-black border-white shadow-md scale-105"
+                      : "bg-zinc-900/90 text-zinc-300 hover:text-white hover:bg-zinc-800 border-zinc-750"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════

@@ -286,7 +286,7 @@ export default function Login() {
                 { icon: FiZap, text: "Instant 1-tap QR gate access" },
                 { icon: FiShield, text: "CCTV & Security verified parking hubs" },
                 { icon: FiTruck, text: "Multi-vehicle & license plate memory" },
-                { icon: FiLayers, text: "Live 2D floorplan availability tracker" },
+                { icon: FiLayers, text: "Real-time parking bay availability tracker" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">

@@ -55,10 +55,13 @@ export default function ParkingDetails() {
       setParking(response.data);
 
       try {
-        const revRes = await API.get(`/parking/${id}/reviews`);
-        setReviews(Array.isArray(revRes.data) ? revRes.data : []);
-      } catch (e) {
-        // reviews optional
+        const revRes = await API.get(`/review/${id}`);
+        const list = Array.isArray(revRes.data)
+          ? revRes.data
+          : revRes.data?.reviews || [];
+        setReviews(list);
+      } catch (_) {
+        setReviews([]);
       }
     } catch (error) {
       console.error("Failed to load facility:", error);
@@ -81,7 +84,11 @@ export default function ParkingDetails() {
 
     try {
       setSubmittingReview(true);
-      await API.post(`/parking/${id}/reviews`, { rating, comment });
+      await API.post("/review/add", {
+        parking_id: Number(id),
+        rating: Number(rating),
+        comment: comment.trim(),
+      });
       showToast("Thank you! Review submitted successfully.", "success");
       setShowReviewModal(false);
       setComment("");

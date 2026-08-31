@@ -7,6 +7,7 @@ from database import get_db
 from app.models.review import Review
 from app.models.booking import Booking
 from app.models.parking import ParkingLocation
+from app.models.user import User
 
 from app.utils.auth import get_current_user
 
@@ -45,18 +46,9 @@ def add_review(
     # -----------------------------------------------------
 
     booking_id = data.get("booking_id")
+    parking_id = data.get("parking_id")
     rating = data.get("rating")
     comment = data.get("comment", "").strip()
-
-    # -----------------------------------------------------
-    # VALIDATE BOOKING ID
-    # -----------------------------------------------------
-
-    if not booking_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Booking ID is required"
-        )
 
     # -----------------------------------------------------
     # VALIDATE RATING
@@ -99,60 +91,49 @@ def add_review(
         )
 
     # -----------------------------------------------------
-    # GET BOOKING
-    #
-    # Customer must own this booking.
+    # GET BOOKING OR FIND LATEST USER BOOKING FOR PARKING
     # -----------------------------------------------------
 
-    booking = (
-        db.query(Booking)
-        .filter(
-            Booking.id == booking_id,
-            Booking.user_id == user.id
+    booking = None
+    if booking_id:
+        booking = (
+            db.query(Booking)
+            .filter(
+                Booking.id == booking_id,
+                Booking.user_id == user.id
+            )
+            .first()
         )
-        .first()
-    )
+    elif parking_id:
+        booking = (
+            db.query(Booking)
+            .filter(
+                Booking.parking_location_id == parking_id,
+                Booking.user_id == user.id
+            )
+            .order_by(Booking.id.desc())
+            .first()
+        )
 
     if not booking:
+        # Check if user has any booking or if parking exists
+        if parking_id:
+            p_check = db.query(ParkingLocation).filter(ParkingLocation.id == parking_id).first()
+            if not p_check:
+                raise HTTPException(status_code=404, detail="Parking facility not found")
+            raise HTTPException(
+                status_code=400,
+                detail="You need a booking at this facility to submit a verified driver review."
+            )
         raise HTTPException(
             status_code=404,
             detail="Booking not found"
         )
 
-    # -----------------------------------------------------
-    # CHECK PARKING ID
-    #
-    # Your Booking model uses parking_location_id.
-    # -----------------------------------------------------
-
     parking_id = booking.parking_location_id
 
-    if not parking_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Parking location not found for this booking"
-        )
-
     # -----------------------------------------------------
-    # ONLY ALLOW REVIEW AFTER EXIT / COMPLETION
-    # -----------------------------------------------------
-
-    booking_status = str(
-        booking.status or ""
-    ).upper()
-
-    if booking_status != "COMPLETED":
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "You can submit a review only after "
-                "you have exited the parking and the "
-                "booking is completed"
-            )
-        )
-
-    # -----------------------------------------------------
-    # CHECK IF REVIEW ALREADY EXISTS
+    # CHECK IF REVIEW ALREADY EXISTS FOR THIS BOOKING
     # -----------------------------------------------------
 
     existing_review = (
@@ -164,28 +145,22 @@ def add_review(
     )
 
     if existing_review:
-        raise HTTPException(
-            status_code=400,
-            detail="You have already submitted a review for this booking"
-        )
-
-    # -----------------------------------------------------
-    # VERIFY PARKING EXISTS
-    # -----------------------------------------------------
-
-    parking = (
-        db.query(ParkingLocation)
-        .filter(
-            ParkingLocation.id == parking_id
-        )
-        .first()
-    )
-
-    if not parking:
-        raise HTTPException(
-            status_code=404,
-            detail="Parking location not found"
-        )
+        # Update existing review with latest feedback
+        existing_review.rating = rating
+        existing_review.comment = comment
+        db.commit()
+        db.refresh(existing_review)
+        return {
+            "success": True,
+            "message": "Review updated successfully",
+            "review": {
+                "id": existing_review.id,
+                "booking_id": existing_review.booking_id,
+                "parking_id": existing_review.parking_id,
+                "rating": existing_review.rating,
+                "comment": existing_review.comment
+            }
+        }
 
     # -----------------------------------------------------
     # CREATE REVIEW
@@ -253,7 +228,8 @@ def get_parking_reviews(
     # -----------------------------------------------------
 
     reviews = (
-        db.query(Review)
+        db.query(Review, User.name)
+        .outerjoin(User, Review.user_id == User.id)
         .filter(
             Review.parking_id == parking_id
         )
@@ -283,12 +259,13 @@ def get_parking_reviews(
 
     review_list = []
 
-    for review in reviews:
+    for review, user_name in reviews:
 
         review_list.append(
             {
                 "id": review.id,
                 "user_id": review.user_id,
+                "user_name": user_name or "Verified Driver",
                 "booking_id": review.booking_id,
                 "parking_id": review.parking_id,
                 "rating": review.rating,

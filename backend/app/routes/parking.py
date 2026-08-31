@@ -760,6 +760,13 @@ def get_owner_parking_details(
         "has_covered_roof": parking.has_covered_roof,
         "is_24_7": parking.is_24_7,
         "has_valet": parking.has_valet,
+        "daily_rate": getattr(parking, "daily_rate", 10.0),
+        "allow_multi_entry": getattr(parking, "allow_multi_entry", True),
+        "last_exit_time": getattr(parking, "last_exit_time", "11:00 PM") or "11:00 PM",
+        "image": parking.image,
+        "image_url": parking.image,
+        "inside_image": getattr(parking, "inside_image", None),
+        "inside_image_url": getattr(parking, "inside_image", None),
         "verification_status": parking.verification_status,
         "verification_submitted_at": (
             parking.verification_submitted_at
@@ -781,6 +788,7 @@ def get_owner_parking_details(
 # =========================================================
 
 @router.put("/owner/{parking_id}")
+@router.put("/{parking_id}")
 async def update_parking(
     parking_id: int,
     request: Request,
@@ -837,6 +845,25 @@ async def update_parking(
             parking.is_24_7 = parse_bool(form.get("is_24_7"))
         if "has_valet" in form:
             parking.has_valet = parse_bool(form.get("has_valet"))
+
+        # Update entrance & inside images
+        img_field = form.get("image") or form.get("entrance_image")
+        if img_field and hasattr(img_field, "filename") and img_field.filename:
+            contents = await img_field.read()
+            import base64
+            b64 = base64.b64encode(contents).decode("utf-8")
+            parking.image = f"data:{img_field.content_type or 'image/jpeg'};base64,{b64}"
+        elif isinstance(img_field, str) and img_field.strip():
+            parking.image = img_field.strip()
+
+        inside_field = form.get("inside_image") or form.get("interior_image")
+        if inside_field and hasattr(inside_field, "filename") and inside_field.filename:
+            contents = await inside_field.read()
+            import base64
+            b64 = base64.b64encode(contents).decode("utf-8")
+            parking.inside_image = f"data:{inside_field.content_type or 'image/jpeg'};base64,{b64}"
+        elif isinstance(inside_field, str) and inside_field.strip():
+            parking.inside_image = inside_field.strip()
     else:
         try:
             body = await request.json()
@@ -881,6 +908,10 @@ async def update_parking(
             parking.is_24_7 = parse_bool(body.get("is_24_7"))
         if "has_valet" in body:
             parking.has_valet = parse_bool(body.get("has_valet"))
+        if "image" in body or "image_url" in body or "entrance_image" in body:
+            parking.image = body.get("image") or body.get("image_url") or body.get("entrance_image")
+        if "inside_image" in body or "inside_image_url" in body or "interior_image" in body:
+            parking.inside_image = body.get("inside_image") or body.get("inside_image_url") or body.get("interior_image")
 
     if not name:
         raise HTTPException(status_code=400, detail="Parking name is required")

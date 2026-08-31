@@ -5,7 +5,6 @@ import {
   FiMapPin,
   FiLayers,
   FiEdit2,
-  FiGrid,
   FiCheckCircle,
 } from "react-icons/fi";
 import API from "../../api/axios";

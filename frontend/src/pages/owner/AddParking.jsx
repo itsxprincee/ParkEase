@@ -104,12 +104,18 @@ export default function AddParking() {
       showToast("Entrance photo is too large. Maximum size is 10MB.", "error");
       return;
     }
+    if (entrancePreview && entrancePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(entrancePreview);
+    }
     setEntranceFile(file);
     setEntrancePreview(URL.createObjectURL(file));
   };
 
   const handleRemoveEntrance = (e) => {
     e.stopPropagation();
+    if (entrancePreview && entrancePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(entrancePreview);
+    }
     setEntranceFile(null);
     setEntrancePreview("");
     if (entranceInputRef.current) entranceInputRef.current.value = "";
@@ -122,12 +128,18 @@ export default function AddParking() {
       showToast("Inside photo is too large. Maximum size is 10MB.", "error");
       return;
     }
+    if (insidePreview && insidePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(insidePreview);
+    }
     setInsideFile(file);
     setInsidePreview(URL.createObjectURL(file));
   };
 
   const handleRemoveInside = (e) => {
     e.stopPropagation();
+    if (insidePreview && insidePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(insidePreview);
+    }
     setInsideFile(null);
     setInsidePreview("");
     if (insideInputRef.current) insideInputRef.current.value = "";

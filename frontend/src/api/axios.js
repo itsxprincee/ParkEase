@@ -33,11 +33,16 @@ API.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const isAuthEndpoint =
         error.config?.url?.includes("/auth/login") ||
-        error.config?.url?.includes("/auth/register");
-      if (!isAuthEndpoint) {
+        error.config?.url?.includes("/auth/register") ||
+        error.config?.url?.includes("/auth/send-otp");
+      const hadToken = Boolean(localStorage.getItem("token"));
+      if (!isAuthEndpoint && hadToken) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        if (window.location.pathname !== "/login") {
+        if (
+          window.location.pathname !== "/login" &&
+          window.location.pathname !== "/reset-password"
+        ) {
           window.location.href = "/login?session_expired=true";
         }
       }

@@ -163,18 +163,26 @@ export default function BookParking() {
   // Recalculate end time when duration changes
   const handleDurationChange = (hours) => {
     setSelectedDurationHours(hours);
-    const [startH, startM] = startTime.split(":").map(Number);
-    const endH = (startH + hours) % 24;
-    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`);
+    const [startH, startM] = (startTime || "10:00").split(":").map(Number);
+    const totalH = startH + hours;
+    const endH = totalH % 24;
+    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM || 0).padStart(2, "0")}`);
   };
 
   // Handle start time change and recalculate end time preserving minutes
   const handleStartTimeChange = (value) => {
     setStartTime(value);
-    const [startH, startM] = value.split(":").map(Number);
-    const endH = (startH + selectedDurationHours) % 24;
-    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`);
+    const [startH, startM] = (value || "10:00").split(":").map(Number);
+    const totalH = startH + selectedDurationHours;
+    const endH = totalH % 24;
+    setEndTime(`${String(endH).padStart(2, "0")}:${String(startM || 0).padStart(2, "0")}`);
   };
+
+  const isOvernight = useMemo(() => {
+    if (isFacilityDailyOnly) return false;
+    const [startH] = (startTime || "00:00").split(":").map(Number);
+    return (startH + selectedDurationHours) >= 24;
+  }, [isFacilityDailyOnly, startTime, selectedDurationHours]);
 
   // Add vehicle handler
   const handleAddVehicle = async (e) => {

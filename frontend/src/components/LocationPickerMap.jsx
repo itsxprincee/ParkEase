@@ -168,20 +168,20 @@ export default function LocationPickerMap({
           type="button"
           onClick={handleLocateMe}
           disabled={isLocating}
-          className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-[#e0e0e0] hover:border-[#0a0a0a] text-xs font-bold text-[#0a0a0a] transition-colors shrink-0 shadow-xs"
+          className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-950 dark:hover:border-white text-xs font-bold text-zinc-900 dark:text-white transition-colors shrink-0 shadow-xs cursor-pointer"
           title="Center on device GPS"
         >
-          <FiCrosshair className={`w-4 h-4 text-[#05944f] ${isLocating ? "animate-spin" : ""}`} />
+          <FiCrosshair className={`w-4 h-4 text-emerald-500 ${isLocating ? "animate-spin" : ""}`} />
           <span>{isLocating ? "Locating..." : "Pin My GPS"}</span>
         </button>
       </div>
 
       {searchError && (
-        <p className="text-xs text-[#e11900] font-medium">{searchError}</p>
+        <p className="text-xs text-rose-500 font-medium">{searchError}</p>
       )}
 
       {/* Interactive Leaflet Map Container */}
-      <div className="relative w-full h-80 sm:h-96 rounded-2xl overflow-hidden border-2 border-[#e0e0e0] shadow-inner bg-[#f0f0f0]">
+      <div className="relative w-full h-80 sm:h-96 rounded-2xl overflow-hidden border-2 border-zinc-200 dark:border-zinc-700 shadow-inner bg-zinc-100 dark:bg-zinc-900">
         <MapContainer
           center={position}
           zoom={15}
@@ -213,16 +213,16 @@ export default function LocationPickerMap({
 
         {/* Floating Instruction Hint */}
         <div className="absolute top-3 left-3 z-[400] pointer-events-none">
-          <div className="bg-[#0a0a0a]/90 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/10">
-            <span className="w-2 h-2 rounded-full bg-[#05944f] animate-dot-ping shrink-0" />
+          <div className="bg-zinc-950/90 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 border border-white/10">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-dot-ping shrink-0" />
             <span>Click map or drag pin to exact entrance</span>
           </div>
         </div>
 
         {/* Floating Coordinates Badge */}
         <div className="absolute bottom-3 right-3 z-[400] pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md text-[#0a0a0a] text-xs font-mono font-bold px-3 py-1.5 rounded-xl shadow-lg border border-[#e0e0e0] flex items-center gap-2">
-            <FiMapPin className="w-3.5 h-3.5 text-[#05944f]" />
+          <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md text-zinc-900 dark:text-white text-xs font-mono font-bold px-3 py-1.5 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+            <FiMapPin className="w-3.5 h-3.5 text-emerald-500" />
             <span>{latNum.toFixed(4)}, {lngNum.toFixed(4)}</span>
           </div>
         </div>

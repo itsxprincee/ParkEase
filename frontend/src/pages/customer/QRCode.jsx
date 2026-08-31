@@ -96,7 +96,12 @@ export default function QRCode() {
       const response = await API.get("/booking/my-bookings");
       const list = Array.isArray(response.data) ? response.data : response.data?.bookings || [];
       let found = targetBookingId ? list.find((item) => String(item.id) === String(targetBookingId)) : null;
-      if (!found && list.length > 0) found = list[0];
+      if (!found && targetBookingId && list.length > 0) {
+        found = list[0];
+        showToast(`Pass #${targetBookingId} not found. Showing your active pass #${found.id}.`, "error");
+      } else if (!found && list.length > 0) {
+        found = list[0];
+      }
       setBooking(found);
     } catch (_) {
       showToast("Unable to load pass.", "error");

@@ -645,6 +645,9 @@ export default function EditParking() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      if (entrancePreview && entrancePreview.startsWith("blob:")) {
+                        URL.revokeObjectURL(entrancePreview);
+                      }
                       setEntranceFile(file);
                       setEntrancePreview(URL.createObjectURL(file));
                     }}
@@ -696,6 +699,9 @@ export default function EditParking() {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      if (insidePreview && insidePreview.startsWith("blob:")) {
+                        URL.revokeObjectURL(insidePreview);
+                      }
                       setInsideFile(file);
                       setInsidePreview(URL.createObjectURL(file));
                     }}

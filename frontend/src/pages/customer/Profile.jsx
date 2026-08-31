@@ -249,10 +249,14 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Ambient glowing background orbs */}
+      <div className="pe-glow-orb top-20 left-10 w-[450px] h-[450px] bg-emerald-500/10 dark:bg-emerald-500/15" />
+      <div className="pe-glow-orb bottom-20 right-10 w-[400px] h-[400px] bg-purple-500/10 dark:bg-purple-500/15" />
+
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-mobile-dock md:pb-8 relative z-10">
         {/* Top Header Profile Card */}
         <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">

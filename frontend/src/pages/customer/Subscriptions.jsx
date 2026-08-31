@@ -305,10 +305,14 @@ Thank you for choosing ParkEase Smart Mobility!
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Ambient glowing background orbs */}
+      <div className="pe-glow-orb top-24 left-16 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/15" />
+      <div className="pe-glow-orb bottom-24 right-16 w-[450px] h-[450px] bg-blue-500/10 dark:bg-blue-500/15" />
+
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 pb-mobile-dock md:pb-8 relative z-10">
         
         {/* ══════════════════════════════════════════════════════════════════
             1. UBER PASS / MEMBERSHIP HERO COMMAND BANNER

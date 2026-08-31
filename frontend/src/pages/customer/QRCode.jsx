@@ -165,10 +165,14 @@ export default function QRCode() {
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#08080c] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Ambient glowing background orbs */}
+      <div className="pe-glow-orb top-20 left-10 w-[450px] h-[450px] bg-emerald-500/10 dark:bg-emerald-500/15" />
+      <div className="pe-glow-orb bottom-20 right-10 w-[400px] h-[400px] bg-blue-500/10 dark:bg-blue-500/15" />
+
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 pb-mobile-dock md:pb-8 relative z-10">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <button

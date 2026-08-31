@@ -20,6 +20,8 @@ import {
 } from "react-icons/fi";
 import API from "../api/axios";
 import Button from "../components/Button";
+import ThemeSwitcher from "../components/ThemeSwitcher";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 // ── Toast Notification ────────────────────────────────────────────────────────
 function Toast({ toast }) {
@@ -321,15 +323,25 @@ export default function Login() {
       </div>
 
       {/* ── RIGHT AUTH FORM CARD ── */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 transition-colors relative">
-        <div className="w-full max-w-md bg-white/95 dark:bg-zinc-900/90 backdrop-blur-2xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-7 sm:p-9 shadow-2xl space-y-6">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 transition-colors relative overflow-hidden">
+        {/* Ambient background glow orbs */}
+        <div className="pe-glow-orb top-10 right-10 w-96 h-96 bg-emerald-500/15 dark:bg-emerald-500/20" />
+        <div className="pe-glow-orb bottom-10 left-10 w-80 h-80 bg-blue-500/15 dark:bg-blue-500/20" />
+
+        {/* Top Right Quick Controls */}
+        <div className="absolute top-6 right-6 flex items-center gap-2 z-20">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
+
+        <div className="relative z-10 w-full max-w-md bg-white/90 dark:bg-zinc-900/85 backdrop-blur-2xl rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 p-7 sm:p-9 shadow-[0_20px_50px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)] space-y-6">
           {/* Mobile Logo */}
           <div className="flex items-center gap-2.5 mb-6 lg:hidden">
-            <div className="w-9 h-9 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black shadow-md">
               <span className="font-mono text-sm">PE</span>
             </div>
-            <span className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
-              Park<span className="text-emerald-500 font-light">Ease</span>
+            <span className="text-xl font-black text-zinc-950 dark:text-white tracking-tight">
+              Park<span className="pe-gradient-text">Ease</span>
             </span>
           </div>
 

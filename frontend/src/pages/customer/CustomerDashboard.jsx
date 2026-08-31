@@ -366,10 +366,63 @@ export default function CustomerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#08080c] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Ambient glowing background orbs */}
+      <div className="pe-glow-orb top-20 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/15" />
+      <div className="pe-glow-orb top-96 right-10 w-[400px] h-[400px] bg-blue-500/10 dark:bg-blue-500/15" />
+
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-5">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-mobile-dock md:pb-8 relative z-10">
+
+        {/* ══════════════════════════════════════════════════════════════════
+            ACTIVE SESSION LIVE HERO CALLOUT (IF DRIVER HAS ONGOING BOOKING)
+        ══════════════════════════════════════════════════════════════════ */}
+        {latestActive && (
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-zinc-900 border border-emerald-500/40 p-4 sm:p-5 shadow-[0_12px_32px_rgba(16,185,129,0.15)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-spring-in">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-xl shadow-lg shrink-0">
+                🅿️
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                    Active Session Live
+                  </span>
+                  <span className="text-xs font-mono font-bold text-emerald-400">
+                    Slot #{latestActive.slot_number || latestActive.slot_id || "A1"}
+                  </span>
+                </div>
+                <h4 className="text-sm sm:text-base font-black text-white truncate">
+                  {latestActive.parking_name || latestActive.parking_location?.name || "Reserved Facility"}
+                </h4>
+                <p className="text-xs text-zinc-400 flex items-center gap-1.5 font-medium">
+                  <FiClock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Valid Entry • Pass #{latestActive.booking_reference || latestActive.id?.slice(0, 8) || "LIVE-PASS"}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setFindCarModalBooking(latestActive)}
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+              >
+                📍 Find My Car
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => navigate(`/customer/qr`, { state: { booking: latestActive } })}
+                className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black shadow-md"
+              >
+                ⚡ View QR Pass
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* ══════════════════════════════════════════════════════════════════
             PREMIUM UBER-GRADE "FIND PARKING" COMMAND HUB
@@ -383,10 +436,10 @@ export default function CustomerDashboard() {
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-black tracking-wide border border-emerald-500/20">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>LIVE PARKING NETWORK • 99.8% AVAILABILITY</span>
+                <span>LIVE MOBILITY NETWORK • REAL-TIME RADAR</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Find & Reserve Parking
+                Welcome, {getUserName()} 👋
               </h1>
             </div>
 

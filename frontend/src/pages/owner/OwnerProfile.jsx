@@ -61,27 +61,55 @@ export default function OwnerProfile() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  useEffect(() => {
+  const loadUserData = async () => {
     try {
       const stored = localStorage.getItem("user");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setUser(parsed);
-        setName(parsed.name || parsed.full_name || parsed.username || "");
-        setEmail(parsed.email || "");
-        setPhone(parsed.phone || "");
+      let currentUser = stored ? JSON.parse(stored) : null;
+      if (currentUser) {
+        setUser(currentUser);
+        setName(currentUser.name || currentUser.full_name || currentUser.username || "");
+        setEmail(currentUser.email || "");
+        setPhone(currentUser.phone || "");
       }
+      try {
+        const res = await API.get("/auth/me");
+        if (res.data) {
+          currentUser = { ...currentUser, ...res.data };
+          setUser(currentUser);
+          setName(currentUser.name || currentUser.full_name || currentUser.username || "");
+          setEmail(currentUser.email || "");
+          setPhone(currentUser.phone || "");
+          localStorage.setItem("user", JSON.stringify(currentUser));
+        }
+      } catch (_) {}
     } catch (_) {}
+  };
+
+  useEffect(() => {
+    loadUserData();
   }, []);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
       setSavingProfile(true);
-      const updated = { ...user, name, email, phone };
+      const res = await API.put("/auth/profile", {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+      });
+      const updated = {
+        ...user,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        ...(res.data?.user || res.data || {}),
+      };
       setUser(updated);
       localStorage.setItem("user", JSON.stringify(updated));
       showToast("Profile details saved successfully!", "success");
+    } catch (err) {
+      showToast(err?.response?.data?.detail || "Failed to update profile details.", "error");
     } finally {
       setSavingProfile(false);
     }

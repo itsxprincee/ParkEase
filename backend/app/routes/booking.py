@@ -889,16 +889,31 @@ def extend_booking(
 
     # Calculate new end time
     try:
-        if ":" in str(booking.end_time):
-            parts = str(booking.end_time).split(":")
-            h = int(parts[0])
-            m = int(parts[1])
-            total_minutes = h * 60 + m + data.additional_minutes
-            new_h = (total_minutes // 60) % 24
+        import re
+        end_str = str(booking.end_time or "").strip()
+        ampm_match = re.search(r"(\d{1,2}):(\d{2})\s*(am|pm)?", end_str, re.IGNORECASE)
+        if ampm_match:
+            h = int(ampm_match.group(1))
+            m = int(ampm_match.group(2))
+            is_pm = bool(ampm_match.group(3) and ampm_match.group(3).lower() == "pm")
+            is_am = bool(ampm_match.group(3) and ampm_match.group(3).lower() == "am")
+            if is_pm and h < 12:
+                h += 12
+            elif is_am and h == 12:
+                h = 0
+            total_minutes = h * 60 + m + int(data.additional_minutes or 60)
+            new_h_24 = (total_minutes // 60) % 24
             new_m = total_minutes % 60
-            booking.end_time = f"{new_h:02d}:{new_m:02d}"
-    except Exception:
-        pass
+            if ampm_match.group(3):
+                ampm = "PM" if new_h_24 >= 12 else "AM"
+                disp_h = new_h_24 % 12
+                if disp_h == 0:
+                    disp_h = 12
+                booking.end_time = f"{disp_h:02d}:{new_m:02d} {ampm}"
+            else:
+                booking.end_time = f"{new_h_24:02d}:{new_m:02d}"
+    except Exception as e:
+        print("Extend time parse error:", e)
 
     booking.amount = float(booking.amount or 0) + float(data.additional_amount)
     db.commit()

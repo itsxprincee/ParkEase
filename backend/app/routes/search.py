@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -46,7 +46,14 @@ def search_parking(
             "latitude": location.latitude,
             "longitude": location.longitude,
             "total_slots": location.total_slots,
-            "available_slots": available_slots
+            "available_slots": available_slots,
+            "hourly_rate": getattr(location, "hourly_rate", 50.0),
+            "pricing_type": getattr(location, "pricing_type", "HOURLY"),
+            "daily_rate": getattr(location, "daily_rate", 10.0),
+            "has_ev": getattr(location, "has_ev", False),
+            "has_cctv": getattr(location, "has_cctv", False),
+            "image": location.image,
+            "image_url": location.image
         })
 
     return result
@@ -64,9 +71,10 @@ def parking_details(
     ).first()
 
     if not location:
-        return {
-            "message": "Parking not found"
-        }
+        raise HTTPException(
+            status_code=404,
+            detail="Parking not found"
+        )
 
     slots = db.query(
         ParkingSlot

@@ -322,6 +322,22 @@ export default function CustomerDashboard() {
         const sup = (p.supported_vehicles || "BOTH").toUpperCase();
         matchFilter = sup === "BIKE" || sup === "BOTH";
       }
+      if (selectedFilter === "EV") {
+        const nameAndAddr = `${p.name || ""} ${p.address || ""} ${p.location || ""}`.toLowerCase();
+        matchFilter = Boolean(p.has_ev) || nameAndAddr.includes("ev") || nameAndAddr.includes("charg") || nameAndAddr.includes("electric");
+      }
+      if (selectedFilter === "AIRPORT") {
+        const nameAndAddr = `${p.name || ""} ${p.address || ""} ${p.location || ""}`.toLowerCase();
+        matchFilter = nameAndAddr.includes("airport") || nameAndAddr.includes("terminal") || nameAndAddr.includes("aerodrome") || nameAndAddr.includes("flight");
+      }
+      if (selectedFilter === "MALL") {
+        const nameAndAddr = `${p.name || ""} ${p.address || ""} ${p.location || ""}`.toLowerCase();
+        matchFilter = nameAndAddr.includes("mall") || nameAndAddr.includes("plaza") || nameAndAddr.includes("market") || nameAndAddr.includes("centre") || nameAndAddr.includes("center") || nameAndAddr.includes("shopping");
+      }
+      if (selectedFilter === "TECH") {
+        const nameAndAddr = `${p.name || ""} ${p.address || ""} ${p.location || ""}`.toLowerCase();
+        matchFilter = nameAndAddr.includes("tech") || nameAndAddr.includes("cyber") || nameAndAddr.includes("park") || nameAndAddr.includes("tower") || nameAndAddr.includes("hub") || nameAndAddr.includes("business") || nameAndAddr.includes("it");
+      }
       if (selectedFilter === "FREE") matchFilter = (p.hourly_rate ?? 0) === 0;
       if (selectedFilter === "DAILY_PASS") {
         matchFilter = p.pricing_type === "DAILY_PASS" || p.pricing_type === "BOTH" || (p.daily_rate && p.daily_rate > 0);

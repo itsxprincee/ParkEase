@@ -162,7 +162,7 @@ export default function Subscriptions() {
       setLoading(true);
       const [parkRes, vehRes] = await Promise.allSettled([
         API.get("/parking/approved"),
-        API.get("/vehicle/my-vehicles"),
+        API.get("/vehicles/my"),
       ]);
 
       if (parkRes.status === "fulfilled") {
@@ -183,7 +183,7 @@ export default function Subscriptions() {
         if (vList.length > 0) {
           setSubscribeModal((prev) => ({
             ...prev,
-            vehicleNumber: vList[0].vehicle_number || "MH-01-AB-1234",
+            vehicleNumber: vList[0].vehicle_number || "",
           }));
         }
       }
@@ -210,7 +210,7 @@ export default function Subscriptions() {
     setSubscribeModal({
       open: true,
       plan,
-      vehicleNumber: vehicles[0]?.vehicle_number || "MH-01-AB-1234",
+      vehicleNumber: vehicles[0]?.vehicle_number || "",
       slotNumber: "A-04",
       autoRenew: true,
     });
@@ -607,6 +607,29 @@ Thank you for choosing ParkEase Smart Mobility!
               <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                 Vehicle Number Plate *
               </label>
+              {vehicles.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap pb-1">
+                  {vehicles.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() =>
+                        setSubscribeModal((prev) => ({
+                          ...prev,
+                          vehicleNumber: v.vehicle_number,
+                        }))
+                      }
+                      className={`px-2.5 py-1 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer ${
+                        subscribeModal.vehicleNumber === v.vehicle_number
+                          ? "bg-emerald-500 text-black border-emerald-500 shadow-xs"
+                          : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
+                      }`}
+                    >
+                      {v.vehicle_number}
+                    </button>
+                  ))}
+                </div>
+              )}
               <input
                 type="text"
                 required

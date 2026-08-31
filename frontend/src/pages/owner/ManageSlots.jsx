@@ -135,24 +135,18 @@ export default function ManageSlots() {
     e.preventDefault();
     try {
       setSaving(true);
-      const count = Number(bulkForm.count) || 5;
-      const promises = [];
-      for (let i = 1; i <= count; i++) {
-        promises.push(
-          API.post(`/parking/owner/${id}/slots`, {
-            slot_number: `${bulkForm.prefix}-${i}`,
-            is_ev: bulkForm.is_ev,
-            vehicle_type: bulkForm.vehicle_type,
-            status: "available",
-          })
-        );
-      }
-      await Promise.allSettled(promises);
-      showToast(`Generated ${count} slots successfully!`, "success");
+      const res = await API.post(`/parking/owner/${id}/slots/bulk`, {
+        prefix: bulkForm.prefix || "A",
+        count: Number(bulkForm.count) || 5,
+        is_ev: Boolean(bulkForm.is_ev),
+        vehicle_type: bulkForm.vehicle_type || "Car",
+        status: "AVAILABLE",
+      });
+      showToast(res.data?.message || "Slots generated successfully!", "success");
       setBulkModalOpen(false);
       loadData(true);
     } catch (err) {
-      showToast("Error generating bulk slots.", "error");
+      showToast(err?.response?.data?.detail || "Error generating bulk slots.", "error");
     } finally {
       setSaving(false);
     }

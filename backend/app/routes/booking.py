@@ -721,23 +721,26 @@ def check_out_booking(
     allow_multi = getattr(parking, "allow_multi_entry", True)
 
     slot_number = "N/A"
+    slot = None
     if booking.slot_id:
         slot = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first()
         if slot:
-            slot.status = "AVAILABLE"
             slot_number = slot.slot_number
 
     if is_daily_pass and allow_multi:
-        # Mark as temporarily out, but keep pass valid for re-entry
+        # Mark as temporarily out, but keep pass valid for re-entry and slot reserved
         booking.is_inside = False
         booking.status = "ACTIVE"
+        # Slot remains reserved for this daily pass holder throughout their pass period
+        if slot:
+            slot.status = "OCCUPIED"
         db.commit()
         db.refresh(booking)
 
         curfew_text = f" before {booking.last_exit_rule}" if booking.last_exit_rule else ""
         return {
             "success": True,
-            "message": f"Temporary exit recorded. Unlimited Daily Pass remains active! You can re-enter anytime today{curfew_text}.",
+            "message": f"Temporary exit recorded. Unlimited Daily Pass remains active! Slot {slot_number} is reserved for your return anytime today{curfew_text}.",
             "booking_id": booking.id,
             "status": "ACTIVE",
             "is_inside": False,
@@ -748,7 +751,9 @@ def check_out_booking(
             "exit_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         }
     else:
-        # Standard hourly or single-entry pass completion
+        # Standard hourly or single-entry pass completion - free the slot
+        if slot:
+            slot.status = "AVAILABLE"
         booking.is_inside = False
         booking.status = "COMPLETED"
         db.commit()

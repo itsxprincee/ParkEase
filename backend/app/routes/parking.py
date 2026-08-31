@@ -50,6 +50,14 @@ class SlotCreate(BaseModel):
     vehicle_type: str | None = "Car"
 
 
+class SlotBulkCreate(BaseModel):
+    prefix: str = "A"
+    count: int = Field(default=10, ge=1, le=200)
+    is_ev: bool = False
+    vehicle_type: str = "Car"
+    status: str = "AVAILABLE"
+
+
 class SlotUpdate(BaseModel):
     slot_number: str = Field(
         ...,
@@ -490,20 +498,33 @@ def get_customer_parking_details(
 ):
     parking = (
         db.query(ParkingLocation)
-        .filter(
-            ParkingLocation.id == parking_id,
-            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED"
-        )
+        .filter(ParkingLocation.id == parking_id)
         .first()
     )
 
     if not parking:
         raise HTTPException(
             status_code=404,
-            detail="Parking location not found or not approved"
+            detail="Parking location not found"
+        )
+
+    is_owner = parking.owner_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+    is_approved = str(parking.verification_status or "").upper().strip() == "APPROVED"
+
+    if not (is_approved or is_owner or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="This parking facility is currently pending verification"
         )
 
     ensure_parking_slots(parking, db)
+
+    total_slots_created = (
+        db.query(ParkingSlot)
+        .filter(ParkingSlot.parking_id == parking.id)
+        .count()
+    )
 
     available_slots = (
         db.query(ParkingSlot)
@@ -514,13 +535,36 @@ def get_customer_parking_details(
         .count()
     )
 
+    occupied_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "OCCUPIED"
+        )
+        .count()
+    )
+
+    maintenance_slots = (
+        db.query(ParkingSlot)
+        .filter(
+            ParkingSlot.parking_id == parking.id,
+            ParkingSlot.status == "MAINTENANCE"
+        )
+        .count()
+    )
+
     return {
         "id": parking.id,
+        "owner_id": parking.owner_id,
         "name": parking.name,
         "address": parking.address,
         "latitude": parking.latitude,
         "longitude": parking.longitude,
         "total_slots": parking.total_slots,
+        "created_slots": total_slots_created,
+        "available_slots": available_slots,
+        "occupied_slots": occupied_slots,
+        "maintenance_slots": maintenance_slots,
         "hourly_rate": parking.hourly_rate,
         "pricing_type": getattr(parking, "pricing_type", "HOURLY") or "HOURLY",
         "supported_vehicles": getattr(parking, "supported_vehicles", "BOTH") or "BOTH",
@@ -533,7 +577,6 @@ def get_customer_parking_details(
         "has_covered_roof": parking.has_covered_roof,
         "is_24_7": parking.is_24_7,
         "has_valet": parking.has_valet,
-        "available_slots": available_slots,
         "image": parking.image,
         "image_url": parking.image,
         "inside_image": getattr(parking, "inside_image", None),
@@ -1139,6 +1182,69 @@ def create_parking_slot(
 
 
 # =========================================================
+# OWNER - BULK CREATE PARKING SLOTS (ATOMIC)
+# =========================================================
+
+@router.post("/owner/{parking_id}/slots/bulk")
+def bulk_create_parking_slots(
+    parking_id: int,
+    data: SlotBulkCreate,
+    db: Session = Depends(get_db),
+    owner: User = Depends(owner_required)
+):
+    parking = get_owner_parking(
+        parking_id,
+        owner,
+        db
+    )
+
+    prefix = (data.prefix or "A").strip()
+    count = max(1, min(int(data.count or 10), 200))
+
+    existing_slots = db.query(ParkingSlot).filter(ParkingSlot.parking_id == parking.id).all()
+    existing_numbers = {s.slot_number for s in existing_slots}
+    current_count = len(existing_slots)
+
+    if current_count >= parking.total_slots:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Facility capacity of {parking.total_slots} slots already reached."
+        )
+
+    status_val = (data.status or "AVAILABLE").upper().strip()
+    if status_val not in ["AVAILABLE", "OCCUPIED", "MAINTENANCE"]:
+        status_val = "AVAILABLE"
+
+    created_slots = []
+    num = 1
+
+    while len(created_slots) < count and (current_count + len(created_slots)) < parking.total_slots:
+        candidate_num = f"{prefix}-{num}"
+        if candidate_num not in existing_numbers:
+            new_slot = ParkingSlot(
+                parking_id=parking.id,
+                slot_number=candidate_num,
+                status=status_val,
+                is_ev=bool(data.is_ev),
+                vehicle_type=data.vehicle_type or "Car"
+            )
+            db.add(new_slot)
+            created_slots.append(new_slot)
+            existing_numbers.add(candidate_num)
+        num += 1
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": f"Successfully created {len(created_slots)} parking slots",
+        "created_count": len(created_slots),
+        "total_slots": parking.total_slots,
+        "current_total": current_count + len(created_slots)
+    }
+
+
+# =========================================================
 # OWNER - UPDATE SLOT
 # =========================================================
 
@@ -1378,98 +1484,4 @@ def delete_parking(
     return {
         "message": "Parking deleted successfully",
         "parking_id": parking_id
-    }
-
-
-# =========================================================
-# CUSTOMER - GET ONE APPROVED PARKING
-#
-# KEEP THIS ROUTE LAST
-# =========================================================
-
-@router.get("/{parking_id}")
-def get_parking(
-    parking_id: int,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
-):
-
-    parking = (
-        db.query(ParkingLocation)
-        .filter(ParkingLocation.id == parking_id)
-        .first()
-    )
-
-    if not parking:
-        raise HTTPException(
-            status_code=404,
-            detail="Parking location not found"
-        )
-
-    is_owner = parking.owner_id == user.id
-    is_admin = getattr(user, "role", "").lower() == "admin"
-    is_approved = str(parking.verification_status or "").upper().strip() == "APPROVED"
-
-    if not (is_approved or is_owner or is_admin):
-        raise HTTPException(
-            status_code=403,
-            detail="This parking facility is currently pending verification"
-        )
-
-    ensure_parking_slots(parking, db)
-
-    total_slots_created = (
-        db.query(ParkingSlot)
-        .filter(
-            ParkingSlot.parking_id == parking.id
-        )
-        .count()
-    )
-
-    available_slots = (
-        db.query(ParkingSlot)
-        .filter(
-            ParkingSlot.parking_id == parking.id,
-            ParkingSlot.status == "AVAILABLE"
-        )
-        .count()
-    )
-
-    occupied_slots = (
-        db.query(ParkingSlot)
-        .filter(
-            ParkingSlot.parking_id == parking.id,
-            ParkingSlot.status == "OCCUPIED"
-        )
-        .count()
-    )
-
-    maintenance_slots = (
-        db.query(ParkingSlot)
-        .filter(
-            ParkingSlot.parking_id == parking.id,
-            ParkingSlot.status == "MAINTENANCE"
-        )
-        .count()
-    )
-
-    return {
-        "id": parking.id,
-        "name": parking.name,
-        "address": parking.address,
-        "latitude": parking.latitude,
-        "longitude": parking.longitude,
-        "total_slots": parking.total_slots,
-        "hourly_rate": parking.hourly_rate,
-        "has_ev": parking.has_ev,
-        "has_cctv": parking.has_cctv,
-        "has_security_guard": parking.has_security_guard,
-        "has_covered_roof": parking.has_covered_roof,
-        "is_24_7": parking.is_24_7,
-        "has_valet": parking.has_valet,
-        "created_slots": total_slots_created,
-        "available_slots": available_slots,
-        "occupied_slots": occupied_slots,
-        "maintenance_slots": maintenance_slots,
-        "verification_status": parking.verification_status
-    }
+    }

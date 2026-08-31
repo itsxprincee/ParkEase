@@ -93,11 +93,13 @@ export default function OwnerProfile() {
     if (newPassword.length < 6) return showToast("Password must be at least 6 characters.", "error");
     try {
       setSavingPassword(true);
-      await API.post("/auth/change-password", { current_password: currentPassword, new_password: newPassword });
+      await API.put("/auth/change-password", { current_password: currentPassword, new_password: newPassword });
       showToast("Password updated successfully!", "success");
-      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
-    } catch (_) {
-      showToast("Password updated successfully!", "success");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      showToast(err?.response?.data?.detail || "Failed to update password.", "error");
     } finally {
       setSavingPassword(false);
     }

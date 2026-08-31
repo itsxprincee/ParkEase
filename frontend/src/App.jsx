@@ -145,12 +145,20 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/customer/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
 
           {/* OWNER ROUTES */}
           <Route
             path="/owner"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <OwnerDashboard />
               </ProtectedRoute>
             }
@@ -158,7 +166,7 @@ export default function App() {
           <Route
             path="/owner/add-parking"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <AddParking />
               </ProtectedRoute>
             }
@@ -166,7 +174,7 @@ export default function App() {
           <Route
             path="/owner/edit-parking/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <EditParking />
               </ProtectedRoute>
             }
@@ -174,7 +182,7 @@ export default function App() {
           <Route
             path="/owner/parking/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <OwnerParkingDetails />
               </ProtectedRoute>
             }
@@ -182,7 +190,7 @@ export default function App() {
           <Route
             path="/owner/parking/:id/slots"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <ManageSlots />
               </ProtectedRoute>
             }
@@ -190,7 +198,7 @@ export default function App() {
           <Route
             path="/owner/scan-qr"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <ScanQR />
               </ProtectedRoute>
             }
@@ -198,7 +206,7 @@ export default function App() {
           <Route
             path="/owner/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute ownerOnly>
                 <OwnerProfile />
               </ProtectedRoute>
             }
@@ -208,7 +216,7 @@ export default function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute adminOnly>
                 <AdminDashboard />
               </ProtectedRoute>
             }

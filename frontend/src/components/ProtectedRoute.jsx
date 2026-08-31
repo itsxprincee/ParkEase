@@ -40,7 +40,7 @@ function ProtectedRoute({
     );
   }
 
-  const role = user?.role;
+  const role = user?.role ? String(user.role).toLowerCase() : "customer";
 
   // =====================================================
   // ADMIN ONLY ROUTE

@@ -1393,6 +1393,7 @@ def update_profile(
 # =========================================================
 
 @router.put("/change-password")
+@router.post("/change-password")
 def change_password(
     request: ChangePasswordRequest,
     db: Session = Depends(get_db),

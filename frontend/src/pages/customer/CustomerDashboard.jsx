@@ -370,7 +370,7 @@ export default function CustomerDashboard() {
                 <span>LIVE PARKING NETWORK • 99.8% AVAILABILITY</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                Where would you like to park?
+                Find & Reserve Parking
               </h1>
             </div>
 

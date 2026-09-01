@@ -30,11 +30,13 @@ import {
   FiShield,
   FiCpu,
   FiRadio,
-  FiDroplet,
-  FiKey,
   FiDownload,
   FiCalendar,
-  FiPieChart,
+  FiHelpCircle,
+  FiChevronRight,
+  FiChevronDown,
+  FiChevronUp,
+  FiInfo,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -80,7 +82,7 @@ function AnimatedNumber({ value }) {
       setDisplay(0);
       return;
     }
-    const steps = 25;
+    const steps = 20;
     const increment = value / steps;
     let current = 0;
     const timer = setInterval(() => {
@@ -91,17 +93,17 @@ function AnimatedNumber({ value }) {
       } else {
         setDisplay(Math.floor(current));
       }
-    }, 500 / steps);
+    }, 400 / steps);
     return () => clearInterval(timer);
   }, [value]);
   return <>{display.toLocaleString("en-IN")}</>;
 }
 
-/* ─── Mini Progress Bar ──────────────────────────────────────────────── */
-function SparkBar({ value, max, color = "bg-emerald-500" }) {
+/* ─── Progress Bar Component ─────────────────────────────────────────── */
+function ProgressBar({ value, max, color = "bg-emerald-500" }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <div className="w-full h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+    <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
       <div
         className={`h-full rounded-full ${color} transition-all duration-700`}
         style={{ width: `${pct}%` }}
@@ -111,11 +113,25 @@ function SparkBar({ value, max, color = "bg-emerald-500" }) {
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   MAIN COMPONENT — OWNER DASHBOARD WITH TODAY / WEEKLY / MONTHLY / YEARLY REVENUE
+   MAIN COMPONENT — REDESIGNED INTUITIVE OWNER DASHBOARD
 ═════════════════════════════════════════════════════════════════════════ */
 export default function OwnerDashboard() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  // User details
+  const [userName, setUserName] = useState("Owner");
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.name) {
+          setUserName(parsed.name.split(" ")[0]);
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   const [dashboardData, setDashboardData] = useState(null);
   const [parkingList, setParkingList] = useState([]);
@@ -125,56 +141,38 @@ export default function OwnerDashboard() {
 
   // Active View Tab: 'VEHICLES' | 'FACILITIES' | 'REVENUE'
   const [activeTab, setActiveTab] = useState("VEHICLES");
-  const [revenuePeriod, setRevenuePeriod] = useState("YEARLY"); // 'YEARLY' | 'TODAY' | 'WEEKLY' | 'MONTHLY'
+  const [revenuePeriod, setRevenuePeriod] = useState("TODAY"); // 'TODAY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   const [chartType, setChartType] = useState("BAR"); // 'BAR' | 'AREA'
-  const [hoveredBar, setHoveredBar] = useState(null);
 
-  const [vehicleFilter, setVehicleFilter] = useState("ALL");
+  const [vehicleFilter, setVehicleFilter] = useState("ALL"); // 'ALL' | 'INSIDE' | 'BOOKED' | 'EXITED'
   const [selectedFacility, setSelectedFacility] = useState("ALL");
   const [search, setSearch] = useState("");
+
+  // Dismissible Getting Started Guide
+  const [guideDismissed, setGuideDismissed] = useState(() => {
+    try {
+      return localStorage.getItem("parkease_owner_guide_dismissed") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: "" });
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  // Feature #5: Special Services & EV Charging Modal State
-  const [serviceModal, setServiceModal] = useState({
-    open: false,
-    booking: null,
-    evStatus: "CHARGING",
-    evPercentage: 75,
-  });
-
-  const [specialServicesCache, setSpecialServicesCache] = useState(() => {
-    try {
-      const saved = localStorage.getItem("parkease_special_services");
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  // Live Clock
-  const [currentTime, setCurrentTime] = useState("");
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: true,
-        })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+  // Time greeting
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   }, []);
 
   const searchInputRef = useRef(null);
 
+  // Keyboard shortcut '/' to search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "/" && document.activeElement !== searchInputRef.current) {
@@ -191,6 +189,20 @@ export default function OwnerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleDismissGuide = () => {
+    setGuideDismissed(true);
+    try {
+      localStorage.setItem("parkease_owner_guide_dismissed", "true");
+    } catch (_) {}
+  };
+
+  const handleResetGuide = () => {
+    setGuideDismissed(false);
+    try {
+      localStorage.removeItem("parkease_owner_guide_dismissed");
+    } catch (_) {}
+  };
+
   const loadOwnerData = async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
@@ -199,8 +211,12 @@ export default function OwnerDashboard() {
         API.get("/owner/live-dashboard"),
         API.get("/owner/my-parking"),
       ]);
-      if (dashRes.status === "fulfilled" && dashRes.value?.data) setDashboardData(dashRes.value.data);
-      if (parkRes.status === "fulfilled" && Array.isArray(parkRes.value?.data)) setParkingList(parkRes.value.data);
+      if (dashRes.status === "fulfilled" && dashRes.value?.data) {
+        setDashboardData(dashRes.value.data);
+      }
+      if (parkRes.status === "fulfilled" && Array.isArray(parkRes.value?.data)) {
+        setParkingList(parkRes.value.data);
+      }
     } catch (_) {
       showToast("Unable to load live dashboard.", "error");
     } finally {
@@ -213,7 +229,7 @@ export default function OwnerDashboard() {
     loadOwnerData();
   }, []);
 
-  /* Vehicle Entry */
+  /* Vehicle Check In (Entry) */
   const handleMarkEntry = async (bookingId) => {
     try {
       setActionLoading((p) => ({ ...p, [bookingId]: "entry" }));
@@ -227,7 +243,7 @@ export default function OwnerDashboard() {
     }
   };
 
-  /* Vehicle Exit */
+  /* Vehicle Check Out (Exit) */
   const handleMarkExit = async (bookingId) => {
     try {
       setActionLoading((p) => ({ ...p, [bookingId]: "exit" }));
@@ -255,40 +271,6 @@ export default function OwnerDashboard() {
     } finally {
       setDeleting(false);
     }
-  };
-
-  /* Open Special Service Management Modal */
-  const openServiceManager = (booking) => {
-    const existing = specialServicesCache[booking.id] || {
-      evStatus: booking.has_ev ? "CHARGING" : "OFF",
-      evPercentage: 80,
-    };
-
-    setServiceModal({
-      open: true,
-      booking,
-      evStatus: existing.evStatus,
-      evPercentage: existing.evPercentage,
-    });
-  };
-
-  /* Save Special Services Update */
-  const saveServiceUpdate = () => {
-    if (!serviceModal.booking) return;
-    const bookingId = serviceModal.booking.id;
-    const updated = {
-      ...specialServicesCache,
-      [bookingId]: {
-        evStatus: serviceModal.evStatus,
-        evPercentage: serviceModal.evPercentage,
-      },
-    };
-    setSpecialServicesCache(updated);
-    try {
-      localStorage.setItem("parkease_special_services", JSON.stringify(updated));
-    } catch (_) {}
-    showToast("Special service tags & telemetry updated!", "success");
-    setServiceModal((prev) => ({ ...prev, open: false, booking: null }));
   };
 
   /* Current Selected Facility */
@@ -327,8 +309,8 @@ export default function OwnerDashboard() {
       Math.max(0, totalSlots - enteredCount - bookedCount)
     );
   }, [currentFacility, dashboardData, totalSlots, enteredCount, bookedCount]);
-  
-  // Revenue Metrics dynamically for selected facility OR all locations combined
+
+  // Revenue Metrics
   const totalRevenue = useMemo(() => {
     if (currentFacility) return currentFacility.total_revenue ?? 0;
     return dashboardData?.total_revenue ?? 0;
@@ -370,13 +352,9 @@ export default function OwnerDashboard() {
         )
           return false;
 
-        const sData = specialServicesCache[b.id];
-        const isEV = b.has_ev || sData?.evStatus === "CHARGING" || sData?.evStatus === "FULL";
-
         if (vehicleFilter === "INSIDE" && !b.is_entered) return false;
         if (vehicleFilter === "BOOKED" && !b.is_booked) return false;
         if (vehicleFilter === "EXITED" && b.status !== "COMPLETED") return false;
-        if (vehicleFilter === "EV" && !isEV) return false;
 
         if (search.trim()) {
           const q = search.toLowerCase();
@@ -389,7 +367,7 @@ export default function OwnerDashboard() {
         }
         return true;
       }),
-    [liveBookings, selectedFacility, vehicleFilter, search, specialServicesCache]
+    [liveBookings, selectedFacility, vehicleFilter, search]
   );
 
   /* Filtered Facilities */
@@ -407,7 +385,7 @@ export default function OwnerDashboard() {
     [parkingList, search]
   );
 
-  /* Revenue Chart Data Calculation */
+  /* Chart Breakdown */
   const currentChartData = useMemo(() => {
     const breakdowns = dashboardData?.revenue_breakdowns;
     const globalTotal = dashboardData?.total_revenue || 1;
@@ -500,60 +478,28 @@ export default function OwnerDashboard() {
   }, [revenuePeriod, todayRevenue, weeklyRevenue, monthlyRevenue, yearlyRevenue, totalRevenue]);
 
   const selectedPeriodTitle = useMemo(() => {
-    if (revenuePeriod === "TODAY") return "TODAY";
-    if (revenuePeriod === "WEEKLY") return "THIS WEEK";
-    if (revenuePeriod === "MONTHLY") return "THIS MONTH";
-    if (revenuePeriod === "YEARLY") return "THIS YEAR";
+    if (revenuePeriod === "TODAY") return "Today";
+    if (revenuePeriod === "WEEKLY") return "This Week";
+    if (revenuePeriod === "MONTHLY") return "This Month";
+    if (revenuePeriod === "YEARLY") return "This Year";
     return revenuePeriod;
   }, [revenuePeriod]);
 
-  const periodGrowthBadge = useMemo(() => {
-    if (revenuePeriod === "TODAY") return { text: "+18.4% YoY", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" };
-    if (revenuePeriod === "WEEKLY") return { text: "+14.2% WoW", color: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20" };
-    if (revenuePeriod === "MONTHLY") return { text: "+22.5% MoM", color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" };
-    return { text: "+18.4% YoY", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" };
-  }, [revenuePeriod]);
+  const totalPeriodBookings = useMemo(() => {
+    return currentChartData.reduce((acc, curr) => acc + (curr.count || 0), 0) || liveBookings.length || 1;
+  }, [currentChartData, liveBookings]);
 
-  const paidPassesCount = useMemo(() => {
-    if (dashboardData?.paid_passes_count !== undefined) return dashboardData.paid_passes_count;
-    if (dashboardData?.total_bookings !== undefined) return dashboardData.total_bookings;
-    if (liveBookings.length > 0) return liveBookings.length;
-    return 2;
-  }, [dashboardData, liveBookings]);
-
-  const avgTicketPrice = useMemo(() => {
-    if (!paidPassesCount || !selectedPeriodRevenue) return 0;
-    return Math.round(selectedPeriodRevenue / paidPassesCount);
-  }, [selectedPeriodRevenue, paidPassesCount]);
-
-  const revPasValue = useMemo(() => {
-    if (!totalSlots || !selectedPeriodRevenue) return 0;
-    return Math.round(selectedPeriodRevenue / totalSlots);
-  }, [selectedPeriodRevenue, totalSlots]);
-
-  const specialServicesRevenue = useMemo(() => {
-    return Math.round(selectedPeriodRevenue * 0.28);
-  }, [selectedPeriodRevenue]);
-
-  const peakChartItem = useMemo(() => {
-    if (!currentChartData.length) return null;
-    return currentChartData.reduce(
-      (prev, curr) => ((curr.amount || 0) > (prev.amount || 0) ? curr : prev),
-      currentChartData[0]
-    );
-  }, [currentChartData]);
-
-  const avgBucketAmount = useMemo(() => {
-    if (!currentChartData.length) return 0;
-    return Math.round(selectedPeriodRevenue / currentChartData.length);
-  }, [selectedPeriodRevenue, currentChartData]);
+  const avgBookingAmount = useMemo(() => {
+    if (!totalPeriodBookings || !selectedPeriodRevenue) return 0;
+    return Math.round(selectedPeriodRevenue / totalPeriodBookings);
+  }, [selectedPeriodRevenue, totalPeriodBookings]);
 
   /* CSV Statement Export Handler */
   const handleExportCSV = () => {
     const rows = [
-      ["Date / Period", "Revenue (INR)", "Transactions Count"],
+      ["Date / Period", "Revenue (INR)", "Vehicles Count"],
       ...currentChartData.map((d) => [d.label, Math.round(d.amount || 0), d.count || 0]),
-      ["TOTAL", selectedPeriodRevenue, ""],
+      ["TOTAL", selectedPeriodRevenue, totalPeriodBookings],
     ];
     const csvContent =
       "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
@@ -564,323 +510,365 @@ export default function OwnerDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast(`${revenuePeriod} revenue statement downloaded!`, "success");
+    showToast(`${selectedPeriodTitle} revenue statement downloaded!`, "success");
   };
 
-  /* KPI Card Definitions */
-  const kpiCards = [
-    {
-      id: "INSIDE",
-      label: "Parked Inside",
-      value: enteredCount,
-      badge: "Active Bays",
-      icon: FiLogIn,
-      barColor: "bg-emerald-500",
-      iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-      borderTop: "border-t-emerald-500",
-      ringColor: "ring-emerald-500/20",
-      badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-      shadowHover: "hover:shadow-emerald-500/10",
-      accentGlow: "from-emerald-500/10 to-transparent",
-    },
-    {
-      id: "BOOKED",
-      label: "Arriving Soon",
-      value: bookedCount,
-      badge: "Reservations",
-      icon: FiClock,
-      barColor: "bg-sky-500",
-      iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-      borderTop: "border-t-sky-500",
-      ringColor: "ring-sky-500/20",
-      badgeClass: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-      shadowHover: "hover:shadow-sky-500/10",
-      accentGlow: "from-sky-500/10 to-transparent",
-    },
-    {
-      id: "SLOTS",
-      label: "Available Spots",
-      value: availableSlots,
-      subLabel: `of ${totalSlots} total`,
-      occupancy: occupancyPercent,
-      icon: FiLayers,
-      barColor: "bg-indigo-500",
-      iconBg: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-      borderTop: "border-t-indigo-500",
-      ringColor: "ring-indigo-500/20",
-      badgeClass: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-      shadowHover: "hover:shadow-indigo-500/10",
-      accentGlow: "from-indigo-500/10 to-transparent",
-    },
-  ];
+  // First-time state determination
+  const isFirstTimeOwner = parkingList.length === 0;
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
-      <div className="fixed top-[-100px] left-[-80px] w-[500px] h-[500px] rounded-full bg-emerald-500/5 blur-3xl pointer-events-none -z-10" />
-      <div className="fixed top-[30%] right-[-100px] w-[450px] h-[450px] rounded-full bg-sky-500/5 blur-3xl pointer-events-none -z-10" />
+      {/* Background Decorative Glows */}
+      <div className="fixed top-[-80px] left-[-80px] w-[500px] h-[500px] rounded-full bg-emerald-500/5 blur-3xl pointer-events-none -z-10" />
+      <div className="fixed top-[40%] right-[-100px] w-[450px] h-[450px] rounded-full bg-sky-500/5 blur-3xl pointer-events-none -z-10" />
 
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-mobile-dock md:pb-8">
-        
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-20 md:pb-10">
+
         {/* ══════════════════════════════════════════════════════════════════
-            1. HERO COMMAND BANNER (UBER PARTNER AESTHETIC)
+            1. CLEAN & WELCOMING HEADER WITH QUICK ACTIONS
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl border border-zinc-800">
-          <div
-            className="absolute inset-0 opacity-[0.08]"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-              backgroundSize: "36px 36px",
-            }}
-          />
-
-          <div className="relative z-10 p-6 sm:p-9 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-3.5 max-w-2xl">
-              
-              {/* Live Status Badges */}
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 border border-white/30 text-white text-xs font-black tracking-wide backdrop-blur-md shadow-xs">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300" />
-                  </span>
-                  <span>LIVE PARKING & REVENUE</span>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
-                  <FiCpu className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>{currentTime || "IST"}</span>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-emerald-100 text-xs font-semibold backdrop-blur-md">
-                  <FiRadio className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>{parkingList.length} {parkingList.length === 1 ? "Location" : "Locations"}</span>
-                </div>
-              </div>
-
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-                  Parking Operations & Revenue
-                </h1>
-                <p className="mt-1.5 text-emerald-50 text-sm font-medium leading-relaxed">
-                  Manage parking spots, check in vehicles, and track today's, weekly, monthly, and yearly revenue.
-                </p>
-              </div>
-
-              {/* Quick Summary Chips */}
-              <div className="flex items-center gap-2 flex-wrap pt-0.5">
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
-                  <FiActivity className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>{liveBookings.length} Active Bookings</span>
+        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 rounded-3xl p-6 sm:p-7 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
                 </span>
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
-                  <FiTrendingUp className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>₹{todayRevenue.toLocaleString("en-IN")} Today</span>
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tracking-wide uppercase">
+                  Owner Dashboard
                 </span>
-                <span className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 backdrop-blur-md shadow-xs">
-                  <FiDollarSign className="w-3.5 h-3.5 text-amber-300" />
-                  <span>₹{monthlyRevenue.toLocaleString("en-IN")} This Month</span>
+                <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                  {parkingList.length} {parkingList.length === 1 ? "Location" : "Locations"}
                 </span>
               </div>
+
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                {greeting}, {userName}! 👋
+              </h1>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Manage your parking spots, check in/out arriving cars, and monitor your earnings.
+              </p>
             </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+            {/* Top Right Action Buttons */}
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={() => loadOwnerData(true)}
                 disabled={refreshing}
-                className="p-3.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white transition-all active:scale-95 shadow-md group cursor-pointer"
+                className="p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-all active:scale-95 cursor-pointer shadow-xs"
                 title="Refresh Live Data"
               >
-                <FiRefreshCw
-                  className={`w-4 h-4 group-hover:rotate-180 transition-transform duration-500 ${
-                    refreshing ? "animate-spin text-emerald-200" : ""
-                  }`}
-                />
+                <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`} />
               </button>
 
               <button
-                onClick={() => {
-                  setActiveTab("REVENUE");
-                  window.scrollTo({ top: 300, behavior: "smooth" });
-                }}
-                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
+                onClick={() => setShowHelpModal(true)}
+                className="flex items-center gap-2 px-3.5 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
+                title="Help & How It Works"
               >
-                <FiBarChart2 className="w-4 h-4 text-emerald-300" />
-                <span>View Revenue</span>
+                <FiHelpCircle className="w-4 h-4 text-emerald-500" />
+                <span className="hidden sm:inline">How It Works</span>
               </button>
 
               <button
                 onClick={() => navigate("/owner/scan-qr")}
-                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
+                className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
               >
-                <FiCamera className="w-4 h-4 text-emerald-300" />
-                <span>Scan QR</span>
+                <FiCamera className="w-4 h-4 text-emerald-400" />
+                <span>Scan Driver QR</span>
               </button>
 
               <button
                 onClick={() => navigate("/owner/add-parking")}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 hover:bg-emerald-50 text-xs font-black shadow-xl transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-lg shadow-emerald-600/25 transition-all active:scale-95 cursor-pointer"
               >
-                <FiPlus className="w-4 h-4 stroke-[3] text-emerald-600" />
-                <span>Add Parking</span>
+                <FiPlus className="w-4 h-4 stroke-[3]" />
+                <span>Add Parking Location</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
-            2. KPI METRICS CARDS + REVENUE STAT CARD
+            2. GETTING STARTED ONBOARDING GUIDE (FOR 1ST TIME USERS)
         ══════════════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpiCards.map((card) => {
-            const Icon = card.icon;
-            const isActive =
-              card.id === "SLOTS"
-                ? activeTab === "FACILITIES"
-                : activeTab === "VEHICLES" && vehicleFilter === card.id;
+        {(!guideDismissed || isFirstTimeOwner) && (
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 dark:from-emerald-950/40 dark:via-teal-950/40 dark:to-sky-950/40 border border-emerald-500/20 dark:border-emerald-500/30 p-6 sm:p-7 space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
+                  <FiZap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white">
+                    {isFirstTimeOwner ? "Welcome to ParkEase! Let's get you set up in 3 simple steps" : "Quick Start Guide for Parking Owners"}
+                  </h2>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                    Follow these steps to list your parking space and start receiving paid bookings.
+                  </p>
+                </div>
+              </div>
 
-            return (
+              {!isFirstTimeOwner && (
+                <button
+                  onClick={handleDismissGuide}
+                  className="text-xs font-bold text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-3 py-1.5 rounded-xl hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              )}
+            </div>
+
+            {/* 3 Actionable Step Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Step 1 */}
               <div
-                key={card.id}
+                onClick={() => navigate("/owner/add-parking")}
+                className="group p-4 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 hover:border-emerald-500/50 transition-all cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 text-xs font-black flex items-center justify-center">
+                      1
+                    </span>
+                    {parkingList.length > 0 ? (
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <FiCheck className="w-3.5 h-3.5 stroke-[3]" /> Done
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-bold text-amber-500">Required</span>
+                    )}
+                  </div>
+                  <h4 className="text-sm font-black text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Add Your Parking Space
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Set up your location name, street address, photos, and hourly parking rate.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <span>Add location</span>
+                  <FiChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div
                 onClick={() => {
-                  if (card.id === "SLOTS") setActiveTab("FACILITIES");
-                  else {
-                    setActiveTab("VEHICLES");
-                    setVehicleFilter(card.id);
+                  if (parkingList.length > 0) {
+                    navigate(`/owner/parking/${parkingList[0].id}/slots`);
+                  } else {
+                    navigate("/owner/add-parking");
                   }
                 }}
-                className={`group relative cursor-pointer rounded-3xl border-t-[3px] ${card.borderTop} overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${card.shadowHover} ${
-                  isActive
-                    ? `ring-2 ${card.ringColor} shadow-lg bg-white dark:bg-zinc-900`
-                    : "bg-white/90 dark:bg-zinc-900/80 shadow-[0_2px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
-                } border border-zinc-200/80 dark:border-zinc-800/80 backdrop-blur-xl`}
+                className="group p-4 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 hover:border-sky-500/50 transition-all cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between"
               >
-                <div className="p-5 sm:p-6 relative z-10">
-                  <div className="flex items-center justify-between mb-3.5">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                      {card.label}
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="w-6 h-6 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 text-xs font-black flex items-center justify-center">
+                      2
                     </span>
-                    <div
-                      className={`w-9 h-9 rounded-2xl flex items-center justify-center ${card.iconBg} group-hover:scale-110 transition-transform duration-300 shadow-xs`}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </div>
+                    <span className="text-[11px] font-bold text-zinc-400">Step 2</span>
                   </div>
-
-                  <div className="flex items-baseline gap-2 mb-1.5">
-                    <span className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
-                      <AnimatedNumber value={card.value} />
-                    </span>
-                    {card.badge && (
-                      <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded-lg border ${card.badgeClass}`}
-                      >
-                        {card.badge}
-                      </span>
-                    )}
-                    {card.subLabel && (
-                      <span className="text-xs text-zinc-400 dark:text-zinc-500 font-medium">
-                        {card.subLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    {card.occupancy !== undefined ? (
-                      <>
-                        <div className="flex justify-between text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                          <span>Spots Occupied</span>
-                          <span className="text-zinc-800 dark:text-zinc-200 font-mono">{card.occupancy}%</span>
-                        </div>
-                        <SparkBar value={card.occupancy} max={100} color={card.barColor} />
-                      </>
-                    ) : (
-                      <SparkBar value={card.value} max={totalSlots || 1} color={card.barColor} />
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-1 text-[10px] font-bold text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
-                    <FiArrowUpRight className="w-3 h-3" />
-                    <span>View details</span>
-                  </div>
+                  <h4 className="text-sm font-black text-zinc-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                    Configure Slots & Bays
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Define total slots for Cars, Bikes, or EV Charging spots with custom slot numbers.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-sky-600 dark:text-sky-400">
+                  <span>Manage spots</span>
+                  <FiChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            );
-          })}
 
-          {/* Interactive Revenue KPI Card with Quick Period Breakdown */}
+              {/* Step 3 */}
+              <div
+                onClick={() => navigate("/owner/scan-qr")}
+                className="group p-4 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 hover:border-indigo-500/50 transition-all cursor-pointer shadow-xs hover:shadow-md flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-black flex items-center justify-center">
+                      3
+                    </span>
+                    <span className="text-[11px] font-bold text-zinc-400">Step 3</span>
+                  </div>
+                  <h4 className="text-sm font-black text-zinc-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Check In Arriving Drivers
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Scan customer booking QR codes or tap "Check In" from the dashboard when they arrive.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                  <span>Open QR scanner</span>
+                  <FiChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            3. 4 KEY METRIC SUMMARY CARDS (CLEAN, JARGON-FREE)
+        ══════════════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          {/* Card 1: Available Spots */}
           <div
-            onClick={() => setActiveTab("REVENUE")}
-            className={`group relative rounded-3xl overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-black border border-zinc-800/90 shadow-xl hover:-translate-y-1.5 transition-all duration-300 text-white cursor-pointer ${
-              activeTab === "REVENUE" ? "ring-2 ring-emerald-500/50 shadow-emerald-500/20" : ""
+            onClick={() => setActiveTab("FACILITIES")}
+            className="p-5 rounded-3xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Available Spots
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FiLayers className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                <AnimatedNumber value={availableSlots} />
+              </span>
+              <span className="text-xs font-semibold text-zinc-400">
+                / {totalSlots} total
+              </span>
+            </div>
+            <div className="space-y-1.5 mt-3">
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-500">
+                <span>Occupancy</span>
+                <span className="text-zinc-800 dark:text-zinc-200">{occupancyPercent}%</span>
+              </div>
+              <ProgressBar value={enteredCount + bookedCount} max={totalSlots || 1} color="bg-indigo-500" />
+            </div>
+          </div>
+
+          {/* Card 2: Parked Inside Now */}
+          <div
+            onClick={() => {
+              setActiveTab("VEHICLES");
+              setVehicleFilter("INSIDE");
+            }}
+            className={`p-5 rounded-3xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer group ${
+              activeTab === "VEHICLES" && vehicleFilter === "INSIDE" ? "ring-2 ring-emerald-500/50" : ""
             }`}
           >
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
-
-            <div className="p-5 sm:p-6 relative z-10">
-              <div className="flex items-center justify-between mb-3.5">
-                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
-                  Total Revenue
-                </span>
-                <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20 shadow-xs">
-                  <FiDollarSign className="w-4 h-4" />
-                </div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Parked Inside
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FiLogIn className="w-4 h-4" />
               </div>
+            </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                <AnimatedNumber value={enteredCount} />
+              </span>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg">
+                Active
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-3 flex items-center gap-1">
+              <span>Click to view parked cars</span>
+              <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </p>
+          </div>
 
-              <div className="mb-4">
-                <span className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none font-mono">
-                  ₹<AnimatedNumber value={totalRevenue} />
-                </span>
+          {/* Card 3: Arriving Soon */}
+          <div
+            onClick={() => {
+              setActiveTab("VEHICLES");
+              setVehicleFilter("BOOKED");
+            }}
+            className={`p-5 rounded-3xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer group ${
+              activeTab === "VEHICLES" && vehicleFilter === "BOOKED" ? "ring-2 ring-sky-500/50" : ""
+            }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Arriving Soon
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FiClock className="w-4 h-4" />
               </div>
+            </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+                <AnimatedNumber value={bookedCount} />
+              </span>
+              <span className="text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded-lg">
+                Reservations
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-3 flex items-center gap-1">
+              <span>Ready for check-in</span>
+              <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </p>
+          </div>
 
-              <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between backdrop-blur-md">
-                <span className="text-[11px] font-bold text-zinc-400">Today's Revenue</span>
-                <span className="text-xs font-black text-emerald-400 flex items-center gap-1 font-mono">
-                  <FiTrendingUp className="w-3.5 h-3.5" />
-                  +₹{todayRevenue.toLocaleString("en-IN")}
-                </span>
+          {/* Card 4: Total & Today's Earnings */}
+          <div
+            onClick={() => setActiveTab("REVENUE")}
+            className={`p-5 rounded-3xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer group ${
+              activeTab === "REVENUE" ? "ring-2 ring-emerald-500/50" : ""
+            }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                Today's Earnings
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FiDollarSign className="w-4 h-4" />
               </div>
-
-              <div className="mt-3 flex items-center justify-between text-[10px] font-bold text-zinc-400 group-hover:text-emerald-400 transition-colors">
-                <span>View Revenue Details</span>
-                <FiArrowUpRight className="w-3 h-3" />
-              </div>
+            </div>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight font-mono">
+                ₹<AnimatedNumber value={todayRevenue} />
+              </span>
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-zinc-400">Total: ₹{totalRevenue.toLocaleString("en-IN")}</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
+                <span>View stats</span>
+                <FiChevronRight className="w-3.5 h-3.5" />
+              </span>
             </div>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════
-            3. TAB NAVIGATION (VEHICLES | FACILITIES | REVENUE ANALYTICS)
+            4. MAIN WORKSPACE TABS (VEHICLES | LOCATIONS | REVENUE)
         ══════════════════════════════════════════════════════════════════ */}
         <div className="space-y-4">
-          <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl p-3 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)]">
+          {/* Tab Bar and Search Row */}
+          <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-2.5 sm:p-3 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-sm">
             
-            {/* Tab Selectors */}
+            {/* 3 Main View Tabs */}
             <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
               <button
                 onClick={() => {
                   setActiveTab("VEHICLES");
                   setVehicleFilter("ALL");
                 }}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-200 shrink-0 cursor-pointer ${
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
                   activeTab === "VEHICLES"
-                    ? "bg-zinc-950 text-white shadow-md dark:bg-white dark:text-zinc-950"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
+                    ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-950"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiActivity
-                  className={`w-4 h-4 ${
-                    activeTab === "VEHICLES" ? "text-emerald-400" : "text-zinc-400"
-                  }`}
-                />
-                <span>Vehicles & Bookings</span>
+                <FiTruck className="w-4 h-4" />
+                <span>Live Vehicles</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                     activeTab === "VEHICLES"
                       ? "bg-emerald-500/20 text-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-700"
                       : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
@@ -891,40 +879,17 @@ export default function OwnerDashboard() {
               </button>
 
               <button
-                onClick={() => setActiveTab("REVENUE")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-200 shrink-0 cursor-pointer ${
-                  activeTab === "REVENUE"
-                    ? "bg-zinc-950 text-white shadow-md dark:bg-white dark:text-zinc-950"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
-                }`}
-              >
-                <FiBarChart2
-                  className={`w-4 h-4 ${
-                    activeTab === "REVENUE" ? "text-emerald-400" : "text-zinc-400"
-                  }`}
-                />
-                <span>Revenue & Reports</span>
-                <span className="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-emerald-500/20 text-emerald-500">
-                  New
-                </span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab("FACILITIES")}
-                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all duration-200 shrink-0 cursor-pointer ${
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
                   activeTab === "FACILITIES"
-                    ? "bg-zinc-950 text-white shadow-md dark:bg-white dark:text-zinc-950"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-white"
+                    ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-950"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiGrid
-                  className={`w-4 h-4 ${
-                    activeTab === "FACILITIES" ? "text-emerald-400" : "text-zinc-400"
-                  }`}
-                />
+                <FiGrid className="w-4 h-4" />
                 <span>My Locations</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                     activeTab === "FACILITIES"
                       ? "bg-emerald-500/20 text-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-700"
                       : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
@@ -933,15 +898,27 @@ export default function OwnerDashboard() {
                   {parkingList.length}
                 </span>
               </button>
+
+              <button
+                onClick={() => setActiveTab("REVENUE")}
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
+                  activeTab === "REVENUE"
+                    ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-950"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                <FiBarChart2 className="w-4 h-4" />
+                <span>Revenue & Analytics</span>
+              </button>
             </div>
 
-            {/* Filter Dropdown & Search */}
+            {/* Location Selector & Search Filter */}
             <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
               {parkingList.length > 1 && (
                 <select
                   value={selectedFacility}
                   onChange={(e) => setSelectedFacility(e.target.value)}
-                  className="pe-input text-xs font-bold py-2.5 px-3.5 sm:w-44 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl shadow-xs cursor-pointer"
+                  className="pe-input text-xs font-bold py-2.5 px-3.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl cursor-pointer"
                 >
                   <option value="ALL">All Parking Locations</option>
                   {parkingList.map((p) => (
@@ -961,12 +938,12 @@ export default function OwnerDashboard() {
                     activeTab === "VEHICLES"
                       ? "Search plate, driver, spot..."
                       : activeTab === "REVENUE"
-                      ? "Search locations or dates..."
-                      : "Search parking locations..."
+                      ? "Search dates or period..."
+                      : "Search locations..."
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pe-input pe-input-icon-left pr-8 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs focus:ring-2 focus:ring-emerald-500/20"
+                  className="pe-input pe-input-icon-left pr-8 text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
                 />
                 {search && (
                   <button
@@ -981,7 +958,7 @@ export default function OwnerDashboard() {
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 1: LIVE VEHICLES STREAM
+              TAB 1: LIVE VEHICLES STREAM & CHECK-IN / CHECK-OUT
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "VEHICLES" && (
             <div className="space-y-4 animate-fade-in">
@@ -989,24 +966,24 @@ export default function OwnerDashboard() {
               <div className="flex items-center gap-2 flex-wrap">
                 {[
                   { id: "ALL", label: "All Vehicles", count: liveBookings.length },
-                  { id: "INSIDE", label: "Parked Now", count: enteredCount, dotColor: "bg-emerald-500" },
-                  { id: "BOOKED", label: "Arriving Soon", count: bookedCount, dotColor: "bg-sky-500" },
-                  { id: "EXITED", label: "Checked Out", count: null, dotColor: "bg-zinc-400" },
+                  { id: "INSIDE", label: "Parked Inside", count: enteredCount, dot: "bg-emerald-500" },
+                  { id: "BOOKED", label: "Arriving Soon", count: bookedCount, dot: "bg-sky-500" },
+                  { id: "EXITED", label: "Checked Out", count: null, dot: "bg-zinc-400" },
                 ].map((chip) => (
                   <button
                     key={chip.id}
                     onClick={() => setVehicleFilter(chip.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer ${
                       vehicleFilter === chip.id
-                        ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-lg font-black scale-[1.02]"
-                        : "bg-white/90 dark:bg-zinc-900/90 text-zinc-600 dark:text-zinc-400 border border-zinc-200/90 dark:border-zinc-800/90 hover:border-zinc-400 dark:hover:border-zinc-600 shadow-xs"
+                        ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 font-black shadow-sm"
+                        : "bg-white/90 dark:bg-zinc-900/90 text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-800/80 hover:border-zinc-300"
                     }`}
                   >
-                    {chip.dotColor && <span className={`w-2 h-2 rounded-full ${chip.dotColor}`} />}
+                    {chip.dot && <span className={`w-2 h-2 rounded-full ${chip.dot}`} />}
                     <span>{chip.label}</span>
-                    {chip.count !== undefined && chip.count !== null && (
+                    {chip.count !== null && (
                       <span
-                        className={`ml-0.5 px-1.5 py-px rounded-md text-[10px] font-black ${
+                        className={`px-1.5 py-0.2 rounded-md text-[10px] ${
                           vehicleFilter === chip.id
                             ? "bg-white/20 dark:bg-black/20"
                             : "bg-zinc-100 dark:bg-zinc-800"
@@ -1027,12 +1004,16 @@ export default function OwnerDashboard() {
               ) : filteredBookings.length === 0 ? (
                 <EmptyState
                   icon={FiTruck}
-                  title="No vehicles found"
+                  title="No vehicles to display"
                   description={
                     liveBookings.length === 0
-                      ? "No vehicles are booked or parked yet. New bookings will appear here automatically."
-                      : "No vehicles match your search or filter."
+                      ? isFirstTimeOwner
+                        ? "You don't have any parking locations added yet. Add your location to start accepting customer bookings."
+                        : "No vehicles are booked or parked right now. When customers make a booking, their details and check-in buttons will appear here."
+                      : "No vehicles match your active search or filter."
                   }
+                  actionLabel={isFirstTimeOwner ? "Add Parking Location" : undefined}
+                  onAction={isFirstTimeOwner ? () => navigate("/owner/add-parking") : undefined}
                 />
               ) : (
                 <div className="space-y-3">
@@ -1041,51 +1022,33 @@ export default function OwnerDashboard() {
                     const isBooked = b.is_booked;
                     const isCompleted = b.status === "COMPLETED";
 
-                    // Feature #5 metadata lookup
-                    const sData = specialServicesCache[b.id];
-                    const isEV = b.has_ev || sData?.evStatus === "CHARGING" || sData?.evStatus === "FULL";
-                    const evPct = sData?.evPercentage ?? 75;
-                    const isFullEV = sData?.evStatus === "FULL" || evPct >= 100;
-                    const valetState = sData?.valetStatus || "REQUESTED";
-                    const washState = sData?.washStatus || (b.id % 2 === 0 ? "IN_PROGRESS" : "NONE");
-
                     return (
                       <div
                         key={b.id}
-                        className={`group relative p-5 rounded-3xl backdrop-blur-xl border transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 ${
+                        className={`p-4 sm:p-5 rounded-3xl bg-white/95 dark:bg-zinc-900/95 border backdrop-blur-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
                           isEntered
-                            ? "bg-white/95 dark:bg-zinc-900/95 border-emerald-300 dark:border-emerald-900/40 shadow-[0_4px_24px_rgba(16,185,129,0.06)]"
+                            ? "border-emerald-300 dark:border-emerald-900/40"
                             : isBooked
-                            ? "bg-white/95 dark:bg-zinc-900/95 border-sky-200 dark:border-sky-900/40 shadow-[0_4px_24px_rgba(14,165,233,0.04)]"
-                            : "bg-white/90 dark:bg-zinc-900/80 border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                            ? "border-sky-300 dark:border-sky-900/40"
+                            : "border-zinc-200/80 dark:border-zinc-800/80"
                         }`}
                       >
-                        {/* Status Left Accent Bar */}
-                        <div
-                          className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                            isEntered
-                              ? "bg-emerald-500 shadow-[0_0_12px_#10b981]"
-                              : isBooked
-                              ? "bg-sky-500 shadow-[0_0_12px_#0ea5e9]"
-                              : "bg-zinc-300 dark:bg-zinc-700"
-                          }`}
-                        />
-
-                        {/* Vehicle & Driver Info */}
-                        <div className="flex items-center gap-4 min-w-0 pl-3">
-                          <div className="license-plate text-xs shrink-0 shadow-sm border border-zinc-300 dark:border-zinc-700">
+                        {/* Vehicle Plate & Details */}
+                        <div className="flex items-center gap-4 min-w-0">
+                          {/* Indian License Plate Badge */}
+                          <div className="license-plate text-xs shrink-0 shadow-xs border border-zinc-300 dark:border-zinc-700">
                             <span className="license-plate-ind">IND</span>
                             <span className="font-mono font-black tracking-wider text-zinc-900 dark:text-zinc-100">
-                              {b.vehicle_number}
+                              {b.vehicle_number || "REG-NUMBER"}
                             </span>
                           </div>
 
-                          <div className="space-y-1.5 min-w-0">
+                          <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-black text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 font-mono">
-                                Spot {b.slot_number}
+                                Spot #{b.slot_number}
                               </span>
-                              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
                                 {b.customer_name}
                               </span>
                               <span className="text-xs text-zinc-400 font-medium">
@@ -1094,68 +1057,61 @@ export default function OwnerDashboard() {
                             </div>
 
                             <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap">
-                              <FiMapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                               <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]">
                                 {b.parking_name}
                               </span>
-                              <span>&bull;</span>
+                              <span>•</span>
                               <span className="font-mono text-zinc-500 dark:text-zinc-400">
-                                {b.start_time} &ndash; {b.end_time}
+                                {b.start_time} – {b.end_time}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Status + Actions */}
-                        <div className="flex items-center gap-2.5 self-end md:self-center shrink-0 flex-wrap">
+                        {/* Status Badges & 1-Click Action Buttons */}
+                        <div className="flex items-center gap-3 self-end md:self-center shrink-0 flex-wrap">
                           {isEntered && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/25 shadow-xs">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
                               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                              Parked
+                              Parked Inside
                             </span>
                           )}
 
                           {isBooked && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-black border border-sky-500/25">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 text-xs font-bold border border-sky-500/20">
                               <FiClock className="w-3.5 h-3.5 text-sky-500" />
                               Arriving Soon
                             </span>
                           )}
 
                           {isCompleted && (
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-bold">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs font-semibold">
                               <FiCheck className="w-3.5 h-3.5 text-emerald-500" />
                               Checked Out
                             </span>
                           )}
 
+                          {/* Check In Action */}
                           {isBooked && (
                             <button
                               onClick={() => handleMarkEntry(b.id)}
                               disabled={actionLoading[b.id] === "entry"}
-                              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white text-xs font-black transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2 active:scale-95 cursor-pointer"
+                              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-black transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5 active:scale-95 cursor-pointer"
                             >
                               <FiLogIn className="w-4 h-4 stroke-[2.5]" />
-                              <span>
-                                {actionLoading[b.id] === "entry"
-                                  ? "Checking In..."
-                                  : "Check In"}
-                              </span>
+                              <span>{actionLoading[b.id] === "entry" ? "Checking In..." : "Check In"}</span>
                             </button>
                           )}
 
+                          {/* Check Out Action */}
                           {isEntered && (
                             <button
                               onClick={() => handleMarkExit(b.id)}
                               disabled={actionLoading[b.id] === "exit"}
-                              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 disabled:opacity-50 text-white text-xs font-black transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2 active:scale-95 cursor-pointer"
+                              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 flex items-center gap-1.5 active:scale-95 cursor-pointer"
                             >
                               <FiLogOut className="w-4 h-4 stroke-[2.5]" />
-                              <span>
-                                {actionLoading[b.id] === "exit"
-                                  ? "Checking Out..."
-                                  : "Check Out"}
-                              </span>
+                              <span>{actionLoading[b.id] === "exit" ? "Checking Out..." : "Check Out"}</span>
                             </button>
                           )}
                         </div>
@@ -1168,335 +1124,7 @@ export default function OwnerDashboard() {
           )}
 
           {/* ══════════════════════════════════════════════════════════════════
-              TAB 2: REVENUE & EARNINGS
-          ══════════════════════════════════════════════════════════════════ */}
-          {activeTab === "REVENUE" && (
-            <div className="space-y-6 animate-fade-in">
-              {/* Main Interactive Revenue Bar & Area Chart Card */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl space-y-6 relative overflow-hidden">
-                
-                {/* Background Ambient Glow */}
-                <div className="absolute top-0 right-1/4 w-72 h-72 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Chart Header & Action Controls */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-6 border-b border-zinc-100 dark:border-zinc-800 relative z-10">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 font-mono">
-                        {selectedPeriodTitle} EARNINGS
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
-                        Revenue Analytics
-                      </h3>
-                    </div>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                      {currentFacility
-                        ? `Live earnings curve and breakdown for ${currentFacility.name}`
-                        : `Live income curve across all ${parkingList.length} parking locations.`}
-                    </p>
-                  </div>
-
-                  {/* Period Switcher + Chart Type + CSV Export */}
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    {/* Period Switcher Pills */}
-                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl border border-zinc-200/70 dark:border-zinc-700/70">
-                      {[
-                        { id: "TODAY", label: "Today" },
-                        { id: "WEEKLY", label: "Week" },
-                        { id: "MONTHLY", label: "Month" },
-                        { id: "YEARLY", label: "Year" },
-                      ].map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => setRevenuePeriod(p.id)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                            revenuePeriod === p.id
-                              ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs"
-                              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                          }`}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Chart Mode Toggle: Bar vs Area Curve */}
-                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl border border-zinc-200/70 dark:border-zinc-700/70">
-                      <button
-                        onClick={() => setChartType("BAR")}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          chartType === "BAR"
-                            ? "bg-emerald-500 text-black font-black shadow-xs"
-                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                        }`}
-                        title="Bar Chart View"
-                      >
-                        <FiBarChart2 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Bars</span>
-                      </button>
-                      <button
-                        onClick={() => setChartType("AREA")}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          chartType === "AREA"
-                            ? "bg-emerald-500 text-black font-black shadow-xs"
-                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                        }`}
-                        title="Smooth Area Curve View"
-                      >
-                        <FiTrendingUp className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Trend Curve</span>
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleExportCSV}
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white text-xs font-bold transition-all active:scale-95 cursor-pointer"
-                      title={`Download ${revenuePeriod} CSV Statement`}
-                    >
-                      <FiDownload className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="hidden sm:inline">CSV Export</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Key Metric Highlights Bar */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Period Earnings</span>
-                      <p className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        ₹{Math.round(selectedPeriodRevenue).toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      {selectedPeriodTitle}
-                    </span>
-                  </div>
-
-                  {peakChartItem && (
-                    <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">⭐ Busiest Time Peak</span>
-                        <p className="text-base font-black text-zinc-900 dark:text-white mt-0.5">
-                          {peakChartItem.label}
-                        </p>
-                      </div>
-                      <span className="text-xs font-mono font-black text-amber-500">
-                        ₹{Math.round(peakChartItem.amount || 0).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="p-3.5 rounded-2xl bg-zinc-50/90 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Average Velocity</span>
-                      <p className="text-base font-black font-mono text-zinc-900 dark:text-white mt-0.5">
-                        ₹{avgBucketAmount.toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-400">per interval</span>
-                  </div>
-                </div>
-
-                {/* Interactive Chart Canvas */}
-                <div className="relative pt-4 pb-2">
-                  
-                  {/* Background Reference Lines */}
-                  <div className="absolute inset-x-0 top-4 bottom-10 flex flex-col justify-between pointer-events-none opacity-40 dark:opacity-20 z-0">
-                    <div className="border-b border-dashed border-zinc-300 dark:border-zinc-700 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount).toLocaleString("en-IN")}</span>
-                      <span>100%</span>
-                    </div>
-                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount * 0.66).toLocaleString("en-IN")}</span>
-                      <span>66%</span>
-                    </div>
-                    <div className="border-b border-dashed border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹{Math.round(maxChartAmount * 0.33).toLocaleString("en-IN")}</span>
-                      <span>33%</span>
-                    </div>
-                    <div className="border-b border-zinc-200 dark:border-zinc-800 w-full flex items-center justify-between text-[9px] font-mono text-zinc-400">
-                      <span>₹0</span>
-                      <span>0%</span>
-                    </div>
-                  </div>
-
-                  {/* VIEW 1: BAR CHART */}
-                  {chartType === "BAR" && (
-                    <div className="overflow-x-auto pb-2 scrollbar-thin">
-                      <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-5 items-end h-64 sm:h-76 border-b border-zinc-200 dark:border-zinc-800 pb-3 min-w-[540px] sm:min-w-0 relative z-10">
-                        {currentChartData.map((item, idx) => {
-                          const heightPct = Math.max(
-                            12,
-                            Math.round(((item.amount || 0) / maxChartAmount) * 100)
-                          );
-                          const isPeak = (item.amount || 0) === (peakChartItem?.amount || 0) && (item.amount || 0) > 0;
-                          const pctOfTotal = selectedPeriodRevenue > 0
-                            ? Math.round(((item.amount || 0) / selectedPeriodRevenue) * 100)
-                            : 0;
-
-                          return (
-                            <div
-                              key={idx}
-                              className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
-                            >
-                              {/* Floating Glassmorphism Tooltip on Hover */}
-                              <div className="absolute -top-20 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-30 bg-zinc-950/95 dark:bg-zinc-900/95 backdrop-blur-md text-white text-center p-2.5 rounded-2xl shadow-2xl border border-zinc-700/80 whitespace-nowrap min-w-[130px]">
-                                <div className="text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                  {item.label}
-                                </div>
-                                <p className="text-sm font-black font-mono text-emerald-400 mt-0.5">
-                                  ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
-                                </p>
-                                <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 mt-1 pt-1 border-t border-zinc-800 font-medium">
-                                  <span>{item.count || 1} Parked</span>
-                                  <span>•</span>
-                                  <span className="text-teal-400 font-bold">{pctOfTotal}% yield</span>
-                                </div>
-                              </div>
-
-                              {/* Peak Crown Badge */}
-                              {isPeak && (
-                                <span className="text-[10px] mb-1.5 font-black px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-500 border border-amber-500/30 animate-pulse">
-                                  ⭐ Peak
-                                </span>
-                              )}
-
-                              {/* Bar Column Graphic */}
-                              <div
-                                className={`w-full max-w-[48px] rounded-2xl transition-all duration-500 group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden ${
-                                  isPeak
-                                    ? "bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 shadow-lg shadow-emerald-500/30"
-                                    : "bg-gradient-to-t from-emerald-600/90 to-teal-400/90 hover:from-emerald-500 hover:to-teal-300 dark:from-emerald-600/70 dark:to-teal-400/70"
-                                }`}
-                                style={{ height: `${heightPct}%` }}
-                              >
-                                <div className="absolute top-0 inset-x-0 h-1.5 bg-white/50 rounded-t-2xl shadow-xs" />
-                                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-
-                              {/* X-Axis Label */}
-                              <div className="mt-3 text-center">
-                                <span className="text-[10px] sm:text-xs font-black text-zinc-700 dark:text-zinc-300 block truncate">
-                                  {item.label}
-                                </span>
-                                <span className="text-[9px] font-mono text-zinc-400 font-medium hidden sm:block mt-0.5">
-                                  ₹{Math.round(item.amount || 0)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* VIEW 2: SMOOTH AREA SPLINE CURVE */}
-                  {chartType === "AREA" && (
-                    <div className="relative w-full h-64 sm:h-76 z-10 pt-4">
-                      <svg
-                        className="w-full h-full overflow-visible"
-                        viewBox="0 0 1000 240"
-                        preserveAspectRatio="none"
-                      >
-                        <defs>
-                          <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                            <stop offset="60%" stopColor="#06b6d4" stopOpacity="0.1" />
-                            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                          </linearGradient>
-                          <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#10b981" />
-                            <stop offset="50%" stopColor="#14b8a6" />
-                            <stop offset="100%" stopColor="#06b6d4" />
-                          </linearGradient>
-                        </defs>
-
-                        {/* Generate points & SVG Path */}
-                        {(() => {
-                          const len = currentChartData.length;
-                          if (len === 0) return null;
-                          const points = currentChartData.map((d, i) => {
-                            const x = (i / Math.max(1, len - 1)) * 920 + 40;
-                            const y = 200 - ((d.amount || 0) / maxChartAmount) * 160;
-                            return { x, y, ...d };
-                          });
-
-                          let pathD = `M ${points[0].x},${points[0].y}`;
-                          for (let i = 0; i < points.length - 1; i++) {
-                            const p0 = points[i];
-                            const p1 = points[i + 1];
-                            const cpX = (p0.x + p1.x) / 2;
-                            pathD += ` C ${cpX},${p0.y} ${cpX},${p1.y} ${p1.x},${p1.y}`;
-                          }
-
-                          const areaD = `${pathD} L ${points[points.length - 1].x},220 L ${points[0].x},220 Z`;
-
-                          return (
-                            <>
-                              <path d={areaD} fill="url(#areaGradient)" />
-                              <path
-                                d={pathD}
-                                fill="none"
-                                stroke="url(#strokeGradient)"
-                                strokeWidth="3.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              {points.map((pt, idx) => (
-                                <g key={idx} className="cursor-pointer group">
-                                  <circle
-                                    cx={pt.x}
-                                    cy={pt.y}
-                                    r="5.5"
-                                    className="fill-white dark:fill-zinc-900 stroke-emerald-500 hover:scale-150 transition-transform"
-                                    strokeWidth="3"
-                                  />
-                                </g>
-                              ))}
-                            </>
-                          );
-                        })()}
-                      </svg>
-
-                      {/* X-Axis Labels for Area Mode */}
-                      <div className="flex items-center justify-between pt-3 border-t border-zinc-200 dark:border-zinc-800 text-[10px] sm:text-xs font-black text-zinc-600 dark:text-zinc-400">
-                        {currentChartData.map((item, idx) => (
-                          <span key={idx} className="text-center truncate px-1">
-                            {item.label}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bottom Chart Footer Legend */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                  <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-xs" />
-                      <span>Total Earnings (₹)</span>
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
-                      <span>Highest Volume</span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                      ✓ Real-time automated sync with gate bookings
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ══════════════════════════════════════════════════════════════════
-              TAB 3: MY LOCATIONS DIRECTORY
+              TAB 2: MY PARKING LOCATIONS DIRECTORY
           ══════════════════════════════════════════════════════════════════ */}
           {activeTab === "FACILITIES" && (
             <div className="space-y-4 animate-fade-in">
@@ -1510,133 +1138,97 @@ export default function OwnerDashboard() {
                 <EmptyState
                   icon={FiGrid}
                   title="No parking locations yet"
-                  description="Add your parking location to start receiving customer bookings and managing spots."
-                  actionLabel="Add Parking Spot"
+                  description="Add your first parking lot with hourly pricing and capacity to start receiving bookings."
+                  actionLabel="Add Parking Location"
                   onAction={() => navigate("/owner/add-parking")}
                 />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {filteredFacilities.map((p) => {
-                    const status = (
-                      p.verification_status ||
-                      p.status ||
-                      "PENDING"
-                    ).toUpperCase();
-                    const isApproved =
-                      status === "APPROVED" || Boolean(p.is_approved);
+                    const status = (p.verification_status || p.status || "APPROVED").toUpperCase();
+                    const isApproved = status === "APPROVED" || Boolean(p.is_approved);
                     const isRejected = status === "REJECTED";
                     const isFree = (p.hourly_rate ?? -1) === 0;
                     const slotPct =
                       p.total_slots > 0
-                        ? Math.round(
-                            ((p.booked_slots || 0) / p.total_slots) * 100
-                          )
+                        ? Math.round(((p.booked_slots || 0) / p.total_slots) * 100)
                         : 0;
 
                     return (
                       <div
                         key={p.id}
-                        className="group relative bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-[0_4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.3)] hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col"
+                        className="group bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
                       >
-                        {/* Image Header with Amenity Tags */}
-                        <div className="relative h-48 bg-zinc-950 overflow-hidden">
+                        {/* Location Image Header */}
+                        <div className="relative h-44 bg-zinc-900 overflow-hidden">
                           {p.image_url || p.image ? (
                             <img
                               src={p.image_url || p.image}
                               alt={p.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-800 via-zinc-900 to-zinc-950">
-                              <div className="w-14 h-14 rounded-2xl bg-zinc-700/50 flex items-center justify-center mb-2">
-                                <FiGrid className="w-7 h-7 text-zinc-400" />
-                              </div>
-                              <span className="text-xs font-semibold text-zinc-500">
-                                Parking Location
-                              </span>
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-950">
+                              <FiGrid className="w-8 h-8 text-zinc-400 mb-1" />
+                              <span className="text-xs font-semibold text-zinc-400">Parking Space</span>
                             </div>
                           )}
 
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                           {/* Top Badges */}
                           <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
                             <Badge
-                              variant={
-                                isApproved
-                                  ? "success"
-                                  : isRejected
-                                  ? "danger"
-                                  : "warning"
-                              }
+                              variant={isApproved ? "success" : isRejected ? "danger" : "warning"}
                               dot
                               size="sm"
                             >
-                              {isApproved
-                                ? "Live & Active"
-                                : isRejected
-                                ? "Rejected"
-                                : "Under Review"}
+                              {isApproved ? "Live & Active" : isRejected ? "Rejected" : "Under Review"}
                             </Badge>
-                            <span className="px-3 py-1 rounded-full text-xs font-black bg-black/75 text-white backdrop-blur-md border border-white/20 shadow-lg font-mono">
+                            <span className="px-3 py-1 rounded-full text-xs font-black bg-black/75 text-white backdrop-blur-md border border-white/20 font-mono shadow-xs">
                               {isFree ? "FREE" : `₹${p.hourly_rate ?? 50}/hr`}
                             </span>
                           </div>
 
-                          {/* Spot Capacity on Image Bottom */}
-                          <div className="absolute bottom-3.5 left-3.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white text-xs font-bold">
+                          {/* Total spots badge */}
+                          <div className="absolute bottom-3 left-3.5 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white text-xs font-bold">
                             <FiLayers className="w-3.5 h-3.5 text-emerald-400" />
-                            <span>{p.total_slots || 12} spots total</span>
+                            <span>{p.total_slots || 10} spots total</span>
                           </div>
                         </div>
 
-                        {/* Card Content */}
-                        <div className="p-5 flex-1 flex flex-col gap-4">
+                        {/* Location Card Body */}
+                        <div className="p-5 flex-1 flex flex-col justify-between gap-4">
                           <div>
                             <h3 className="font-black text-base text-zinc-900 dark:text-white line-clamp-1">
                               {p.name}
                             </h3>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-start gap-1.5 mt-1 line-clamp-1">
-                              <FiMapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-zinc-400" />
-                              <span>{p.address || p.location || "City Location"}</span>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mt-1 line-clamp-1">
+                              <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+                              <span>{p.address || p.location || "City Parking Area"}</span>
                             </p>
 
                             {p.total_slots > 0 && (
-                              <div className="mt-3.5">
-                                <div className="flex justify-between text-[11px] font-bold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                                  <span>Spots Occupied</span>
-                                  <span className="text-zinc-800 dark:text-zinc-200 font-mono">
-                                    {slotPct}%
-                                  </span>
+                              <div className="mt-3.5 space-y-1">
+                                <div className="flex justify-between text-[11px] font-bold text-zinc-500">
+                                  <span>Occupancy</span>
+                                  <span className="text-zinc-800 dark:text-zinc-200">{slotPct}%</span>
                                 </div>
-                                <div className="w-full h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full transition-all duration-700 ${
-                                      slotPct > 80
-                                        ? "bg-rose-500"
-                                        : slotPct > 50
-                                        ? "bg-amber-500"
-                                        : "bg-emerald-500"
-                                    }`}
-                                    style={{ width: `${slotPct}%` }}
-                                  />
-                                </div>
+                                <ProgressBar value={p.booked_slots || 0} max={p.total_slots} color="bg-emerald-500" />
                               </div>
                             )}
                           </div>
 
-                          {/* Action Grid */}
-                          <div className="mt-auto space-y-2.5">
+                          {/* Action Buttons */}
+                          <div className="space-y-2.5 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                             <div className="grid grid-cols-2 gap-2">
                               <Button
                                 variant="secondary"
                                 size="sm"
                                 icon={FiLayers}
-                                onClick={() =>
-                                  navigate(`/owner/parking/${p.id}/slots`)
-                                }
+                                onClick={() => navigate(`/owner/parking/${p.id}/slots`)}
                               >
-                                Manage Spots
+                                Manage Slots
                               </Button>
                               <Button
                                 variant="primary"
@@ -1648,15 +1240,13 @@ export default function OwnerDashboard() {
                               </Button>
                             </div>
 
-                            <div className="flex items-center justify-between pt-1.5 border-t border-zinc-100 dark:border-zinc-800">
+                            <div className="flex items-center justify-between pt-1">
                               <button
-                                onClick={() =>
-                                  navigate(`/owner/edit-parking/${p.id}`)
-                                }
-                                className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
+                                onClick={() => navigate(`/owner/edit-parking/${p.id}`)}
+                                className="flex items-center gap-1 text-xs font-bold text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
                               >
                                 <FiEdit2 className="w-3.5 h-3.5" />
-                                Edit Details
+                                <span>Edit Info</span>
                               </button>
                               <button
                                 onClick={() =>
@@ -1666,10 +1256,10 @@ export default function OwnerDashboard() {
                                     name: p.name,
                                   })
                                 }
-                                className="flex items-center gap-1.5 text-xs font-bold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                                className="flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
                               >
                                 <FiTrash2 className="w-3.5 h-3.5" />
-                                Delete
+                                <span>Delete</span>
                               </button>
                             </div>
                           </div>
@@ -1681,8 +1271,208 @@ export default function OwnerDashboard() {
               )}
             </div>
           )}
+
+          {/* ══════════════════════════════════════════════════════════════════
+              TAB 3: REVENUE & EARNINGS ANALYTICS
+          ══════════════════════════════════════════════════════════════════ */}
+          {activeTab === "REVENUE" && (
+            <div className="space-y-5 animate-fade-in">
+              <div className="p-6 sm:p-7 rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm space-y-6">
+                
+                {/* Header & Period Switcher */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-100 dark:border-zinc-800">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                        {selectedPeriodTitle}
+                      </span>
+                      <h3 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight">
+                        Earnings & Financial Overview
+                      </h3>
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                      {currentFacility
+                        ? `Live earnings for ${currentFacility.name}`
+                        : `Live earnings across all ${parkingList.length} parking locations.`}
+                    </p>
+                  </div>
+
+                  {/* Period Buttons & CSV Export */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl">
+                      {[
+                        { id: "TODAY", label: "Today" },
+                        { id: "WEEKLY", label: "Week" },
+                        { id: "MONTHLY", label: "Month" },
+                        { id: "YEARLY", label: "Year" },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setRevenuePeriod(p.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            revenuePeriod === p.id
+                              ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 font-black shadow-xs"
+                              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleExportCSV}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all cursor-pointer"
+                      title="Download CSV Statement"
+                    >
+                      <FiDownload className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Export CSV</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3 Summary Stats for Period */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Total Earnings
+                    </span>
+                    <p className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
+                      ₹{Math.round(selectedPeriodRevenue).toLocaleString("en-IN")}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Bookings / Vehicles
+                    </span>
+                    <p className="text-xl font-black font-mono text-zinc-900 dark:text-white mt-1">
+                      {totalPeriodBookings}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/80 dark:border-zinc-700/80">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Average per Booking
+                    </span>
+                    <p className="text-xl font-black font-mono text-zinc-900 dark:text-white mt-1">
+                      ₹{avgBookingAmount.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bar Chart Visualization */}
+                <div className="pt-2">
+                  <div className="flex items-center justify-between text-xs text-zinc-400 font-bold mb-3">
+                    <span>Income Trend</span>
+                    <span>Max: ₹{Math.round(maxChartAmount).toLocaleString("en-IN")}</span>
+                  </div>
+
+                  <div className="overflow-x-auto pb-2">
+                    <div className="grid grid-flow-col auto-cols-fr gap-3 sm:gap-4 items-end h-52 border-b border-zinc-200 dark:border-zinc-800 pb-2 min-w-[480px]">
+                      {currentChartData.map((item, idx) => {
+                        const heightPct = Math.max(
+                          10,
+                          Math.round(((item.amount || 0) / maxChartAmount) * 100)
+                        );
+
+                        return (
+                          <div
+                            key={idx}
+                            className="group relative flex flex-col items-center h-full justify-end cursor-pointer"
+                          >
+                            {/* Hover Tooltip */}
+                            <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 bg-zinc-950 text-white text-center px-2.5 py-1.5 rounded-xl shadow-xl border border-zinc-800 text-[11px] whitespace-nowrap">
+                              <span className="font-mono text-emerald-400 font-black block">
+                                ₹{Math.round(item.amount || 0).toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-zinc-400 text-[10px]">{item.count || 1} vehicles</span>
+                            </div>
+
+                            {/* Bar Column */}
+                            <div
+                              className="w-full max-w-[42px] rounded-xl bg-gradient-to-t from-emerald-600 to-teal-400 hover:from-emerald-500 hover:to-teal-300 transition-all group-hover:scale-105"
+                              style={{ height: `${heightPct}%` }}
+                            />
+
+                            {/* Label */}
+                            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-2 truncate max-w-[70px] text-center">
+                              {item.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 text-xs text-zinc-400 font-medium">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Real-time automatic sync with parking gate entries</span>
+                  </span>
+                  <button
+                    onClick={handleResetGuide}
+                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs font-semibold cursor-pointer"
+                  >
+                    View Quick Guide
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* ─── HOW IT WORKS / HELP MODAL ─── */}
+      <Modal
+        isOpen={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
+        title="Owner Quick Guide & FAQs"
+        maxWidth="max-w-lg"
+      >
+        <div className="space-y-4 text-xs text-zinc-600 dark:text-zinc-300">
+          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30 flex items-start gap-3">
+            <FiInfo className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <h5 className="font-bold text-zinc-900 dark:text-white">How Check-In & Check-Out Work</h5>
+              <p className="mt-0.5 leading-relaxed">
+                When a customer books a slot, you will see them in <strong>"Arriving Soon"</strong>. When they reach your parking space, scan their QR code or click <strong>"Check In"</strong>. When they leave, click <strong>"Check Out"</strong> to release the slot for new customers.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2.5 pt-1">
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/70">
+              <h6 className="font-bold text-zinc-900 dark:text-white">1. How do I add or change parking rates?</h6>
+              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                Go to "My Locations" tab and click "Edit Info" on any parking card to modify hourly fees and operating hours.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/70">
+              <h6 className="font-bold text-zinc-900 dark:text-white">2. How do I add Car vs Bike vs EV slots?</h6>
+              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                Click "Manage Slots" on any location to create distinct spot numbers and slot types.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-700/70">
+              <h6 className="font-bold text-zinc-900 dark:text-white">3. When do I receive payouts?</h6>
+              <p className="mt-1 text-zinc-500 dark:text-zinc-400">
+                Earnings are deposited directly to your bank account based on your verified owner profile settings.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button variant="primary" className="w-full" onClick={() => setShowHelpModal(false)}>
+              Got It
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ─── DELETE LOCATION CONFIRMATION MODAL ─── */}
       <Modal
@@ -1692,15 +1482,15 @@ export default function OwnerDashboard() {
         maxWidth="max-w-sm"
       >
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto border border-red-100 dark:border-red-900/30">
-            <FiTrash2 className="w-7 h-7 text-red-600" />
+          <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto border border-red-100 dark:border-red-900/30">
+            <FiTrash2 className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <p className="font-black text-zinc-900 dark:text-white">
               Delete "{deleteModal.name}"?
             </p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed">
-              This will permanently delete this parking location and its spots.
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+              This will permanently delete this parking space and all associated slots.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 pt-1">

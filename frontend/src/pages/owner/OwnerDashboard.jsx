@@ -522,26 +522,32 @@ export default function OwnerDashboard() {
           {/* Card 1: Available Spots */}
           <div
             onClick={() => setActiveTab("FACILITIES")}
-            className="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:border-indigo-500/40 dark:hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all cursor-pointer group"
+            className="group relative p-5 rounded-2xl bg-gradient-to-b from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/80 border border-zinc-200/90 dark:border-zinc-800/90 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[160px]"
           >
-            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-              <span>Available Spots</span>
-              <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FiLayers className="w-4 h-4" />
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                  Available Spots
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20 group-hover:scale-105 transition-transform">
+                  <FiLayers className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
+                  <AnimatedNumber value={availableSlots} />
+                </span>
+                <span className="text-xs font-semibold text-zinc-400">
+                  / {totalSlots} total
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                <AnimatedNumber value={availableSlots} />
-              </span>
-              <span className="text-xs text-zinc-400 font-semibold">
-                / {totalSlots} total
-              </span>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400">
+
+            <div className="space-y-1.5 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
                 <span>Occupancy</span>
-                <span className="text-zinc-700 dark:text-zinc-300 font-mono">{occupancyPercent}%</span>
+                <span className="text-zinc-800 dark:text-zinc-200 font-mono">{occupancyPercent}%</span>
               </div>
               <ProgressBar value={enteredCount + bookedCount} max={totalSlots || 1} color="bg-indigo-500" />
             </div>
@@ -553,29 +559,36 @@ export default function OwnerDashboard() {
               setActiveTab("VEHICLES");
               setVehicleFilter("INSIDE");
             }}
-            className={`p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border shadow-xs hover:-translate-y-0.5 transition-all cursor-pointer group ${
+            className={`group relative p-5 rounded-2xl bg-gradient-to-b from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/80 border shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[160px] ${
               activeTab === "VEHICLES" && vehicleFilter === "INSIDE"
-                ? "border-emerald-500 ring-1 ring-emerald-500/40"
-                : "border-zinc-200/80 dark:border-zinc-800/80 hover:border-emerald-500/40"
+                ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-emerald-500/10"
+                : "border-zinc-200/90 dark:border-zinc-800/90 hover:border-emerald-500/50 dark:hover:border-emerald-500/50"
             }`}
           >
-            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-              <span>Parked Inside</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FiLogIn className="w-4 h-4" />
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                  Parked Inside
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
+                  <FiLogIn className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
+                  <AnimatedNumber value={enteredCount} />
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Active
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                <AnimatedNumber value={enteredCount} />
-              </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
-                Active
-              </span>
-            </div>
-            <div className="mt-3.5 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+
+            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
               <span>View live parked list</span>
-              <FiArrowUpRight className="w-3.5 h-3.5" />
+              <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </div>
           </div>
 
@@ -585,55 +598,67 @@ export default function OwnerDashboard() {
               setActiveTab("VEHICLES");
               setVehicleFilter("BOOKED");
             }}
-            className={`p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border shadow-xs hover:-translate-y-0.5 transition-all cursor-pointer group ${
+            className={`group relative p-5 rounded-2xl bg-gradient-to-b from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/80 border shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[160px] ${
               activeTab === "VEHICLES" && vehicleFilter === "BOOKED"
-                ? "border-sky-500 ring-1 ring-sky-500/40"
-                : "border-zinc-200/80 dark:border-zinc-800/80 hover:border-sky-500/40"
+                ? "border-sky-500 ring-2 ring-sky-500/20 shadow-sky-500/10"
+                : "border-zinc-200/90 dark:border-zinc-800/90 hover:border-sky-500/50 dark:hover:border-sky-500/50"
             }`}
           >
-            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-              <span>Arriving Soon</span>
-              <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FiClock className="w-4 h-4" />
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                  Arriving Soon
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-500/20 group-hover:scale-105 transition-transform">
+                  <FiClock className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
+                  <AnimatedNumber value={bookedCount} />
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  Incoming
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                <AnimatedNumber value={bookedCount} />
-              </span>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400">
-                Incoming
-              </span>
-            </div>
-            <div className="mt-3.5 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+
+            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
               <span>Ready for check-in</span>
-              <FiArrowUpRight className="w-3.5 h-3.5" />
+              <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </div>
           </div>
 
           {/* Card 4: Today's Revenue */}
           <div
             onClick={() => setActiveTab("REVENUE")}
-            className={`p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border shadow-xs hover:-translate-y-0.5 transition-all cursor-pointer group ${
+            className={`group relative p-5 rounded-2xl bg-gradient-to-b from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/80 border shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[160px] ${
               activeTab === "REVENUE"
-                ? "border-amber-500 ring-1 ring-amber-500/40"
-                : "border-zinc-200/80 dark:border-zinc-800/80 hover:border-amber-500/40"
+                ? "border-amber-500 ring-2 ring-amber-500/20 shadow-amber-500/10"
+                : "border-zinc-200/90 dark:border-zinc-800/90 hover:border-amber-500/50 dark:hover:border-amber-500/50"
             }`}
           >
-            <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">
-              <span>Today's Earnings</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FiDollarSign className="w-4 h-4" />
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-400">
+                  Today's Earnings
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-transform">
+                  <FiDollarSign className="w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-white tracking-tight leading-none font-mono">
+                  ₹<AnimatedNumber value={todayRevenue} />
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight font-mono">
-                ₹<AnimatedNumber value={todayRevenue} />
-              </span>
-            </div>
-            <div className="mt-3.5 pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+
+            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] font-bold text-zinc-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
               <span>Total: ₹{totalRevenue.toLocaleString("en-IN")}</span>
-              <FiArrowUpRight className="w-3.5 h-3.5" />
+              <FiArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </div>
           </div>
         </div>

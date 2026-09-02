@@ -26,6 +26,7 @@ import Button from "../../components/Button";
 import Modal from "../../components/Modal";
 import EmptyState from "../../components/EmptyState";
 import { CardSkeleton } from "../../components/Skeleton";
+import Footer from "../../components/Footer";
 
 /* ─── Toast Notification ─────────────────────────────────────────────── */
 function Toast({ toast }) {
@@ -579,6 +580,9 @@ Thank you for choosing ParkEase Smart Mobility!
           </div>
         </div>
       </main>
+
+      {/* FOOTER */}
+      <Footer className="mt-16 pb-20 md:pb-0" />
 
       {/* ══════════════════════════════════════════════════════════════════
           4. INSTANT SUBSCRIBE & DEDICATED BAY CHECKOUT MODAL

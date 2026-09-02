@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiUser, FiLock, FiSave, FiShield, FiCheckCircle, FiAlertCircle, FiSliders, FiGlobe, FiCheck } from "react-icons/fi";
+import { FiUser, FiLock, FiSave, FiShield, FiCheckCircle, FiAlertCircle, FiSliders, FiGlobe, FiCheck, FiExternalLink } from "react-icons/fi";
+import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
+import Footer from "../../components/Footer";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import { useTheme } from "../../context/ThemeContext";
@@ -264,7 +266,63 @@ export default function OwnerProfile() {
             </form>
           </FormSection>
         </div>
+
+        {/* Official Social Media Connections Card */}
+        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div>
+              <h3 className="text-base font-black text-zinc-900 dark:text-white">Das & Singh Exports - Social & Community</h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Stay connected for facility operator updates and network announcements</p>
+            </div>
+            <Badge variant="verified">Official</Badge>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <a
+              href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-[#0077b5] bg-zinc-50/60 dark:bg-zinc-800/40 hover:bg-[#0077b5]/5 dark:hover:bg-[#0077b5]/10 transition-all flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0077b5]/10 text-[#0077b5] flex items-center justify-center font-black">
+                  <FaLinkedin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-[#0077b5] transition-colors">
+                    LinkedIn Network
+                  </h4>
+                  <p className="text-xs text-zinc-400">Das and Singh Exports</p>
+                </div>
+              </div>
+              <FiExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-[#0077b5]" />
+            </a>
+
+            <a
+              href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-pink-500 bg-zinc-50/60 dark:bg-zinc-800/40 hover:bg-pink-500/5 dark:hover:bg-pink-500/10 transition-all flex items-center justify-between group cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-pink-500/10 text-[#E4405F] flex items-center justify-center font-black">
+                  <FaInstagram className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-pink-500 transition-colors">
+                    Instagram Feed
+                  </h4>
+                  <p className="text-xs text-zinc-400">@dassinghexports</p>
+                </div>
+              </div>
+              <FiExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-pink-500" />
+            </a>
+          </div>
+        </div>
       </main>
+
+      {/* FOOTER */}
+      <Footer className="mt-16 pb-20 md:pb-0" />
     </div>
   );
 }

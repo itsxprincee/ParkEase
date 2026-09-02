@@ -29,6 +29,7 @@ import { CardSkeleton } from "../../components/Skeleton";
 import ParkingMapView from "../../components/ParkingMapView";
 import Button from "../../components/Button";
 import FindMyCarModal from "../../components/FindMyCarModal";
+import Footer from "../../components/Footer";
 import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -593,6 +594,9 @@ export default function CustomerDashboard() {
           </div>
         )}
       </main>
+
+      {/* ─── APP FOOTER ─── */}
+      <Footer className="mt-16 pb-20 md:pb-0" />
 
       {/* ─── FIND MY CAR & RADAR BEACON MODAL ─── */}
       {findCarModalBooking && (

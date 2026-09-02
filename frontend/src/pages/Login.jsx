@@ -18,6 +18,7 @@ import {
   FiClock,
   FiRadio,
 } from "react-icons/fi";
+import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import API from "../api/axios";
 import Button from "../components/Button";
 import ThemeSwitcher from "../components/ThemeSwitcher";
@@ -318,7 +319,30 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="text-xs text-zinc-600 font-medium">© 2026 ParkEase Technologies · All rights reserved</p>
+          {/* Social Links & Copyright */}
+          <div className="pt-2 flex items-center justify-between border-t border-zinc-800/80">
+            <p className="text-xs text-zinc-500 font-medium">© 2026 ParkEase · Das & Singh Exports</p>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-zinc-900 hover:bg-[#0077b5] text-zinc-400 hover:text-white transition-all text-xs"
+                title="Das & Singh Exports on LinkedIn"
+              >
+                <FaLinkedin className="w-4 h-4" />
+              </a>
+              <a
+                href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-xl bg-zinc-900 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-zinc-400 hover:text-white transition-all text-xs"
+                title="Das & Singh Exports on Instagram"
+              >
+                <FaInstagram className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -628,6 +652,35 @@ export default function Login() {
               </button>
             </div>
           )}
+
+          {/* Social Media Links under Form */}
+          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs">
+            <span className="text-[11px] font-bold text-zinc-400">
+              Das & Singh Exports
+            </span>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-[#0077b5] text-zinc-600 hover:text-white dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-[#0077b5] dark:hover:text-white transition-all text-[11px] font-bold"
+                title="LinkedIn"
+              >
+                <FaLinkedin className="w-3.5 h-3.5 text-[#0077b5]" />
+                <span>LinkedIn</span>
+              </a>
+              <a
+                href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-zinc-600 hover:text-white dark:bg-zinc-800 dark:text-zinc-300 dark:hover:from-purple-600 dark:hover:to-pink-600 dark:hover:text-white transition-all text-[11px] font-bold"
+                title="Instagram"
+              >
+                <FaInstagram className="w-3.5 h-3.5 text-[#E4405F]" />
+                <span>Instagram</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

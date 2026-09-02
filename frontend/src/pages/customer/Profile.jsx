@@ -19,12 +19,9 @@ import {
   FiSun,
   FiSliders,
   FiCheck,
-  FiExternalLink,
 } from "react-icons/fi";
-import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
-import Footer from "../../components/Footer";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
@@ -550,70 +547,6 @@ export default function Profile() {
                 })}
               </div>
             </div>
-
-            {/* Official Social Media Connections Card */}
-            <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-5">
-              <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-black text-zinc-900 dark:text-white flex items-center gap-2">
-                    <FiShield className="w-5 h-5 text-blue-500" />
-                    Official Community & Social Channels
-                  </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Follow Das & Singh Exports for platform updates, parking announcements, and business partnerships
-                  </p>
-                </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  Verified
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <a
-                  href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-[#0077b5] bg-zinc-50/60 dark:bg-zinc-800/40 hover:bg-[#0077b5]/5 dark:hover:bg-[#0077b5]/10 transition-all flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-2xl bg-[#0077b5]/10 text-[#0077b5] flex items-center justify-center font-black">
-                      <FaLinkedin className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-[#0077b5] transition-colors">
-                        LinkedIn Profile
-                      </h4>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                        Das and Singh Exports
-                      </p>
-                    </div>
-                  </div>
-                  <FiExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-[#0077b5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                </a>
-
-                <a
-                  href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-pink-500 bg-zinc-50/60 dark:bg-zinc-800/40 hover:bg-pink-500/5 dark:hover:bg-pink-500/10 transition-all flex items-center justify-between group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-2xl bg-pink-500/10 text-[#E4405F] flex items-center justify-center font-black">
-                      <FaInstagram className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-pink-500 transition-colors">
-                        Instagram Profile
-                      </h4>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                        @dassinghexports
-                      </p>
-                    </div>
-                  </div>
-                  <FiExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-pink-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                </a>
-              </div>
-            </div>
           </div>
         )}
 
@@ -746,9 +679,6 @@ export default function Profile() {
           </div>
         )}
       </main>
-
-      {/* FOOTER */}
-      <Footer className="mt-16 pb-20 md:pb-0" />
 
       {/* ADD VEHICLE MODAL */}
       <Modal

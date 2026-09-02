@@ -24,7 +24,6 @@ import {
   FiActivity,
   FiCpu,
 } from "react-icons/fi";
-import { FaLinkedin, FaInstagram } from "react-icons/fa";
 import Modal from "./Modal";
 import Button from "./Button";
 import ThemeSwitcher from "./ThemeSwitcher";
@@ -334,33 +333,6 @@ export default function SaaSNavbar() {
                         </button>
                       )}
 
-                      {/* Social Channels */}
-                      <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-                        <div className="px-3 py-1 flex items-center justify-between text-[11px] font-bold text-zinc-400">
-                          <span>Das & Singh Exports</span>
-                          <div className="flex items-center gap-1.5">
-                            <a
-                              href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg bg-zinc-100 hover:bg-[#0077b5] text-zinc-600 hover:text-white dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-[#0077b5] dark:hover:text-white transition-colors"
-                              title="LinkedIn"
-                            >
-                              <FaLinkedin className="w-3.5 h-3.5" />
-                            </a>
-                            <a
-                              href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg bg-zinc-100 hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 text-zinc-600 hover:text-white dark:bg-zinc-800 dark:text-zinc-400 dark:hover:from-purple-600 dark:hover:to-pink-600 dark:hover:text-white transition-colors"
-                              title="Instagram"
-                            >
-                              <FaInstagram className="w-3.5 h-3.5" />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-
                       <button
                         onClick={() => {
                           setProfileOpen(false);
@@ -414,30 +386,6 @@ export default function SaaSNavbar() {
             <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
               <LanguageSwitcher />
               <ThemeSwitcher />
-            </div>
-            {/* Social Links in Mobile Menu */}
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between px-1">
-              <span className="text-[11px] font-bold text-zinc-400">Das & Singh Exports</span>
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://www.linkedin.com/in/das-and-singh-exports-758973398?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
-                  <FaLinkedin className="w-3.5 h-3.5 text-[#0077b5]" />
-                  <span>LinkedIn</span>
-                </a>
-                <a
-                  href="https://www.instagram.com/dassinghexports?igsi=MWdkbmQwMXVxM3c1cg=="
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
-                  <FaInstagram className="w-3.5 h-3.5 text-[#E4405F]" />
-                  <span>Instagram</span>
-                </a>
-              </div>
             </div>
           </div>
         )}

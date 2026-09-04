@@ -14,6 +14,9 @@ from app.utils.auth import get_current_user, owner_required
 import qrcode
 import json
 import os
+from pathlib import Path
+
+QR_DIR = Path(__file__).resolve().parents[2] / "qrcodes"
 
 
 router = APIRouter(
@@ -50,14 +53,9 @@ def create_qr_image(booking: Booking):
 
     qr_data_string = json.dumps(qr_data)
 
-    os.makedirs(
-        "qrcodes",
-        exist_ok=True
-    )
+    QR_DIR.mkdir(parents=True, exist_ok=True)
 
-    file_path = (
-        f"qrcodes/booking_{booking.id}.png"
-    )
+    file_path = str(QR_DIR / f"booking_{booking.id}.png")
 
     qr = qrcode.QRCode(
         version=None,
@@ -203,9 +201,7 @@ def download_qr(
             )
         )
 
-    file_path = (
-        f"qrcodes/booking_{booking.id}.png"
-    )
+    file_path = str(QR_DIR / f"booking_{booking.id}.png")
 
     if not os.path.exists(
         file_path

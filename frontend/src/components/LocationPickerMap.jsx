@@ -64,8 +64,10 @@ export default function LocationPickerMap({
   const [searchError, setSearchError] = useState("");
   const markerRef = useRef(null);
 
-  const latNum = parseFloat(latitude) || 19.076;
-  const lngNum = parseFloat(longitude) || 72.8777;
+  const parsedLat = parseFloat(latitude);
+  const parsedLng = parseFloat(longitude);
+  const latNum = !isNaN(parsedLat) && parsedLat !== 0 ? parsedLat : 19.076;
+  const lngNum = !isNaN(parsedLng) && parsedLng !== 0 ? parsedLng : 72.8777;
 
   const position = useMemo(() => [latNum, lngNum], [latNum, lngNum]);
 
@@ -74,7 +76,9 @@ export default function LocationPickerMap({
     const marker = markerRef.current;
     if (marker) {
       const latlng = marker.getLatLng();
-      onLocationChange(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
+      if (latlng && !isNaN(latlng.lat) && !isNaN(latlng.lng)) {
+        onLocationChange(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
+      }
     }
   };
 
@@ -96,12 +100,19 @@ export default function LocationPickerMap({
           },
         }
       );
+      if (!response.ok) {
+        throw new Error("Search service returned error");
+      }
       const data = await response.json();
       if (data && data.length > 0) {
         const item = data[0];
-        const newLat = parseFloat(item.lat).toFixed(6);
-        const newLng = parseFloat(item.lon).toFixed(6);
-        onLocationChange(newLat, newLng);
+        const newLat = parseFloat(item.lat);
+        const newLng = parseFloat(item.lon);
+        if (!isNaN(newLat) && !isNaN(newLng)) {
+          onLocationChange(newLat.toFixed(6), newLng.toFixed(6));
+        } else {
+          setSearchError("Received invalid coordinates for this location.");
+        }
       } else {
         setSearchError("Location not found. Try entering a city or landmark.");
       }
@@ -114,18 +125,29 @@ export default function LocationPickerMap({
 
   // Device GPS Geolocation
   const handleLocateMe = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setSearchError("Geolocation is not supported by your browser.");
+      return;
+    }
     setIsLocating(true);
+    setSearchError("");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setIsLocating(false);
-        onLocationChange(
-          pos.coords.latitude.toFixed(6),
-          pos.coords.longitude.toFixed(6)
-        );
+        if (pos?.coords?.latitude && pos?.coords?.longitude) {
+          onLocationChange(
+            pos.coords.latitude.toFixed(6),
+            pos.coords.longitude.toFixed(6)
+          );
+        }
       },
-      () => {
+      (err) => {
         setIsLocating(false);
+        setSearchError(
+          err.code === 1
+            ? "Location permission denied. Please allow location access or click on map."
+            : "Could not fetch GPS location. Click directly on map to pin."
+        );
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );

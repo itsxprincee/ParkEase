@@ -76,6 +76,12 @@ function CustomMapControls({ onCenterMe, hasUserCoords, onFitAll }) {
   );
 }
 
+const isValidCoord = (lat, lng) => {
+  const nLat = parseFloat(lat);
+  const nLng = parseFloat(lng);
+  return !isNaN(nLat) && !isNaN(nLng) && Math.abs(nLat) > 0.0001 && Math.abs(nLng) > 0.0001;
+};
+
 export default function ParkingMapView({
   parkingLocations = [],
   userCoords = null,
@@ -86,35 +92,38 @@ export default function ParkingMapView({
 }) {
   const [selectedParking, setSelectedParking] = useState(null);
 
-  // Default center: User location -> Nearest parking -> Default city center
+  // Default center: User location -> First valid parking -> Default city center (Mumbai)
   const defaultCenter = useMemo(() => {
-    if (userCoords && userCoords.lat && userCoords.lng) {
-      return [Number(userCoords.lat), Number(userCoords.lng)];
+    if (userCoords && isValidCoord(userCoords.lat, userCoords.lng)) {
+      return [parseFloat(userCoords.lat), parseFloat(userCoords.lng)];
     }
-    if (parkingLocations.length > 0 && parkingLocations[0].latitude) {
-      return [
-        Number(parkingLocations[0].latitude),
-        Number(parkingLocations[0].longitude),
-      ];
+    const firstValid = parkingLocations.find((p) => isValidCoord(p.latitude, p.longitude));
+    if (firstValid) {
+      return [parseFloat(firstValid.latitude), parseFloat(firstValid.longitude)];
     }
     return [19.0864, 72.8890];
   }, [userCoords, parkingLocations]);
 
   // Find the nearest facility id if user coordinates exist
   const nearestParkingId = useMemo(() => {
-    if (!userCoords || parkingLocations.length === 0) return null;
+    if (!userCoords || !isValidCoord(userCoords.lat, userCoords.lng) || parkingLocations.length === 0) return null;
     let minDistance = Infinity;
     let nearestId = null;
 
+    const uLat = parseFloat(userCoords.lat);
+    const uLng = parseFloat(userCoords.lng);
+
     parkingLocations.forEach((p) => {
-      if (p.latitude && p.longitude) {
+      if (isValidCoord(p.latitude, p.longitude)) {
+        const pLat = parseFloat(p.latitude);
+        const pLng = parseFloat(p.longitude);
         const R = 6371;
-        const dLat = ((Number(p.latitude) - Number(userCoords.lat)) * Math.PI) / 180;
-        const dLon = ((Number(p.longitude) - Number(userCoords.lng)) * Math.PI) / 180;
+        const dLat = ((pLat - uLat) * Math.PI) / 180;
+        const dLon = ((pLng - uLng) * Math.PI) / 180;
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos((Number(userCoords.lat) * Math.PI) / 180) *
-            Math.cos((Number(p.latitude) * Math.PI) / 180) *
+          Math.cos((uLat * Math.PI) / 180) *
+            Math.cos((pLat * Math.PI) / 180) *
             Math.sin(dLon / 2) *
             Math.sin(dLon / 2);
         const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -266,8 +275,8 @@ export default function ParkingMapView({
       >
         <MapRecenter
           center={
-            selectedParking && selectedParking.latitude
-              ? [Number(selectedParking.latitude), Number(selectedParking.longitude)]
+            selectedParking && isValidCoord(selectedParking.latitude, selectedParking.longitude)
+              ? [parseFloat(selectedParking.latitude), parseFloat(selectedParking.longitude)]
               : defaultCenter
           }
           zoom={selectedParking ? 15 : userCoords ? 14 : 12}
@@ -290,10 +299,10 @@ export default function ParkingMapView({
         />
 
         {/* USER LOCATION MARKER */}
-        {userCoords && userCoords.lat && (
+        {userCoords && isValidCoord(userCoords.lat, userCoords.lng) && (
           <>
             <Marker
-              position={[Number(userCoords.lat), Number(userCoords.lng)]}
+              position={[parseFloat(userCoords.lat), parseFloat(userCoords.lng)]}
               icon={userIcon}
             >
               <Popup className="custom-popup">
@@ -304,7 +313,7 @@ export default function ParkingMapView({
               </Popup>
             </Marker>
             <Circle
-              center={[Number(userCoords.lat), Number(userCoords.lng)]}
+              center={[parseFloat(userCoords.lat), parseFloat(userCoords.lng)]}
               radius={800}
               pathOptions={{
                 color: "#2563eb",
@@ -318,7 +327,7 @@ export default function ParkingMapView({
 
         {/* PARKING MARKERS */}
         {parkingLocations.map((parking) => {
-          if (!parking.latitude || !parking.longitude) return null;
+          if (!isValidCoord(parking.latitude, parking.longitude)) return null;
           const isNearest = parking.id === nearestParkingId;
 
           return (

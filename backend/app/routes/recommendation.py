@@ -46,13 +46,26 @@ def recommend_parking(
 ):
     locations = (
         db.query(ParkingLocation)
-        .filter(func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED")
+        .filter(
+            func.upper(func.trim(ParkingLocation.verification_status)) == "APPROVED",
+            ParkingLocation.latitude.isnot(None),
+            ParkingLocation.longitude.isnot(None)
+        )
         .all()
     )
 
     recommendations = []
 
     for location in locations:
+        try:
+            loc_lat = float(location.latitude)
+            loc_lng = float(location.longitude)
+        except (TypeError, ValueError):
+            continue
+
+        if loc_lat == 0 and loc_lng == 0:
+            continue
+
         available_slots = (
             db.query(ParkingSlot)
             .filter(
@@ -69,23 +82,26 @@ def recommend_parking(
         distance = calculate_distance(
             lat,
             lng,
-            location.latitude,
-            location.longitude
+            loc_lat,
+            loc_lng
+        )
+
+        total_slots = int(location.total_slots or 0)
+        occupancy = (
+            round(((total_slots - available_slots) / total_slots) * 100, 2)
+            if total_slots > 0 else 0
         )
 
         recommendations.append({
             "id": location.id,
             "name": location.name,
             "address": location.address,
-            "latitude": location.latitude,
-            "longitude": location.longitude,
+            "latitude": loc_lat,
+            "longitude": loc_lng,
             "distance_km": round(distance, 2),
             "available_slots": available_slots,
-            "total_slots": location.total_slots,
-            "occupancy": round(
-                ((location.total_slots - available_slots) / location.total_slots) * 100,
-                2
-            ) if location.total_slots > 0 else 0
+            "total_slots": total_slots,
+            "occupancy": occupancy
         })
 
     # Sort by nearest parking

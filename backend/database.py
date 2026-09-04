@@ -1,6 +1,12 @@
-import os
+from pathlib import Path
 
-from dotenv import load_dotenv
+BASE_DIR = Path(__file__).resolve().parent
+
+# =========================================================
+# LOAD ENVIRONMENT VARIABLES
+# =========================================================
+
+load_dotenv()
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from urllib.parse import quote_plus
@@ -84,7 +90,8 @@ except Exception as conn_err:
     print(f"\n[INFO] MySQL not reachable on {DB_HOST}:{DB_PORT}. Using SQLite fallback (parkease.db).")
     print("[TIP] Start XAMPP MySQL anytime to use MySQL instead.\n")
     use_sqlite = True
-    DATABASE_URL = "sqlite:///./parkease.db"
+    sqlite_file = (BASE_DIR / "parkease.db").as_posix()
+    DATABASE_URL = f"sqlite:///{sqlite_file}"
     engine = create_engine(
         DATABASE_URL,
         connect_args={"check_same_thread": False},

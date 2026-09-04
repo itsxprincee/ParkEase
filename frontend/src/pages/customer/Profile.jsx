@@ -142,39 +142,31 @@ export default function Profile() {
     try {
       setSavingProfile(true);
       const res = await API.put("/auth/profile", {
-        name,
-        email,
-        phone,
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
-        emergency_contact_note: emergencyContactNote,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        emergency_contact_name: emergencyContactName.trim(),
+        emergency_contact_phone: emergencyContactPhone.trim(),
+        emergency_contact_note: emergencyContactNote.trim(),
       });
       const updated = {
         ...user,
-        name,
-        email,
-        phone,
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
-        emergency_contact_note: emergencyContactNote,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        emergency_contact_name: emergencyContactName.trim(),
+        emergency_contact_phone: emergencyContactPhone.trim(),
+        emergency_contact_note: emergencyContactNote.trim(),
         ...(res.data?.user || res.data || {}),
       };
       setUser(updated);
       localStorage.setItem("user", JSON.stringify(updated));
       showToast("Profile & Emergency details saved successfully!", "success");
-    } catch (_) {
-      const updated = {
-        ...user,
-        name,
-        email,
-        phone,
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
-        emergency_contact_note: emergencyContactNote,
-      };
-      setUser(updated);
-      localStorage.setItem("user", JSON.stringify(updated));
-      showToast("Profile & Emergency details saved!", "success");
+    } catch (err) {
+      showToast(
+        err?.response?.data?.detail || "Failed to save profile details. Please try again.",
+        "error"
+      );
     } finally {
       setSavingProfile(false);
     }

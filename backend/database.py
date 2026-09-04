@@ -1,16 +1,11 @@
+import os
 from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent
-
-# =========================================================
-# LOAD ENVIRONMENT VARIABLES
-# =========================================================
-
-load_dotenv()
+from dotenv import load_dotenv
+from urllib.parse import quote_plus
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
-from urllib.parse import quote_plus
 
+BASE_DIR = Path(__file__).resolve().parent
 
 # =========================================================
 # LOAD ENVIRONMENT VARIABLES

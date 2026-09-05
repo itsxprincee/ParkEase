@@ -8,6 +8,7 @@ import {
   FiZap,
   FiTruck,
   FiCheckCircle,
+  FiAlertCircle,
   FiStar,
   FiMessageSquare,
   FiNavigation,

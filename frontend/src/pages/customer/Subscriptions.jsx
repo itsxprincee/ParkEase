@@ -8,6 +8,7 @@ import {
   FiClock,
   FiMapPin,
   FiTruck,
+  FiZap,
   FiShield,
   FiArrowRight,
   FiRefreshCw,

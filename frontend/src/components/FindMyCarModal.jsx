@@ -76,30 +76,20 @@ function playVehicleSound(isBike) {
 }
 
 export default function FindMyCarModal({ isOpen, onClose, booking }) {
-  if (!isOpen || !booking) return null;
-
-  const isBike =
-    String(booking.vehicle_type || "").toLowerCase().includes("bike") ||
-    String(booking.vehicle_name || "").toLowerCase().includes("bike") ||
-    String(booking.vehicle_name || "").toLowerCase().includes("scooter");
-
-  const vehicleNoun = isBike ? "Bike" : "Car";
-  const vehicleEmoji = isBike ? "🛵" : "🚗";
-
   const [notes, setNotes] = useState(() => {
     try {
       return (
-        localStorage.getItem(`parkease_car_note_${booking.id}`) ||
-        `Parked at Bay ${booking.slot_number || "A-01"}, near Pillar B-04`
+        (booking?.id && localStorage.getItem(`parkease_car_note_${booking.id}`)) ||
+        `Parked at Bay ${booking?.slot_number || "A-01"}, near Pillar B-04`
       );
     } catch {
-      return `Parked at Bay ${booking.slot_number || "A-01"}, near Pillar B-04`;
+      return `Parked at Bay ${booking?.slot_number || "A-01"}, near Pillar B-04`;
     }
   });
 
   const [markedGps, setMarkedGps] = useState(() => {
     try {
-      const saved = localStorage.getItem(`parkease_car_gps_${booking.id}`);
+      const saved = booking?.id ? localStorage.getItem(`parkease_car_gps_${booking.id}`) : null;
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -113,6 +103,35 @@ export default function FindMyCarModal({ isOpen, onClose, booking }) {
   const [isHornActive, setIsHornActive] = useState(false);
   const [isHazardActive, setIsHazardActive] = useState(false);
   const [distance] = useState(38); // Estimated walking distance
+
+  useEffect(() => {
+    if (booking?.id) {
+      try {
+        const saved = localStorage.getItem(`parkease_car_note_${booking.id}`);
+        const defaultNote = `Parked at Bay ${booking.slot_number || "A-01"}, near Pillar B-04`;
+        setNotes(saved || defaultNote);
+        setTempNote(saved || defaultNote);
+      } catch {
+        // ignore
+      }
+      try {
+        const savedGps = localStorage.getItem(`parkease_car_gps_${booking.id}`);
+        setMarkedGps(savedGps ? JSON.parse(savedGps) : null);
+      } catch {
+        // ignore
+      }
+    }
+  }, [booking?.id, booking?.slot_number]);
+
+  if (!isOpen || !booking) return null;
+
+  const isBike =
+    String(booking.vehicle_type || "").toLowerCase().includes("bike") ||
+    String(booking.vehicle_name || "").toLowerCase().includes("bike") ||
+    String(booking.vehicle_name || "").toLowerCase().includes("scooter");
+
+  const vehicleNoun = isBike ? "Bike" : "Car";
+  const vehicleEmoji = isBike ? "🛵" : "🚗";
 
   const handleMarkSpotGPS = () => {
     if (!navigator.geolocation) {

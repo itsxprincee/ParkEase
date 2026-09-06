@@ -218,16 +218,6 @@ export default function SaaSNavbar() {
 
             {/* RIGHT UTILITIES & USER PROFILE */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Quick Language Switcher */}
-              <div className="hidden sm:block">
-                <LanguageSwitcher />
-              </div>
-
-              {/* Theme Switcher */}
-              <div className="hidden sm:block">
-                <ThemeSwitcher />
-              </div>
-
               {/* Notifications */}
               <div className="relative" ref={notifRef}>
                 <button
@@ -295,8 +285,9 @@ export default function SaaSNavbar() {
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-3 w-72 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl p-3.5 space-y-3 z-50 animate-spring-in text-zinc-900 dark:text-white">
-                    <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800">
+                  <div className="absolute right-0 mt-3 w-80 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xl p-4 space-y-3.5 z-50 animate-spring-in text-zinc-900 dark:text-white">
+                    {/* User Info Header */}
+                    <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800">
                       <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-sm">
                           {getInitials()}
@@ -308,13 +299,14 @@ export default function SaaSNavbar() {
                       </div>
                     </div>
 
+                    {/* Navigation Links */}
                     <div className="space-y-1 text-xs font-bold">
                       <button
                         onClick={() => {
                           setProfileOpen(false);
                           navigate(isOwner ? "/owner/profile" : "/customer/profile");
                         }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                       >
                         <FiUser className="w-4 h-4 text-zinc-400" />
                         <span>Account & Security</span>
@@ -326,24 +318,50 @@ export default function SaaSNavbar() {
                             setProfileOpen(false);
                             navigate("/customer/subscriptions");
                           }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                         >
                           <FiZap className="w-4 h-4 text-amber-500" />
                           <span>Commuter Passes</span>
                         </button>
                       )}
-
-                      <button
-                        onClick={() => {
-                          setProfileOpen(false);
-                          setLogoutModalOpen(true);
-                        }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer mt-1 border-t border-zinc-100 dark:border-zinc-800/80"
-                      >
-                        <FiLogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
-                      </button>
                     </div>
+
+                    {/* Appearance Mode & Indian Languages Section */}
+                    <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 px-0.5">
+                          <span className="flex items-center gap-1.5">
+                            <FiSliders className="w-3 h-3 text-emerald-500" />
+                            <span>Theme Mode</span>
+                          </span>
+                          <span className="capitalize font-semibold text-emerald-600 dark:text-emerald-400 text-[10px]">{theme}</span>
+                        </div>
+                        <ThemeSwitcher variant="compact-buttons" className="w-full" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 px-0.5">
+                          <span className="flex items-center gap-1.5">
+                            <FiGlobe className="w-3 h-3 text-emerald-500" />
+                            <span>Language</span>
+                          </span>
+                          <span className="text-[10px] text-zinc-400">13 Indian Languages</span>
+                        </div>
+                        <LanguageSwitcher variant="select" className="w-full" />
+                      </div>
+                    </div>
+
+                    {/* Sign Out Button */}
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        setLogoutModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer border-t border-zinc-100 dark:border-zinc-800/80 font-bold text-xs"
+                    >
+                      <FiLogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -383,9 +401,17 @@ export default function SaaSNavbar() {
                 );
               })}
             </nav>
-            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-              <LanguageSwitcher />
-              <ThemeSwitcher />
+            <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-2.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-0.5">
+                <span>Theme Mode</span>
+                <span className="capitalize font-semibold text-emerald-600 dark:text-emerald-400 text-[10px]">{theme}</span>
+              </div>
+              <ThemeSwitcher variant="compact-buttons" className="w-full" />
+              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 dark:text-zinc-500 px-0.5 pt-1">
+                <span>Language</span>
+                <span className="text-[10px] text-zinc-400">13 Indian Languages</span>
+              </div>
+              <LanguageSwitcher variant="select" className="w-full" />
             </div>
           </div>
         )}

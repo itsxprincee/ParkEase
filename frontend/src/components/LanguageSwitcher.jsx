@@ -25,6 +25,25 @@ export default function LanguageSwitcher({ variant = "dropdown", className = "" 
       l.region.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (variant === "select") {
+    return (
+      <div className={`notranslate relative ${className}`}>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="notranslate w-full text-xs font-semibold py-2 px-3 bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200 dark:border-zinc-700/90 rounded-xl cursor-pointer text-zinc-900 dark:text-zinc-100 appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          {LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.flag} {l.native} ({l.name})
+            </option>
+          ))}
+        </select>
+        <FiChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      </div>
+    );
+  }
+
   return (
     <div className={`notranslate relative inline-block ${className}`} ref={dropdownRef}>
       <button

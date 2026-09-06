@@ -34,7 +34,7 @@ export default function ThemeSwitcher({ variant = "dropdown", className = "" }) 
 
   if (variant === "compact-buttons") {
     return (
-      <div className={`inline-flex items-center p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 ${className}`}>
+      <div className={`grid grid-cols-4 gap-1 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 ${className}`}>
         {THEMES.map((t) => {
           const isActive = theme === t.id;
           return (
@@ -42,14 +42,14 @@ export default function ThemeSwitcher({ variant = "dropdown", className = "" }) 
               key={t.id}
               onClick={() => setTheme(t.id)}
               title={`${t.label}: ${t.desc}`}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm"
+                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs font-bold"
                   : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5"
               }`}
             >
               {getIcon(t.id)}
-              <span className="hidden sm:inline">{t.label}</span>
+              <span className="text-[11px]">{t.label}</span>
             </button>
           );
         })}

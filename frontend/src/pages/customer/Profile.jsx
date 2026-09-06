@@ -265,14 +265,25 @@ export default function Profile() {
                 </Badge>
               </div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">{email || "user@parkease.io"}</p>
-              <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+              <div className="flex items-center gap-2.5 text-xs text-zinc-400 dark:text-zinc-500 flex-wrap mt-1">
                 <span>{vehicles.length} Saved Vehicles</span>
                 <span>•</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  {currentLanguage.flag} {currentLanguage.native}
-                </span>
+                <button
+                  onClick={() => setActiveTab("PREFERENCES")}
+                  className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-2 py-0.5 rounded-lg transition-colors cursor-pointer border border-emerald-500/20"
+                  title="Change Language"
+                >
+                  <span>{currentLanguage.flag}</span>
+                  <span>{currentLanguage.native}</span>
+                </button>
                 <span>•</span>
-                <span className="capitalize">{theme} mode</span>
+                <button
+                  onClick={() => setActiveTab("PREFERENCES")}
+                  className="inline-flex items-center gap-1 font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-2 py-0.5 rounded-lg transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-800 capitalize"
+                  title="Change Theme Mode"
+                >
+                  <span>{theme} mode</span>
+                </button>
               </div>
             </div>
           </div>

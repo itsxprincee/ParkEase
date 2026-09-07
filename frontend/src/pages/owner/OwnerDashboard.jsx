@@ -835,159 +835,216 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── 2. GLANCEABLE TELEMETRY CARDS (UBER FLEET STYLE) ─── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ─── 2. GLANCEABLE TELEMETRY CARDS (UBER FLEET LEVEL) ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           
-          {/* Tile 1: Available Spots (Large print capacity) */}
+          {/* Tile 1: Available Spots (Real-time Capacity Telemetry) */}
           <div
             onClick={() => setActiveTab("FACILITIES")}
-            className="p-5 rounded-3xl bg-white dark:bg-[#12131a] border border-zinc-200/80 dark:border-zinc-800 hover:border-emerald-500 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between group"
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#12141e] border transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group ${
+              activeTab === "FACILITIES"
+                ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-emerald-500/10"
+                : "border-zinc-200/80 dark:border-zinc-800/90 hover:border-emerald-500/70"
+            }`}
           >
+            {/* Top Accent Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 opacity-90 group-hover:opacity-100 transition-opacity" />
+
+            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
                 Available Spots
               </span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold border border-emerald-500/15 group-hover:scale-105 transition-transform">
                 <FiLayers className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4">
+            {/* Hero Value & Context */}
+            <div className="mt-5">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
+                <span className="text-4xl sm:text-5xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
                   <AnimatedNumber value={availableSlots} />
                 </span>
-                <span className="text-xs font-bold text-zinc-400">
-                  free of {totalSlots} total
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
+                  free of <span className="font-extrabold text-zinc-800 dark:text-zinc-200">{totalSlots}</span> total
                 </span>
               </div>
 
-              {/* Visual Progress Bar */}
-              <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 mt-3 overflow-hidden">
+              {/* Visual Multi-State Capacity Bar */}
+              <div className="w-full h-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 mt-4 overflow-hidden p-0.5">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
+                  className={`h-full rounded-full transition-all duration-700 ${
                     occupancyPct >= 90
-                      ? "bg-rose-500"
+                      ? "bg-gradient-to-r from-rose-500 to-red-600"
                       : occupancyPct >= 75
-                      ? "bg-amber-500"
-                      : "bg-emerald-500"
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                      : "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500"
                   }`}
-                  style={{ width: `${occupancyPct}%` }}
+                  style={{ width: `${Math.max(occupancyPct, 4)}%` }}
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400 mt-2">
-                <span>{occupancyPct}% full</span>
-                <span className="text-emerald-600 dark:text-emerald-400 group-hover:underline flex items-center gap-1">
+              {/* Status Row */}
+              <div className="flex items-center justify-between text-xs font-bold text-zinc-400 mt-2.5">
+                <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                  {occupancyPct}% full
+                </span>
+                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 group-hover:underline flex items-center gap-1">
                   Manage bays &rarr;
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Tile 2: Currently Inside (Live count) */}
+          {/* Tile 2: Currently Inside (Live Occupancy) */}
           <div
             onClick={() => {
               setActiveTab("VEHICLES");
               setVehicleFilter("INSIDE");
             }}
-            className={`p-5 rounded-3xl bg-white dark:bg-[#12131a] border transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#12141e] border transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "VEHICLES" && vehicleFilter === "INSIDE"
-                ? "border-indigo-500 ring-2 ring-indigo-500/20"
-                : "border-zinc-200/80 dark:border-zinc-800 hover:border-indigo-500"
+                ? "border-indigo-500 ring-2 ring-indigo-500/20 shadow-indigo-500/10"
+                : "border-zinc-200/80 dark:border-zinc-800/90 hover:border-indigo-500/70"
             }`}
           >
+            {/* Top Accent Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-600 opacity-90 group-hover:opacity-100 transition-opacity" />
+
+            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                 Parked Inside
               </span>
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/15 group-hover:scale-105 transition-transform">
                 <FiTruck className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4">
+            {/* Hero Value & Context */}
+            <div className="mt-5">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
+                <span className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
                   <AnimatedNumber value={enteredCount} />
                 </span>
-                <span className="text-xs font-bold text-zinc-400">
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
                   cars on-site
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-4 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400">
+              {/* Status Pill */}
+              <div className="flex items-center justify-between mt-3 px-2.5 py-1.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/50 dark:border-indigo-800/30 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+                <span>Active Gate Sessions</span>
+                <span className="font-mono">{enteredCount} / {totalSlots}</span>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-3.5 flex items-center justify-between text-xs font-bold text-indigo-600 dark:text-indigo-400">
                 <span>View inside queue</span>
                 <FiArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
             </div>
           </div>
 
-          {/* Tile 3: Arriving Soon (Incoming reservations) */}
+          {/* Tile 3: Arriving Soon (Inbound Queue) */}
           <div
             onClick={() => {
               setActiveTab("VEHICLES");
               setVehicleFilter("BOOKED");
             }}
-            className={`p-5 rounded-3xl bg-white dark:bg-[#12131a] border transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#12141e] border transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "VEHICLES" && vehicleFilter === "BOOKED"
-                ? "border-sky-500 ring-2 ring-sky-500/20"
-                : "border-zinc-200/80 dark:border-zinc-800 hover:border-sky-500"
+                ? "border-sky-500 ring-2 ring-sky-500/20 shadow-sky-500/10"
+                : "border-zinc-200/80 dark:border-zinc-800/90 hover:border-sky-500/70"
             }`}
           >
+            {/* Top Accent Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-400 to-amber-600 opacity-90 group-hover:opacity-100 transition-opacity" />
+
+            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
                 Arriving Soon
               </span>
-              <div className="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold border border-amber-500/15 group-hover:scale-105 transition-transform">
                 <FiClock className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4">
+            {/* Hero Value & Context */}
+            <div className="mt-5">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
+                <span className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
                   <AnimatedNumber value={bookedCount} />
                 </span>
-                <span className="text-xs font-bold text-zinc-400">
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
                   reservations
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-4 flex items-center justify-between text-xs font-bold text-sky-600 dark:text-sky-400">
+              {/* Status Pill */}
+              <div className="flex items-center justify-between mt-3 px-2.5 py-1.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-800/30 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                <span>Awaiting Check-in</span>
+                <span className="font-mono">{bookedCount} pending</span>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-3.5 flex items-center justify-between text-xs font-bold text-sky-600 dark:text-sky-400">
                 <span>Check in drivers</span>
                 <FiArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
             </div>
           </div>
 
-          {/* Tile 4: Today's Earnings */}
+          {/* Tile 4: Today's Earnings (Financial Pulse) */}
           <div
             onClick={() => setActiveTab("REVENUE")}
-            className={`p-5 rounded-3xl bg-white dark:bg-[#12131a] border transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-white dark:bg-[#12141e] border transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "REVENUE"
-                ? "border-amber-500 ring-2 ring-amber-500/20"
-                : "border-zinc-200/80 dark:border-zinc-800 hover:border-amber-500"
+                ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-emerald-500/10"
+                : "border-zinc-200/80 dark:border-zinc-800/90 hover:border-emerald-500/70"
             }`}
           >
+            {/* Top Accent Gradient Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 opacity-90 group-hover:opacity-100 transition-opacity" />
+
+            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 Today's Earnings
               </span>
-              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold border border-emerald-500/15 group-hover:scale-105 transition-transform">
                 <FiDollarSign className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-4">
+            {/* Hero Value & Context */}
+            <div className="mt-5">
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
-                  ₹<AnimatedNumber value={todayRevenue} />
+                <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                  ₹
+                </span>
+                <span className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white font-mono tracking-tight">
+                  <AnimatedNumber value={todayRevenue} />
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-4 flex items-center justify-between text-xs font-bold text-zinc-400">
-                <span>All-Time: ₹{totalRevenue.toLocaleString("en-IN")}</span>
+              {/* All-Time Indicator Pill */}
+              <div className="flex items-center justify-between mt-3 px-2.5 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/60 dark:border-zinc-700/60 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+                <span>All-Time:</span>
+                <span className="font-mono font-black text-zinc-900 dark:text-zinc-100">
+                  ₹{totalRevenue.toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 mt-3.5 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span>Financial overview</span>
                 <FiArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
             </div>

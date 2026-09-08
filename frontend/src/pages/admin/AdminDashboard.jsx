@@ -204,62 +204,56 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* STATS TILES */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* STATS TILES (UBER BLACK LEVEL) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {[
             {
               id: "pending",
               label: "Pending Review",
               value: stats.pending,
-              border: "border-t-amber-500",
-              color: "text-amber-500",
-              bg: "bg-amber-500/10",
               icon: FiClock,
             },
             {
               id: "approved",
               label: "Approved & Live",
               value: stats.approved,
-              border: "border-t-emerald-500",
-              color: "text-emerald-500",
-              bg: "bg-emerald-500/10",
               icon: FiCheckCircle,
             },
             {
               id: "rejected",
               label: "Rejected",
               value: stats.rejected,
-              border: "border-t-red-500",
-              color: "text-red-500",
-              bg: "bg-red-500/10",
               icon: FiXCircle,
             },
             {
               id: "all",
               label: "Total Locations",
               value: stats.total,
-              border: "border-t-indigo-500",
-              color: "text-indigo-500",
-              bg: "bg-indigo-500/10",
               icon: FiShield,
             },
           ].map((card) => {
             const Icon = card.icon;
+            const isSelected = activeTab === card.id;
             return (
               <div
                 key={card.id}
                 onClick={() => setActiveTab(card.id)}
-                className={`p-5 sm:p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 ${card.border} border-t-[3px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer backdrop-blur-xl`}
+                className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+                  isSelected
+                    ? "border-white ring-2 ring-white shadow-white/10"
+                    : "border-zinc-800 hover:border-zinc-600"
+                }`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-black uppercase text-zinc-400">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     {card.label}
                   </span>
-                  <div className={`w-8 h-8 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center`}>
+                  <div className="w-8 h-8 rounded-xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-black text-zinc-900 dark:text-white font-mono">
+                <div className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
                   <AnimatedNumber value={card.value} />
                 </div>
               </div>

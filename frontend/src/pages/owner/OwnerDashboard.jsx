@@ -167,7 +167,7 @@ function PassDetailModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Vehicle Pass Information" maxWidth="max-w-md">
       <div className="space-y-4">
         {/* Header Strip */}
-        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-between gap-3">
+        <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-black border border-zinc-200/80 dark:border-emerald-500/30 flex items-center justify-between gap-3 shadow-xs">
           <IndianLicensePlate
             number={booking.vehicle_number}
             onCopy={() => copyToClipboard(booking.vehicle_number, `modal-${booking.id}`)}
@@ -175,7 +175,7 @@ function PassDetailModal({
           />
           <div>
             {isEntered && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Inside Lot
               </span>
@@ -187,7 +187,7 @@ function PassDetailModal({
               </span>
             )}
             {isCompleted && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-200 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400">
                 <FiCheck className="w-3.5 h-3.5 text-emerald-500" />
                 Checked Out
               </span>
@@ -197,35 +197,35 @@ function PassDetailModal({
 
         {/* Spec Grid */}
         <div className="grid grid-cols-2 gap-2.5 text-xs">
-          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
-            <span className="text-[10px] uppercase font-bold text-zinc-400">Assigned Bay</span>
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
+            <span className="text-[10px] uppercase font-bold text-zinc-400 dark:text-emerald-400/80">Assigned Bay</span>
             <p className="font-mono font-black text-sm text-zinc-900 dark:text-white mt-0.5">
               Bay #{booking.slot_number || "A-01"}
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
             <span className="text-[10px] uppercase font-bold text-zinc-400">Vehicle Type</span>
             <p className="font-bold text-sm text-zinc-900 dark:text-white mt-0.5">
               {isBike ? "🛵 2-Wheeler (Bike)" : "🚗 4-Wheeler (Car)"}
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
             <span className="text-[10px] uppercase font-bold text-zinc-400">Driver</span>
             <p className="font-bold text-sm text-zinc-900 dark:text-white truncate mt-0.5">
               {booking.customer_name || "Verified Customer"}
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
             <span className="text-[10px] uppercase font-bold text-zinc-400">Pass Plan</span>
             <p className="font-bold text-sm text-zinc-900 dark:text-white mt-0.5">
               {isDailyPass ? "Multi-Entry Daily" : "Standard Hourly"}
             </p>
           </div>
 
-          <div className="col-span-2 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
+          <div className="col-span-2 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
             <span className="text-[10px] uppercase font-bold text-zinc-400">Parking Facility</span>
             <p className="font-bold text-sm text-zinc-900 dark:text-white truncate mt-0.5 flex items-center gap-1.5">
               <FiMapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -233,7 +233,7 @@ function PassDetailModal({
             </p>
           </div>
 
-          <div className="col-span-2 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-700/60">
+          <div className="col-span-2 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800">
             <div className="flex items-center justify-between text-[10px] uppercase font-bold text-zinc-400">
               <span>Time Window</span>
               {booking.entry_count > 0 && (
@@ -257,7 +257,7 @@ function PassDetailModal({
                 onClose();
               }}
               disabled={actionLoading[booking.id] === "entry"}
-              className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 cursor-pointer active:scale-98 transition-all"
+              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer active:scale-98 transition-all"
             >
               <FiLogIn className="w-4 h-4 stroke-[2.5]" />
               <span>
@@ -283,7 +283,7 @@ function PassDetailModal({
           )}
 
           {isCompleted && (
-            <div className="p-3.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-center text-xs font-bold text-zinc-500">
+            <div className="p-3.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-center text-xs font-bold text-zinc-500 border border-transparent dark:border-zinc-800">
               Trip completed. Bay is free for the next driver.
             </div>
           )}
@@ -753,7 +753,10 @@ export default function OwnerDashboard() {
   }, [isDarkMode, currentChartData]);
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] dark:bg-[#090a0f] flex flex-col font-sans transition-colors selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+    <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#050608] flex flex-col font-sans transition-colors selection:bg-emerald-500 selection:text-black dark:selection:bg-emerald-400 dark:selection:text-black relative overflow-x-hidden">
+      {/* Subtle Ambient Emerald Glow Header in Dark Mode */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-[radial-gradient(ellipse_80%_40%_at_50%_-20%,rgba(16,185,129,0.18),transparent)] pointer-events-none -z-0" />
+      
       <SaaSNavbar />
       <Toast toast={toast} />
 
@@ -769,38 +772,44 @@ export default function OwnerDashboard() {
         copiedId={copiedId}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
         
-        {/* ─── 1. UBER-LEVEL HERO COMMAND BAR ─── */}
-        <div className="bg-white dark:bg-[#12131a] rounded-3xl p-6 sm:p-7 border border-zinc-200/80 dark:border-zinc-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                Hello, {userName}
+        {/* ─── 1. 10/10 GREEN & BLACK HERO COMMAND BAR ─── */}
+        <div className="relative overflow-hidden bg-white dark:bg-black rounded-3xl p-6 sm:p-7 border border-zinc-200/90 dark:border-emerald-500/20 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all">
+          {/* Top Emerald Accent Strip */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-400 opacity-90" />
+
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 dark:text-white tracking-tight flex items-center gap-2">
+                Hello, <span className="text-emerald-600 dark:text-emerald-400">{userName}</span>
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" title="Gate barrier telemetry is live and syncing every 30 seconds">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs" title="Gate barrier telemetry is live and syncing every 30 seconds">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
                 Live Gate Sync Active
               </span>
             </div>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium">
-              Monitor open parking bays, check in arriving drivers, and track daily revenue in real time.
+              Real-time gate telemetry, driver check-ins, and turnover intelligence.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
             {/* Facility Selector */}
             {parkingList.length > 1 && (
-              <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-3 py-1 shadow-xs">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wide">Location:</span>
+              <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-300 dark:border-emerald-500/30 rounded-2xl px-3.5 py-1.5 shadow-xs">
+                <span className="text-[11px] font-bold text-zinc-500 dark:text-emerald-400/80 uppercase tracking-wider">Location:</span>
                 <select
                   value={selectedFacility}
                   onChange={(e) => setSelectedFacility(e.target.value)}
-                  className="text-xs font-bold py-1.5 bg-transparent cursor-pointer text-zinc-900 dark:text-zinc-100 focus:outline-none"
+                  className="text-xs font-bold py-1 bg-transparent cursor-pointer text-zinc-950 dark:text-white focus:outline-none"
                 >
-                  <option value="ALL">All Facilities ({parkingList.length})</option>
+                  <option value="ALL" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">All Facilities ({parkingList.length})</option>
                   {parkingList.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
                       {p.name}
                     </option>
                   ))}
@@ -812,26 +821,26 @@ export default function OwnerDashboard() {
             <button
               onClick={() => loadOwnerData(true)}
               disabled={refreshing}
-              className="p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-xs transition-colors cursor-pointer"
+              className="p-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-zinc-200 dark:border-emerald-500/20 shadow-xs transition-all cursor-pointer active:scale-95"
               title="Refresh all parking data now"
             >
               <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`} />
             </button>
 
-            {/* Uber-Style Tactile Scan QR Button */}
+            {/* Uber Black & Green Tactile Scan QR Button */}
             <button
               onClick={() => navigate("/owner/scan-qr")}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 text-xs font-black transition-all shadow-md active:scale-98 cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900 dark:text-white text-xs font-black transition-all shadow-md border border-zinc-800 dark:border-emerald-500/40 hover:border-emerald-400 active:scale-95 cursor-pointer group"
               title="Scan driver's mobile QR code pass at gate"
             >
-              <FiCamera className="w-4 h-4 text-emerald-400" />
+              <FiCamera className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
               <span>Scan QR Pass</span>
             </button>
 
-            {/* Add Parking Lot */}
+            {/* High-Energy Electric Green Add Parking Lot Button */}
             <button
               onClick={() => navigate("/owner/add-parking")}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all shadow-md shadow-emerald-600/20 active:scale-98 cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer"
               title="Register a new parking location"
             >
               <FiPlus className="w-4 h-4 stroke-[3]" />
@@ -840,55 +849,58 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── 2. GLANCEABLE TELEMETRY CARDS (UBER BLACK LEVEL) ─── */}
+        {/* ─── 2. 10/10 TELEMETRY CARDS (PREMIUM OBSIDIAN BLACK & ELECTRIC GREEN) ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           
           {/* Tile 1: Available Spots */}
           <div
             onClick={() => setActiveTab("FACILITIES")}
-            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "FACILITIES"
-                ? "border-white ring-2 ring-white shadow-white/10"
-                : "border-zinc-800 hover:border-zinc-600"
+                ? "border-emerald-400 ring-2 ring-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
+            {/* Ambient Corner Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
             {/* Header Badge & Icon */}
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
+            <div className="flex items-center justify-between relative z-10">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 Available Spots
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
+              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
                 <FiLayers className="w-4 h-4" />
               </div>
             </div>
 
             {/* Hero Value & Context */}
-            <div className="mt-6">
+            <div className="mt-6 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white">
+                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={availableSlots} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  open bays of <strong className="text-white font-bold">{totalSlots}</strong> total
+                  open bays of <strong className="text-emerald-400 font-bold">{totalSlots}</strong> total
                 </span>
               </div>
 
-              {/* Minimalist Capacity Bar */}
-              <div className="w-full h-2 rounded-full bg-zinc-800 mt-4 overflow-hidden p-0.5">
+              {/* Glowing Electric Green Capacity Bar */}
+              <div className="w-full h-2 rounded-full bg-zinc-900 mt-4 overflow-hidden p-0.5 border border-zinc-800">
                 <div
-                  className="h-full rounded-full bg-white transition-all duration-700"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-300 transition-all duration-700 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                   style={{ width: `${Math.max(occupancyPct, 4)}%` }}
                 />
               </div>
 
               {/* Status Row */}
-              <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs font-semibold">
+              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">{occupancyPct}% occupied ({100 - occupancyPct}% free)</span>
-                <span className="text-white group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
                   Manage bays &rarr;
                 </span>
               </div>
@@ -901,27 +913,29 @@ export default function OwnerDashboard() {
               setActiveTab("VEHICLES");
               setVehicleFilter("INSIDE");
             }}
-            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "VEHICLES" && vehicleFilter === "INSIDE"
-                ? "border-white ring-2 ring-white shadow-white/10"
-                : "border-zinc-800 hover:border-zinc-600"
+                ? "border-emerald-400 ring-2 ring-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
             {/* Header Badge & Icon */}
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
-                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <div className="flex items-center justify-between relative z-10">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 Parked Inside
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
+              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
                 <FiTruck className="w-4 h-4" />
               </div>
             </div>
 
             {/* Hero Value & Context */}
-            <div className="mt-6">
+            <div className="mt-6 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white">
+                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={enteredCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
@@ -930,15 +944,15 @@ export default function OwnerDashboard() {
               </div>
 
               {/* Status Context Pill */}
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span>Active Gate Sessions</span>
-                <span className="font-mono text-white font-bold">{enteredCount} of {totalSlots} occupied</span>
+              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
+                <span className="text-zinc-400">Active Gate Sessions</span>
+                <span className="font-mono text-emerald-400 font-bold">{enteredCount} of {totalSlots} occupied</span>
               </div>
 
               {/* Action Row */}
-              <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs font-semibold">
+              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">On-site cars</span>
-                <span className="text-white group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
                   Filter parked queue &rarr;
                 </span>
               </div>
@@ -951,27 +965,29 @@ export default function OwnerDashboard() {
               setActiveTab("VEHICLES");
               setVehicleFilter("BOOKED");
             }}
-            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "VEHICLES" && vehicleFilter === "BOOKED"
-                ? "border-white ring-2 ring-white shadow-white/10"
-                : "border-zinc-800 hover:border-zinc-600"
+                ? "border-emerald-400 ring-2 ring-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
             {/* Header Badge & Icon */}
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
-                <span className="w-2 h-2 rounded-full bg-white" />
+            <div className="flex items-center justify-between relative z-10">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-zinc-900 text-zinc-300 border border-zinc-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 Arriving Soon
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
+              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-zinc-300 border border-zinc-700 flex items-center justify-center font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
                 <FiClock className="w-4 h-4" />
               </div>
             </div>
 
             {/* Hero Value & Context */}
-            <div className="mt-6">
+            <div className="mt-6 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white">
+                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={bookedCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
@@ -980,15 +996,15 @@ export default function OwnerDashboard() {
               </div>
 
               {/* Inbound Status Pill */}
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span>Awaiting Gate Entry</span>
-                <span className="font-mono text-white font-bold">{bookedCount} pending check-in</span>
+              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
+                <span className="text-zinc-400">Awaiting Gate Entry</span>
+                <span className="font-mono text-emerald-400 font-bold">{bookedCount} pending check-in</span>
               </div>
 
               {/* Action Row */}
-              <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs font-semibold">
+              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">Expected drivers</span>
-                <span className="text-white group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
                   Check in drivers &rarr;
                 </span>
               </div>
@@ -998,27 +1014,29 @@ export default function OwnerDashboard() {
           {/* Tile 4: Today's Earnings */}
           <div
             onClick={() => setActiveTab("REVENUE")}
-            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+            className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-xl hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
               activeTab === "REVENUE"
-                ? "border-white ring-2 ring-white shadow-white/10"
-                : "border-zinc-800 hover:border-zinc-600"
+                ? "border-emerald-400 ring-2 ring-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
+
             {/* Header Badge & Icon */}
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
-                <span className="w-2 h-2 rounded-full bg-white" />
+            <div className="flex items-center justify-between relative z-10">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 Today's Earnings
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
+              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
                 <FiDollarSign className="w-4 h-4" />
               </div>
             </div>
 
             {/* Hero Value & Context */}
-            <div className="mt-6">
+            <div className="mt-6 relative z-10">
               <div className="flex items-baseline gap-1 whitespace-nowrap">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white">
+                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-emerald-400 group-hover:text-emerald-300 transition-colors">
                   ₹<AnimatedNumber value={todayRevenue} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400 ml-1.5">
@@ -1027,17 +1045,17 @@ export default function OwnerDashboard() {
               </div>
 
               {/* All-Time Indicator Pill */}
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span>All-Time Gross</span>
+              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
+                <span className="text-zinc-400">All-Time Gross</span>
                 <span className="font-mono text-white font-bold">
                   ₹{totalRevenue.toLocaleString("en-IN")}
                 </span>
               </div>
 
               {/* Action Row */}
-              <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs font-semibold">
+              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">Revenue analytics</span>
-                <span className="text-white group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
                   View full reports &rarr;
                 </span>
               </div>
@@ -1045,11 +1063,11 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── 3. CLEAN SEGMENTED NAVIGATION & UBER SEARCH ─── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200/80 dark:border-zinc-800 pb-4">
+        {/* ─── 3. 10/10 CLEAN SEGMENTED NAVIGATION & SEARCH ─── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200/90 dark:border-zinc-800/80 pb-4">
           
-          {/* Main Tabs */}
-          <div className="flex items-center gap-1.5 bg-zinc-200/70 dark:bg-zinc-800/80 p-1.5 rounded-2xl">
+          {/* Main Tabs (Green & Black Themed) */}
+          <div className="flex items-center gap-1.5 bg-zinc-200/80 dark:bg-black p-1.5 rounded-2xl border border-transparent dark:border-zinc-800/90 shadow-inner">
             <button
               onClick={() => {
                 setActiveTab("VEHICLES");
@@ -1057,14 +1075,14 @@ export default function OwnerDashboard() {
               }}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === "VEHICLES"
-                  ? "bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
               }`}
             >
               <FiTruck className="w-4 h-4 text-emerald-500" />
               <span>Live Gate Activity</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                activeTab === "VEHICLES" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" : "bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                activeTab === "VEHICLES" ? "bg-emerald-500 text-black dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-zinc-300 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
               }`}>
                 {liveBookings.length}
               </span>
@@ -1074,14 +1092,14 @@ export default function OwnerDashboard() {
               onClick={() => setActiveTab("FACILITIES")}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === "FACILITIES"
-                  ? "bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
               }`}
             >
-              <FiGrid className="w-4 h-4 text-indigo-500" />
+              <FiGrid className="w-4 h-4 text-emerald-500" />
               <span>Parking Lots</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                activeTab === "FACILITIES" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" : "bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+                activeTab === "FACILITIES" ? "bg-emerald-500 text-black dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-zinc-300 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
               }`}>
                 {parkingList.length}
               </span>
@@ -1091,16 +1109,16 @@ export default function OwnerDashboard() {
               onClick={() => setActiveTab("REVENUE")}
               className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === "REVENUE"
-                  ? "bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
               }`}
             >
-              <FiBarChart2 className="w-4 h-4 text-amber-500" />
+              <FiBarChart2 className="w-4 h-4 text-emerald-500" />
               <span>Earnings & Reports</span>
             </button>
           </div>
 
-          {/* Uber-Style Instant Search */}
+          {/* Search Input with Emerald Focus Halo */}
           <div className="relative w-full md:w-80">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
             <input
@@ -1109,12 +1127,12 @@ export default function OwnerDashboard() {
               placeholder="Search plate (e.g. MH 02), driver, bay..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-xs font-semibold bg-white dark:bg-[#12131a] border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-10 pr-9 py-3 w-full focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white text-zinc-900 dark:text-white placeholder:text-zinc-400 shadow-xs"
+              className="text-xs font-semibold bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-10 pr-9 py-3 w-full focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder:text-zinc-500 shadow-xs"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-emerald-400 p-1"
               >
                 <FiX className="w-3.5 h-3.5" />
               </button>
@@ -1122,15 +1140,16 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── TAB 1: LIVE GATE VEHICLES ─── */}
+        {/* ─── TAB 1: LIVE GATE VEHICLES (GREEN & BLACK AESTHETIC) ─── */}
         {activeTab === "VEHICLES" && (
           <div className="space-y-4">
-            {/* Gate Attendant Explainer & Quick Action Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
+            {/* Gate Attendant Explainer Banner */}
+            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+              <div className="space-y-1 pl-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <h3 className="font-black text-sm text-zinc-900 dark:text-white">
+                  <h3 className="font-black text-sm text-zinc-950 dark:text-white">
                     Gate Activity & Barrier Controls
                   </h3>
                 </div>
@@ -1142,7 +1161,7 @@ export default function OwnerDashboard() {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => navigate("/owner/scan-qr")}
-                  className="px-4 py-2.5 rounded-2xl bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
+                  className="px-4 py-2.5 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-emerald-400 border border-zinc-800 dark:border-emerald-500/30 text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
                   title="Open camera scanner for fast barrier check-in"
                 >
                   <FiCamera className="w-4 h-4 text-emerald-400" />
@@ -1151,7 +1170,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Filter Pills with Clear Explanations */}
+            {/* Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[
                 { id: "ALL", label: "All Vehicles", count: liveBookings.length, desc: "All current passes" },
@@ -1164,13 +1183,13 @@ export default function OwnerDashboard() {
                   onClick={() => setVehicleFilter(pill.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
                     vehicleFilter === pill.id
-                      ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
-                      : "bg-white dark:bg-[#12131a] text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-400"
+                      ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/50 shadow-md"
+                      : "bg-white dark:bg-black text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-800 hover:border-emerald-500/40"
                   }`}
                 >
                   <span>{pill.label}</span>
                   {pill.count !== null && (
-                    <span className="opacity-70 text-[11px] font-mono">
+                    <span className="opacity-75 text-[11px] font-mono">
                       ({pill.count})
                     </span>
                   )}
@@ -1211,11 +1230,11 @@ export default function OwnerDashboard() {
                   return (
                     <div
                       key={b.id}
-                      className={`p-4 sm:p-5 rounded-3xl bg-white dark:bg-[#12131a] border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
+                      className={`p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
                         isEntered
-                          ? "border-emerald-500/40 bg-emerald-50/10"
+                          ? "border-emerald-500/60 dark:border-emerald-500/40 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
                           : isBooked
-                          ? "border-sky-500/40 bg-sky-50/10"
+                          ? "border-sky-500/40 bg-sky-50/10 dark:bg-zinc-950"
                           : "border-zinc-200/80 dark:border-zinc-800"
                       }`}
                     >
@@ -1232,10 +1251,10 @@ export default function OwnerDashboard() {
 
                         <div className="space-y-1.5 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-lg font-mono border border-zinc-200 dark:border-zinc-700">
+                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg font-mono border border-emerald-500/30">
                               Bay #{b.slot_number || "A-01"}
                             </span>
-                            <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-200 truncate">
                               Driver: {b.customer_name || "Verified Customer"}
                             </span>
                             <span className="text-xs text-zinc-400 font-medium">
@@ -1258,7 +1277,7 @@ export default function OwnerDashboard() {
                         {/* Info details button */}
                         <button
                           onClick={() => setInspectBooking(b)}
-                          className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
+                          className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
                           title="View Complete Pass Details"
                         >
                           <FiInfo className="w-4 h-4" />
@@ -1266,7 +1285,7 @@ export default function OwnerDashboard() {
 
                         {/* Status Chip */}
                         {isEntered && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                             Parked Inside
                           </span>
@@ -1278,17 +1297,17 @@ export default function OwnerDashboard() {
                           </span>
                         )}
                         {isCompleted && (
-                          <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+                          <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-zinc-100 dark:bg-zinc-900 text-zinc-500 border border-transparent dark:border-zinc-800">
                             ✓ Checked Out
                           </span>
                         )}
 
-                        {/* 1-Tap Tactile Gate Button */}
+                        {/* 1-Tap Tactile Gate Button (Electric Green for Check In) */}
                         {isBooked && (
                           <button
                             onClick={() => handleMarkEntry(b.id)}
                             disabled={actionLoading[b.id] === "entry"}
-                            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer active:scale-95"
+                            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-md shadow-emerald-500/25 flex items-center gap-2 cursor-pointer active:scale-95"
                             title="Click when car arrives to let them in and occupy the bay"
                           >
                             <FiLogIn className="w-4 h-4 stroke-[2.5]" />
@@ -1320,15 +1339,16 @@ export default function OwnerDashboard() {
           </div>
         )}
 
-        {/* ─── TAB 2: PARKING LOTS (FACILITIES) ─── */}
+        {/* ─── TAB 2: PARKING LOTS (GREEN & BLACK FACILITIES) ─── */}
         {activeTab === "FACILITIES" && (
           <div className="space-y-4">
             {/* Facilities Explainer Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
+            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
+              <div className="space-y-1 pl-2">
                 <div className="flex items-center gap-2">
-                  <FiGrid className="w-4 h-4 text-indigo-500" />
-                  <h3 className="font-black text-sm text-zinc-900 dark:text-white">
+                  <FiGrid className="w-4 h-4 text-emerald-500" />
+                  <h3 className="font-black text-sm text-zinc-950 dark:text-white">
                     Your Parking Facilities & Locations
                   </h3>
                 </div>
@@ -1340,7 +1360,7 @@ export default function OwnerDashboard() {
               <div className="shrink-0">
                 <button
                   onClick={() => navigate("/owner/add-parking")}
-                  className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all flex items-center gap-2 shadow-sm cursor-pointer active:scale-95"
+                  className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-emerald-500/25 cursor-pointer active:scale-95"
                 >
                   <FiPlus className="w-4 h-4 stroke-[3]" />
                   <span>Add New Parking Lot</span>
@@ -1376,10 +1396,10 @@ export default function OwnerDashboard() {
                   return (
                     <div
                       key={p.id}
-                      className="bg-white dark:bg-[#12131a] rounded-3xl border border-zinc-200/80 dark:border-zinc-800 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md transition-all group"
+                      className="bg-white dark:bg-black rounded-3xl border border-zinc-200/80 dark:border-zinc-800 hover:dark:border-emerald-500/40 overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-xl transition-all group"
                     >
                       {/* Image Banner */}
-                      <div className="relative h-44 bg-zinc-900 overflow-hidden">
+                      <div className="relative h-44 bg-zinc-950 overflow-hidden">
                         {p.image_url || p.image ? (
                           <img
                             src={p.image_url || p.image}
@@ -1387,22 +1407,22 @@ export default function OwnerDashboard() {
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-800 text-zinc-500 space-y-1.5">
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-500 space-y-1.5">
                             <FiGrid className="w-8 h-8 opacity-40 text-emerald-500" />
-                            <span className="text-xs font-bold uppercase tracking-wider">ParkEase Lot</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">ParkEase Facility</span>
                           </div>
                         )}
 
                         <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
                           <span
                             className={`text-[10px] font-black px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 ${
-                              isApproved ? "bg-emerald-600 text-white" : "bg-amber-500 text-white"
+                              isApproved ? "bg-emerald-500 text-black font-black" : "bg-amber-500 text-black font-black"
                             }`}
                           >
-                            <span className={`w-1.5 h-1.5 rounded-full ${isApproved ? "bg-white animate-pulse" : "bg-white"}`} />
-                            {isApproved ? "Active & Live" : "Pending Admin Review"}
+                            <span className={`w-1.5 h-1.5 rounded-full ${isApproved ? "bg-black animate-pulse" : "bg-black"}`} />
+                            {isApproved ? "Active & Live" : "Pending Review"}
                           </span>
-                          <span className="text-xs font-black px-3 py-1 rounded-full bg-zinc-950/85 text-emerald-400 font-mono backdrop-blur-md border border-white/10">
+                          <span className="text-xs font-black px-3 py-1 rounded-full bg-black/90 text-emerald-400 font-mono backdrop-blur-md border border-emerald-500/30">
                             {isFree ? "FREE" : `₹${p.hourly_rate ?? 50}/hr`}
                           </span>
                         </div>
@@ -1411,7 +1431,7 @@ export default function OwnerDashboard() {
                       {/* Content Details */}
                       <div className="p-5 space-y-4">
                         <div>
-                          <h3 className="font-black text-lg text-zinc-900 dark:text-white truncate">
+                          <h3 className="font-black text-lg text-zinc-950 dark:text-white truncate group-hover:text-emerald-400 transition-colors">
                             {p.name}
                           </h3>
                           <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate mt-1 flex items-center gap-1.5">
@@ -1424,13 +1444,13 @@ export default function OwnerDashboard() {
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-xs font-bold text-zinc-400">
                             <span>{p.total_slots || 0} Total Bays</span>
-                            <span className="text-zinc-900 dark:text-white font-mono">
+                            <span className="text-zinc-950 dark:text-emerald-400 font-mono">
                               {p.booked_slots || 0} occupied ({freeSlots} free)
                             </span>
                           </div>
-                          <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                          <div className="w-full h-2 rounded-full bg-zinc-100 dark:bg-zinc-900 overflow-hidden border border-transparent dark:border-zinc-800">
                             <div
-                              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                              className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
                               style={{ width: `${slotPct}%` }}
                             />
                           </div>
@@ -1442,35 +1462,35 @@ export default function OwnerDashboard() {
                         {/* Amenities */}
                         <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                           {p.has_ev && (
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                              <FiZap className="w-3 h-3 text-emerald-500" /> EV Fast Charger
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                              <FiZap className="w-3 h-3 text-emerald-500" /> EV Charger
                             </span>
                           )}
                           {p.has_cctv && (
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 flex items-center gap-1">
-                              <FiShield className="w-3 h-3" /> 24/7 CCTV
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 flex items-center gap-1">
+                              <FiShield className="w-3 h-3 text-emerald-400" /> 24/7 CCTV
                             </span>
                           )}
                           {p.is_24_7 && (
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 flex items-center gap-1">
-                              <FiClock className="w-3 h-3" /> Always Open
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 flex items-center gap-1">
+                              <FiClock className="w-3 h-3 text-emerald-400" /> 24/7 Open
                             </span>
                           )}
                         </div>
 
                         {/* Actions */}
-                        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
+                        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => navigate(`/owner/parking/${p.id}/slots`)}
-                              className="text-xs font-black px-4 py-2 rounded-xl bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all cursor-pointer shadow-xs active:scale-95"
+                              className="text-xs font-black px-4 py-2 rounded-xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-900 dark:text-emerald-400 dark:hover:bg-zinc-800 border border-transparent dark:border-emerald-500/30 transition-all cursor-pointer shadow-xs active:scale-95"
                               title="View visual grid of parking bays"
                             >
                               Manage Bays
                             </button>
                             <button
                               onClick={() => navigate(`/owner/edit-parking/${p.id}`)}
-                              className="text-xs font-bold px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                              className="text-xs font-bold px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
                               title="Edit parking lot pricing and details"
                             >
                               Edit Info
@@ -1485,7 +1505,7 @@ export default function OwnerDashboard() {
                                 name: p.name,
                               })
                             }
-                            className="p-2 text-rose-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                            className="p-2 text-rose-500 hover:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
                             title="Delete this parking lot"
                           >
                             <FiTrash2 className="w-4 h-4" />
@@ -1500,14 +1520,16 @@ export default function OwnerDashboard() {
           </div>
         )}
 
-        {/* ─── TAB 3: EARNINGS & PAYOUTS ─── */}
+        {/* ─── TAB 3: EARNINGS & PAYOUTS (GREEN & BLACK ANALYTICS) ─── */}
         {activeTab === "REVENUE" && (
-          <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#12131a] border border-zinc-200/80 dark:border-zinc-800 space-y-6 shadow-sm">
-            
+          <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-black border border-zinc-200/80 dark:border-zinc-800 space-y-6 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
             {/* Header with Period Selectors */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800/80 relative z-10">
               <div>
-                <h3 className="font-black text-xl text-zinc-900 dark:text-white tracking-tight">
+                <h3 className="font-black text-xl text-zinc-950 dark:text-white tracking-tight flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   Earnings & Financial Reports
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1">
@@ -1517,7 +1539,7 @@ export default function OwnerDashboard() {
 
               <div className="flex items-center gap-2.5 flex-wrap">
                 {/* Period Selectors */}
-                <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl">
+                <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl border border-transparent dark:border-zinc-800">
                   {[
                     { id: "TODAY", label: "Today" },
                     { id: "WEEKLY", label: "This Week" },
@@ -1529,8 +1551,8 @@ export default function OwnerDashboard() {
                       onClick={() => setRevenuePeriod(p.id)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         revenuePeriod === p.id
-                          ? "bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white shadow-xs font-black"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                          ? "bg-black text-white dark:bg-emerald-500 dark:text-black shadow-xs font-black"
+                          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
                       }`}
                     >
                       {p.label}
@@ -1540,7 +1562,7 @@ export default function OwnerDashboard() {
 
                 <button
                   onClick={handleExportCSV}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700 shadow-xs"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-bold text-zinc-700 dark:text-emerald-400 transition-colors cursor-pointer border border-zinc-200 dark:border-emerald-500/30 shadow-xs active:scale-95"
                   title="Export revenue data to a CSV spreadsheet"
                 >
                   <FiDownload className="w-4 h-4 text-emerald-500" />
@@ -1550,9 +1572,9 @@ export default function OwnerDashboard() {
             </div>
 
             {/* 3 Summary KPI Cards with Plain-English Definitions */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80">
-                <span className="text-[11px] font-black text-zinc-400 uppercase tracking-wider">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
+              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-emerald-500/30 shadow-sm">
+                <span className="text-[11px] font-black text-zinc-400 dark:text-emerald-400/80 uppercase tracking-wider">
                   {selectedPeriodTitle} Gross Revenue
                 </span>
                 <p className="text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">
@@ -1563,11 +1585,11 @@ export default function OwnerDashboard() {
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80">
+              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
                 <span className="text-[11px] font-black text-zinc-400 uppercase tracking-wider">
                   Average Ticket Size
                 </span>
-                <p className="text-3xl font-black font-mono text-zinc-900 dark:text-white mt-1">
+                <p className="text-3xl font-black font-mono text-zinc-950 dark:text-white mt-1">
                   ₹
                   {todayRevenue > 0 && liveBookings.length > 0
                     ? Math.round(todayRevenue / liveBookings.length)
@@ -1578,11 +1600,11 @@ export default function OwnerDashboard() {
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-700/80">
+              <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
                 <span className="text-[11px] font-black text-zinc-400 uppercase tracking-wider">
                   All-Time Revenue
                 </span>
-                <p className="text-3xl font-black font-mono text-zinc-900 dark:text-white mt-1">
+                <p className="text-3xl font-black font-mono text-zinc-950 dark:text-white mt-1">
                   ₹{Math.round(totalRevenue).toLocaleString("en-IN")}
                 </p>
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5">
@@ -1592,13 +1614,13 @@ export default function OwnerDashboard() {
             </div>
 
             {/* Chart.js Line Visualization */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-2 relative z-10">
               <div className="flex items-center justify-between text-xs font-bold text-zinc-400">
                 <span className="flex items-center gap-1.5">
                   <FiTrendingUp className="w-4 h-4 text-emerald-500" />
-                  <span>Revenue Timeline Curve</span>
+                  <span className="text-zinc-800 dark:text-zinc-200 font-bold">Revenue Timeline Curve</span>
                 </span>
-                <span className="text-zinc-900 dark:text-white font-mono">
+                <span className="text-zinc-950 dark:text-emerald-400 font-mono font-bold">
                   Peak: ₹{Math.max(...chartAmounts, 0).toLocaleString("en-IN")}
                 </span>
               </div>

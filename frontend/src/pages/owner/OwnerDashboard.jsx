@@ -882,7 +882,7 @@ export default function OwnerDashboard() {
                   <AnimatedNumber value={availableSlots} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  open of <strong className="text-emerald-400 font-bold">{totalSlots}</strong> bays
+                  free of <strong className="text-emerald-400 font-bold">{totalSlots}</strong> total
                 </span>
               </div>
 
@@ -933,19 +933,19 @@ export default function OwnerDashboard() {
                   <AnimatedNumber value={enteredCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  cars on-site now
+                  cars on-site
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span className="text-zinc-400">Active bays in use</span>
-                <span className="font-mono text-emerald-400 font-bold">{enteredCount} of {totalSlots}</span>
+              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
+                <span className="text-zinc-400">Active Gate Sessions</span>
+                <span className="font-mono text-emerald-400 font-bold">{enteredCount} / {totalSlots}</span>
               </div>
 
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Live queue</span>
+                <span className="text-zinc-400">View inside queue</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
-                  View parked queue &rarr;
+                  Inspect &rarr;
                 </span>
               </div>
             </div>
@@ -981,19 +981,19 @@ export default function OwnerDashboard() {
                   <AnimatedNumber value={bookedCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  inbound bookings
+                  reservations
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span className="text-zinc-400">Awaiting arrival</span>
-                <span className="font-mono text-emerald-400 font-bold">{bookedCount} drivers</span>
+              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs font-semibold text-zinc-300">
+                <span className="text-zinc-400">Awaiting Check-in</span>
+                <span className="font-mono text-emerald-400 font-bold">{bookedCount} pending</span>
               </div>
 
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Gate check-in</span>
+                <span className="text-zinc-400">Check in drivers</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
-                  Check in drivers &rarr;
+                  Open gate &rarr;
                 </span>
               </div>
             </div>
@@ -1030,15 +1030,15 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span className="text-zinc-400">All-Time Gross</span>
-                <span className="font-mono text-white font-bold">
+              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
+                <span className="text-zinc-400">All-Time Revenue</span>
+                <span className="font-mono text-emerald-400 font-bold">
                   ₹{totalRevenue.toLocaleString("en-IN")}
                 </span>
               </div>
 
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Financials</span>
+                <span className="text-zinc-400">Financial overview</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
                   View reports &rarr;
                 </span>

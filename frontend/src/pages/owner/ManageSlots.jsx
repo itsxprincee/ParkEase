@@ -216,7 +216,10 @@ export default function ManageSlots() {
   const evCount = slots.filter((s) => s.is_ev).length;
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#050608] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-black dark:selection:bg-emerald-400 dark:selection:text-black overflow-x-hidden">
+      {/* Ambient Emerald Glow Header in Dark Mode */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-[radial-gradient(ellipse_80%_40%_at_50%_-20%,rgba(16,185,129,0.18),transparent)] pointer-events-none -z-0" />
+
       <SaaSNavbar />
 
       {/* TOAST ALERT */}
@@ -225,7 +228,7 @@ export default function ManageSlots() {
           <div
             className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl text-sm font-bold ${
               toast.type === "error"
-                ? "bg-white/95 dark:bg-zinc-900/95 text-red-600 border-red-200 dark:border-red-900/50"
+                ? "bg-white/95 dark:bg-zinc-900/95 text-rose-600 border-rose-200 dark:border-rose-900/50"
                 : "bg-white/95 dark:bg-zinc-900/95 text-emerald-600 border-emerald-200 dark:border-emerald-900/50"
             }`}
           >
@@ -235,79 +238,79 @@ export default function ManageSlots() {
         </div>
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* TOP BAR */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
+        {/* TOP COMMAND BAR */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 text-xs font-bold text-zinc-900 dark:text-white hover:border-emerald-500/50 transition-all shadow-xs cursor-pointer active:scale-95"
           >
-            <FiArrowLeft className="w-3.5 h-3.5" />
+            <FiArrowLeft className="w-4 h-4 text-emerald-500" />
             <span>Back to Dashboard</span>
           </button>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={FiRefreshCw}
-              loading={refreshing}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
               onClick={() => loadData(true)}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 text-xs font-bold text-zinc-900 dark:text-zinc-200 transition-all cursor-pointer shadow-xs active:scale-95"
             >
-              Refresh
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={FiLayers}
+              <FiRefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-emerald-500" : "text-emerald-500"}`} />
+              <span>Refresh</span>
+            </button>
+            <button
               onClick={() => setBulkModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900 dark:text-white text-xs font-black transition-all shadow-md border border-zinc-800 dark:border-emerald-500/30 hover:border-emerald-400 active:scale-95 cursor-pointer"
             >
-              Add Multiple Spots
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              icon={FiPlus}
+              <FiLayers className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Add Multiple Spots</span>
+            </button>
+            <button
               onClick={() => setAddModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer"
             >
-              Add Single Spot
-            </Button>
+              <FiPlus className="w-4 h-4 stroke-[3]" />
+              <span>Add Single Spot</span>
+            </button>
           </div>
         </div>
 
-        {/* PARKING TITLE & STATS */}
-        <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* PARKING TITLE & STATS HERO */}
+        <div className="relative overflow-hidden bg-white dark:bg-black rounded-3xl p-6 sm:p-8 border border-zinc-200/90 dark:border-emerald-500/20 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-400 opacity-90" />
+
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black border border-emerald-500/30">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>PARKING SPOTS & CAPACITY</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight mt-1">
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 dark:text-white tracking-tight mt-2">
               {parking?.name || "Parking Spots Grid"}
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-              {parking?.address || "Manage real-time parking spot statuses."}
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+              {parking?.address || "Manage real-time parking spot statuses and availability."}
             </p>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="text-center px-4 py-2.5 bg-emerald-500/10 dark:bg-emerald-950/40 rounded-2xl border border-emerald-500/20">
+            <div className="text-center px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-emerald-500/30 shadow-xs">
               <span className="text-[10px] uppercase font-black text-emerald-600 dark:text-emerald-400 block">Available</span>
-              <span className="text-xl font-black font-mono text-emerald-600 dark:text-emerald-400">{availableCount}</span>
+              <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">{availableCount}</span>
             </div>
-            <div className="text-center px-4 py-2.5 bg-rose-500/10 dark:bg-rose-950/40 rounded-2xl border border-rose-500/20">
+            <div className="text-center px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-rose-500/30 shadow-xs">
               <span className="text-[10px] uppercase font-black text-rose-600 dark:text-rose-400 block">Occupied</span>
-              <span className="text-xl font-black font-mono text-rose-600 dark:text-rose-400">{occupiedCount}</span>
+              <span className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400">{occupiedCount}</span>
             </div>
-            <div className="text-center px-4 py-2.5 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl border border-amber-500/20">
+            <div className="text-center px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-amber-500/30 shadow-xs">
               <span className="text-[10px] uppercase font-black text-amber-600 dark:text-amber-400 block">⚡ EV Ports</span>
-              <span className="text-xl font-black font-mono text-amber-600 dark:text-amber-400">{evCount}</span>
+              <span className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400">{evCount}</span>
             </div>
           </div>
         </div>
 
         {/* SEARCH & FILTERS */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 bg-zinc-200/60 dark:bg-zinc-800/60 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto border border-zinc-200 dark:border-zinc-700">
+          <div className="flex items-center gap-1.5 bg-zinc-200/80 dark:bg-black p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto border border-transparent dark:border-zinc-800 shadow-inner">
             {[
               { id: "ALL", label: `All (${slots.length})` },
               { id: "AVAILABLE", label: "Available" },
@@ -318,9 +321,9 @@ export default function ManageSlots() {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   statusFilter === tab.id
-                    ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white shadow-xs"
+                    ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-xs font-black"
                     : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
                 }`}
               >
@@ -331,17 +334,17 @@ export default function ManageSlots() {
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
             {/* View Mode Switcher */}
-            <div className="flex items-center gap-1 bg-zinc-200/60 dark:bg-zinc-800/60 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-1 bg-zinc-200/80 dark:bg-black p-1 rounded-2xl border border-transparent dark:border-zinc-800">
               <button
                 type="button"
                 onClick={() => setViewLayout("CARDS")}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   viewLayout === "CARDS"
-                    ? "bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white shadow-xs font-black"
+                    ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 shadow-xs font-black"
                     : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiGrid className="w-3.5 h-3.5" />
+                <FiGrid className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Cards</span>
               </button>
               <button
@@ -349,11 +352,11 @@ export default function ManageSlots() {
                 onClick={() => setViewLayout("2D_MAP")}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   viewLayout === "2D_MAP"
-                    ? "bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs font-black"
+                    ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 shadow-xs font-black"
                     : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
-                <FiMap className="w-3.5 h-3.5" />
+                <FiMap className="w-3.5 h-3.5 text-emerald-500" />
                 <span>2D Map</span>
               </button>
             </div>
@@ -367,7 +370,7 @@ export default function ManageSlots() {
                 placeholder="Search spot (e.g. A-1)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pe-input pl-10 text-xs bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800/90 rounded-2xl w-full"
+                className="text-xs font-semibold bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-10 pr-4 py-2.5 w-full focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder:text-zinc-500 shadow-xs"
               />
             </div>
           </div>
@@ -403,16 +406,16 @@ export default function ManageSlots() {
               return (
                 <div
                   key={slot.id}
-                  className={`p-4 rounded-3xl border backdrop-blur-xl flex flex-col justify-between space-y-3 relative transition-all shadow-xs ${
+                  className={`p-4 rounded-3xl border flex flex-col justify-between space-y-3 relative transition-all shadow-xs ${
                     isOccupied
-                      ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/20"
+                      ? "border-rose-400/60 dark:border-rose-900/60 bg-white dark:bg-black"
                       : isMaintenance
-                      ? "border-amber-300 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/20"
-                      : "border-emerald-300 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/20"
+                      ? "border-amber-400/60 dark:border-amber-900/60 bg-white dark:bg-black"
+                      : "border-emerald-400/60 dark:border-emerald-500/40 bg-white dark:bg-black hover:shadow-md hover:shadow-emerald-500/10"
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <span className="text-base font-black text-zinc-900 dark:text-white font-mono tracking-tight">
+                    <span className="text-base font-black text-zinc-950 dark:text-white font-mono tracking-tight">
                       {slot.slot_number}
                     </span>
 
@@ -441,12 +444,12 @@ export default function ManageSlots() {
                       : "Available"}
                   </Badge>
 
-                  <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex items-center justify-between">
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
                     <button
                       onClick={() => setEditModal({ open: true, slot })}
                       className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      <FiEdit2 className="w-3 h-3" />
+                      <FiEdit2 className="w-3 h-3 text-emerald-500" />
                       <span>Edit</span>
                     </button>
                     <button

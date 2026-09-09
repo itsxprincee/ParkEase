@@ -252,33 +252,33 @@ export default function AddParking() {
           <div className="space-y-6">
             
             {/* 1. Location Details */}
-            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">1</div>
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">1</div>
                 <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Location Details</h2>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Location Details</h2>
                   <p className="text-xs text-zinc-400 font-medium">Name and street address</p>
                 </div>
               </div>
               <div className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">Parking Name *</label>
-                  <input type="text" required placeholder="e.g. City Mall Parking" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm focus:ring-2 focus:ring-emerald-500/20" />
+                  <input type="text" required placeholder="e.g. City Mall Parking" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">Address *</label>
-                  <textarea required rows={2} placeholder="e.g. 123 Main St, Mumbai" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm focus:ring-2 focus:ring-emerald-500/20 resize-none" />
+                  <textarea required rows={2} placeholder="e.g. 123 Main St, Mumbai" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 resize-none" />
                 </div>
                 <LocationPickerMap latitude={formData.latitude} longitude={formData.longitude} onLocationChange={(lat, lng) => setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))} />
               </div>
             </div>
 
             {/* 2. Spots & Pricing Card */}
-            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5 backdrop-blur-xl">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">2</div>
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-5">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">2</div>
                 <div>
-                  <h2 className="text-base font-black text-zinc-900 dark:text-white">Spots & Pricing</h2>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Spots & Pricing</h2>
                   <p className="text-xs text-zinc-400 font-medium">Number of parking spots and hourly/daily rates</p>
                 </div>
               </div>
@@ -296,7 +296,7 @@ export default function AddParking() {
                     required
                     value={formData.total_slots}
                     onChange={(e) => setFormData({ ...formData, total_slots: e.target.value })}
-                    className="pe-input text-base font-black w-32 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl shadow-xs text-center"
+                    className="text-base font-black w-32 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-2xl text-center focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20"
                   />
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {["10", "20", "50", "100", "250"].map((num) => (
@@ -304,10 +304,10 @@ export default function AddParking() {
                         key={num}
                         type="button"
                         onClick={() => setFormData({ ...formData, total_slots: num })}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                        className={`text-xs font-bold px-3.5 py-2 rounded-xl border transition-all cursor-pointer ${
                           formData.total_slots === num
-                            ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
+                            ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border-emerald-500/40 shadow-xs font-black"
+                            : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-white"
                         }`}
                       >
                         {num} spots
@@ -331,14 +331,14 @@ export default function AddParking() {
                     <div
                       key={v.id}
                       onClick={() => setFormData({ ...formData, supported_vehicles: v.id })}
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                         (formData.supported_vehicles || "BOTH") === v.id
-                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm font-bold scale-[1.01]"
-                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                          ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 border-black dark:border-emerald-500/50 shadow-md font-bold scale-[1.01]"
+                          : "bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40"
                       }`}
                     >
                       <p className="text-xs font-black">{v.title}</p>
-                      <p className={`text-[10px] mt-0.5 ${(formData.supported_vehicles || "BOTH") === v.id ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"}`}>
+                      <p className={`text-[10px] mt-0.5 ${(formData.supported_vehicles || "BOTH") === v.id ? "text-zinc-300 dark:text-emerald-400/80" : "text-zinc-400"}`}>
                         {v.desc}
                       </p>
                     </div>
@@ -360,14 +360,14 @@ export default function AddParking() {
                     <div
                       key={p.id}
                       onClick={() => setFormData({ ...formData, pricing_type: p.id })}
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                         formData.pricing_type === p.id
-                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-sm font-bold"
-                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                          ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 border-black dark:border-emerald-500/50 shadow-md font-bold"
+                          : "bg-white dark:bg-zinc-950 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40"
                       }`}
                     >
                       <p className="text-xs font-black">{p.title}</p>
-                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === p.id ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-400"}`}>
+                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === p.id ? "text-zinc-300 dark:text-emerald-400/80" : "text-zinc-400"}`}>
                         {p.desc}
                       </p>
                     </div>
@@ -389,7 +389,7 @@ export default function AddParking() {
                         min="0"
                         value={formData.hourly_rate}
                         onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-                        className="pe-input pl-8 text-sm font-black bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                        className="pl-8 pr-4 py-3 rounded-2xl text-sm font-black bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white w-full focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
                       />
                     </div>
                     <div className="flex items-center gap-1.5 pt-1.5">
@@ -403,7 +403,7 @@ export default function AddParking() {
                           key={r.val}
                           type="button"
                           onClick={() => setFormData({ ...formData, hourly_rate: r.val })}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 cursor-pointer"
+                          className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 cursor-pointer"
                         >
                           {r.label}
                         </button>
@@ -424,7 +424,7 @@ export default function AddParking() {
                         min="1"
                         value={formData.daily_rate}
                         onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
-                        className="pe-input pl-8 text-sm font-black bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-2xl w-full"
+                        className="pl-8 pr-4 py-3 rounded-2xl text-sm font-black bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 w-full focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
                       />
                     </div>
                     <div className="flex items-center gap-1.5 pt-1.5">
@@ -433,7 +433,7 @@ export default function AddParking() {
                           key={r}
                           type="button"
                           onClick={() => setFormData({ ...formData, daily_rate: r })}
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer"
+                          className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer"
                         >
                           ₹{r}/day
                         </button>
@@ -445,14 +445,14 @@ export default function AddParking() {
             </div>
 
             {/* 3. Amenities & Features (Uber Level) */}
-            <div className="p-6 sm:p-7 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-5 backdrop-blur-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center font-mono font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-xs">
                     3
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-zinc-900 dark:text-white tracking-tight">
+                    <h2 className="text-base font-black text-zinc-950 dark:text-white tracking-tight">
                       Amenities & Safety Features
                     </h2>
                     <p className="text-xs text-zinc-400 font-medium">
@@ -506,16 +506,16 @@ export default function AddParking() {
                       }
                       className={`group p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 ${
                         active
-                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md scale-[1.01]"
-                          : "bg-zinc-50/70 dark:bg-zinc-850/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-750 hover:border-zinc-450 hover:bg-white dark:hover:bg-zinc-800"
+                          ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 border-black dark:border-emerald-500/50 shadow-md scale-[1.01]"
+                          : "bg-zinc-50/70 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div
                           className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
                             active
-                              ? "bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black"
-                              : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700 shadow-xs"
+                              ? "bg-zinc-800 text-emerald-400 dark:bg-black dark:text-emerald-400 border border-emerald-500/30"
+                              : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-800 shadow-xs"
                           }`}
                         >
                           <Icon className="w-5 h-5" />
@@ -525,7 +525,7 @@ export default function AddParking() {
                           className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all ${
                             active
                               ? "bg-emerald-500 text-black shadow-xs"
-                              : "bg-zinc-200/80 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-300"
+                              : "bg-zinc-200/80 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-300 dark:group-hover:bg-zinc-700"
                           }`}
                         >
                           {active ? "✓ Added" : "+ Add"}
@@ -535,14 +535,14 @@ export default function AddParking() {
                       <div className="space-y-0.5">
                         <h3
                           className={`text-xs font-black tracking-tight ${
-                            active ? "text-white dark:text-black" : "text-zinc-900 dark:text-white"
+                            active ? "text-white dark:text-emerald-300" : "text-zinc-900 dark:text-white"
                           }`}
                         >
                           {item.title}
                         </h3>
                         <p
                           className={`text-[11px] leading-snug font-medium ${
-                            active ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"
+                            active ? "text-zinc-300 dark:text-zinc-400" : "text-zinc-400"
                           }`}
                         >
                           {item.desc}
@@ -555,16 +555,16 @@ export default function AddParking() {
             </div>
 
             {/* 4. PARKING ENTRANCE PHOTO (COMPULSORY) */}
-            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     4
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                    <h2 className="text-base font-black text-zinc-950 dark:text-white flex items-center gap-2">
                       <span>Parking Entrance Photo</span>
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                         Compulsory *
                       </span>
                     </h2>
@@ -578,7 +578,7 @@ export default function AddParking() {
                 className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 ${
                   entrancePreview
                     ? "border-emerald-500/60 bg-emerald-500/5 dark:bg-emerald-500/10"
-                    : "border-zinc-300 dark:border-zinc-700 hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-800/40"
+                    : "border-zinc-300 dark:border-zinc-800 hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-950"
                 }`}
               >
                 <input
@@ -596,7 +596,7 @@ export default function AddParking() {
                       className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500 shadow-md shrink-0"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
                       <FiCamera className="w-7 h-7" />
                     </div>
                   )}
@@ -620,7 +620,7 @@ export default function AddParking() {
                       Remove
                     </button>
                   ) : (
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                       Browse Gate Photo
                     </span>
                   )}
@@ -629,16 +629,16 @@ export default function AddParking() {
             </div>
 
             {/* 5. PARKING INSIDE PHOTO (COMPULSORY) */}
-            <div className="p-6 rounded-3xl bg-white/95 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-4 backdrop-blur-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
                     5
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-zinc-900 dark:text-white flex items-center gap-2">
+                    <h2 className="text-base font-black text-zinc-950 dark:text-white flex items-center gap-2">
                       <span>Parking Inside / Bay Photo</span>
-                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                         Compulsory *
                       </span>
                     </h2>
@@ -651,8 +651,8 @@ export default function AddParking() {
                 onClick={() => insideInputRef.current?.click()}
                 className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 ${
                   insidePreview
-                    ? "border-cyan-500/60 bg-cyan-500/5 dark:bg-cyan-500/10"
-                    : "border-zinc-300 dark:border-zinc-700 hover:border-cyan-500 bg-zinc-50/50 dark:bg-zinc-800/40"
+                    ? "border-emerald-500/60 bg-emerald-500/5 dark:bg-emerald-500/10"
+                    : "border-zinc-300 dark:border-zinc-800 hover:border-emerald-500 bg-zinc-50/50 dark:bg-zinc-950"
                 }`}
               >
                 <input
@@ -667,10 +667,10 @@ export default function AddParking() {
                     <img
                       src={insidePreview}
                       alt="Inside Preview"
-                      className="w-20 h-20 rounded-2xl object-cover border-2 border-cyan-500 shadow-md shrink-0"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-emerald-500 shadow-md shrink-0"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
                       <FiLayers className="w-7 h-7" />
                     </div>
                   )}
@@ -694,7 +694,7 @@ export default function AddParking() {
                       Remove
                     </button>
                   ) : (
-                    <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                       Browse Inside Photo
                     </span>
                   )}
@@ -702,15 +702,15 @@ export default function AddParking() {
               </div>
             </div>
 
-            {/* SUBMIT BUTTON (UBER-INSPIRED) */}
+            {/* SUBMIT BUTTON (ELECTRIC GREEN CTA) */}
             <div className="pt-3">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-full bg-black dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100 text-white dark:text-black text-base font-black shadow-xl transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-base font-black shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2"
               >
                 <FiCheck className="w-5 h-5 stroke-[3]" />
-                <span>{loading ? "Listing Parking..." : "Publish & Start Earning"}</span>
+                <span>{loading ? "Registering Facility..." : "Publish & Start Earning"}</span>
               </button>
             </div>
           </div>

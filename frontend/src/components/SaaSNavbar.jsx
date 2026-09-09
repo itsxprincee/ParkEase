@@ -156,8 +156,8 @@ export default function SaaSNavbar() {
       <header
         className={`sticky top-0 z-[1000] transition-all duration-300 ${
           scrolled
-            ? "bg-white/85 dark:bg-[#090a0f]/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-zinc-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
-            : "bg-white/70 dark:bg-[#090a0f]/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-zinc-800/50"
+            ? "bg-white/90 dark:bg-[#050608]/90 backdrop-blur-2xl border-b border-slate-200/80 dark:border-zinc-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.6)]"
+            : "bg-white/75 dark:bg-[#050608]/75 backdrop-blur-xl border-b border-slate-200/50 dark:border-zinc-800/50"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -169,7 +169,7 @@ export default function SaaSNavbar() {
               className="flex items-center gap-3 group focus:outline-hidden"
               id="navbar-brand-logo"
             >
-              <div className="relative w-10 h-10 rounded-2xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black shadow-lg group-hover:scale-105 group-hover:shadow-emerald-500/20 transition-all duration-300">
+              <div className="relative w-10 h-10 rounded-2xl bg-zinc-950 dark:bg-black text-white dark:text-emerald-400 border border-transparent dark:border-emerald-500/40 flex items-center justify-center font-black shadow-lg group-hover:scale-105 group-hover:shadow-emerald-500/20 transition-all duration-300">
                 <span className="text-sm font-mono tracking-tighter">PE</span>
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -192,7 +192,7 @@ export default function SaaSNavbar() {
 
             {/* DESKTOP NAV PILLS */}
             <nav
-              className="hidden md:flex items-center gap-1.5 bg-zinc-100/90 dark:bg-zinc-900/90 p-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs backdrop-blur-md"
+              className="hidden md:flex items-center gap-1.5 bg-zinc-100/90 dark:bg-black p-1.5 rounded-full border border-zinc-200/80 dark:border-zinc-800/90 shadow-xs backdrop-blur-md"
               id="navbar-nav-links"
             >
               {navLinks.map((link) => {
@@ -205,11 +205,11 @@ export default function SaaSNavbar() {
                     to={link.path}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 ${
                       isActive
-                        ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
-                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/80"
+                        ? "bg-zinc-950 text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-md font-black"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-900/80"
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400 dark:text-emerald-600" : ""}`} />
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : ""}`} />
                     <span>{link.name}</span>
                   </Link>
                 );

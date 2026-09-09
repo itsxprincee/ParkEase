@@ -849,7 +849,7 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── 2. 10/10 TELEMETRY CARDS (PREMIUM OBSIDIAN BLACK & ELECTRIC GREEN) ─── */}
+        {/* ─── 2. 10/10 TELEMETRY CARDS (CLEAN, BOLD OBSIDIAN BLACK & ELECTRIC GREEN) ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           
           {/* Tile 1: Available Spots */}
@@ -861,10 +861,8 @@ export default function OwnerDashboard() {
                 : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
-            {/* Ambient Corner Glow */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
                 <span className="relative flex h-2 w-2">
@@ -878,14 +876,13 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Hero Value & Context */}
-            <div className="mt-6 relative z-10">
+            <div className="mt-5 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={availableSlots} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  open bays of <strong className="text-emerald-400 font-bold">{totalSlots}</strong> total
+                  open of <strong className="text-emerald-400 font-bold">{totalSlots}</strong> bays
                 </span>
               </div>
 
@@ -897,10 +894,9 @@ export default function OwnerDashboard() {
                 />
               </div>
 
-              {/* Status Row */}
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">{occupancyPct}% occupied ({100 - occupancyPct}% free)</span>
-                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-zinc-400">{occupancyPct}% full</span>
+                <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
                   Manage bays &rarr;
                 </span>
               </div>
@@ -921,7 +917,6 @@ export default function OwnerDashboard() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -932,8 +927,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Hero Value & Context */}
-            <div className="mt-6 relative z-10">
+            <div className="mt-5 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={enteredCount} />
@@ -943,17 +937,15 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              {/* Status Context Pill */}
               <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span className="text-zinc-400">Active Gate Sessions</span>
-                <span className="font-mono text-emerald-400 font-bold">{enteredCount} of {totalSlots} occupied</span>
+                <span className="text-zinc-400">Active bays in use</span>
+                <span className="font-mono text-emerald-400 font-bold">{enteredCount} of {totalSlots}</span>
               </div>
 
-              {/* Action Row */}
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">On-site cars</span>
-                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
-                  Filter parked queue &rarr;
+                <span className="text-zinc-400">Live queue</span>
+                <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
+                  View parked queue &rarr;
                 </span>
               </div>
             </div>
@@ -973,7 +965,6 @@ export default function OwnerDashboard() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-zinc-900 text-zinc-300 border border-zinc-700">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -984,27 +975,24 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Hero Value & Context */}
-            <div className="mt-6 relative z-10">
+            <div className="mt-5 relative z-10">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={bookedCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
-                  confirmed reservations
+                  inbound bookings
                 </span>
               </div>
 
-              {/* Inbound Status Pill */}
               <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
-                <span className="text-zinc-400">Awaiting Gate Entry</span>
-                <span className="font-mono text-emerald-400 font-bold">{bookedCount} pending check-in</span>
+                <span className="text-zinc-400">Awaiting arrival</span>
+                <span className="font-mono text-emerald-400 font-bold">{bookedCount} drivers</span>
               </div>
 
-              {/* Action Row */}
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Expected drivers</span>
-                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
+                <span className="text-zinc-400">Gate check-in</span>
+                <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
                   Check in drivers &rarr;
                 </span>
               </div>
@@ -1022,7 +1010,6 @@ export default function OwnerDashboard() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/15 rounded-full blur-2xl pointer-events-none" />
 
-            {/* Header Badge & Icon */}
             <div className="flex items-center justify-between relative z-10">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -1033,18 +1020,16 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Hero Value & Context */}
-            <div className="mt-6 relative z-10">
+            <div className="mt-5 relative z-10">
               <div className="flex items-baseline gap-1 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-emerald-400 group-hover:text-emerald-300 transition-colors">
                   ₹<AnimatedNumber value={todayRevenue} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400 ml-1.5">
-                  net intake today
+                  collected today
                 </span>
               </div>
 
-              {/* All-Time Indicator Pill */}
               <div className="mt-4 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-[11px] font-semibold text-zinc-300">
                 <span className="text-zinc-400">All-Time Gross</span>
                 <span className="font-mono text-white font-bold">
@@ -1052,11 +1037,10 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              {/* Action Row */}
               <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Revenue analytics</span>
-                <span className="text-emerald-400 group-hover:text-emerald-300 group-hover:underline flex items-center gap-1 font-bold">
-                  View full reports &rarr;
+                <span className="text-zinc-400">Financials</span>
+                <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
+                  View reports &rarr;
                 </span>
               </div>
             </div>
@@ -1140,43 +1124,16 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── TAB 1: LIVE GATE VEHICLES (GREEN & BLACK AESTHETIC) ─── */}
+        {/* ─── TAB 1: LIVE GATE VEHICLES (CLEAN & DIRECT) ─── */}
         {activeTab === "VEHICLES" && (
-          <div className="space-y-4">
-            {/* Gate Attendant Explainer Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
-              <div className="space-y-1 pl-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <h3 className="font-black text-sm text-zinc-950 dark:text-white">
-                    Gate Activity & Barrier Controls
-                  </h3>
-                </div>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-2xl">
-                  Review vehicle passes in real time. Click <strong className="text-emerald-600 dark:text-emerald-400 font-bold">Check In</strong> when a car reaches the entrance barrier to mark the bay occupied. Click <strong className="text-rose-600 dark:text-rose-400 font-bold">Check Out</strong> when they depart to free up the bay.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => navigate("/owner/scan-qr")}
-                  className="px-4 py-2.5 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-emerald-400 border border-zinc-800 dark:border-emerald-500/30 text-xs font-black transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-95"
-                  title="Open camera scanner for fast barrier check-in"
-                >
-                  <FiCamera className="w-4 h-4 text-emerald-400" />
-                  <span>Camera Scanner</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Pills */}
+          <div className="space-y-3.5">
+            {/* Filter Pills with Counts */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[
-                { id: "ALL", label: "All Vehicles", count: liveBookings.length, desc: "All current passes" },
-                { id: "INSIDE", label: "🟢 Parked Inside", count: enteredCount, desc: "On-site now" },
-                { id: "BOOKED", label: "🔵 Arriving Soon", count: bookedCount, desc: "Awaiting entry" },
-                { id: "EXITED", label: "✓ Checked Out", count: null, desc: "Completed sessions" },
+                { id: "ALL", label: "All Vehicles", count: liveBookings.length },
+                { id: "INSIDE", label: "🟢 Parked Inside", count: enteredCount },
+                { id: "BOOKED", label: "🔵 Arriving Soon", count: bookedCount },
+                { id: "EXITED", label: "✓ Checked Out", count: null },
               ].map((pill) => (
                 <button
                   key={pill.id}
@@ -1218,7 +1175,7 @@ export default function OwnerDashboard() {
                 onAction={parkingList.length === 0 ? () => navigate("/owner/add-parking") : () => navigate("/owner/scan-qr")}
               />
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {filteredBookings.map((b) => {
                   const isEntered = b.is_entered;
                   const isBooked = b.is_booked;
@@ -1230,7 +1187,7 @@ export default function OwnerDashboard() {
                   return (
                     <div
                       key={b.id}
-                      className={`p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
+                      className={`p-4 sm:p-5 rounded-2xl bg-white dark:bg-black border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
                         isEntered
                           ? "border-emerald-500/60 dark:border-emerald-500/40 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
                           : isBooked
@@ -1240,25 +1197,22 @@ export default function OwnerDashboard() {
                     >
                       {/* Left: Plate & Vehicle Specs */}
                       <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                        <div>
-                          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">License Plate</p>
-                          <IndianLicensePlate
-                            number={b.vehicle_number}
-                            onCopy={() => copyToClipboard(b.vehicle_number, b.id)}
-                            copied={copiedId === b.id}
-                          />
-                        </div>
+                        <IndianLicensePlate
+                          number={b.vehicle_number}
+                          onCopy={() => copyToClipboard(b.vehicle_number, b.id)}
+                          copied={copiedId === b.id}
+                        />
 
-                        <div className="space-y-1.5 min-w-0">
+                        <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-lg font-mono border border-emerald-500/30">
+                            <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg font-mono border border-emerald-500/30">
                               Bay #{b.slot_number || "A-01"}
                             </span>
                             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-200 truncate">
-                              Driver: {b.customer_name || "Verified Customer"}
+                              {b.customer_name || "Driver"}
                             </span>
                             <span className="text-xs text-zinc-400 font-medium">
-                              • {isBike ? "🛵 2-Wheeler (Bike)" : "🚗 4-Wheeler (Car)"}
+                              • {isBike ? "🛵 Bike" : "🚗 Car"}
                             </span>
                           </div>
 
@@ -1266,23 +1220,14 @@ export default function OwnerDashboard() {
                             <span className="truncate font-semibold">{b.parking_name}</span>
                             <span>•</span>
                             <span className="font-mono text-[11px]">
-                              Time Window: {b.start_time} – {b.end_time}
+                              {b.start_time} – {b.end_time}
                             </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right: Status Pill & Big Tactile Gate Action Button */}
-                      <div className="flex items-center gap-3 self-end md:self-center shrink-0">
-                        {/* Info details button */}
-                        <button
-                          onClick={() => setInspectBooking(b)}
-                          className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
-                          title="View Complete Pass Details"
-                        >
-                          <FiInfo className="w-4 h-4" />
-                        </button>
-
+                      <div className="flex items-center gap-2.5 self-end md:self-center shrink-0">
                         {/* Status Chip */}
                         {isEntered && (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
@@ -1307,12 +1252,12 @@ export default function OwnerDashboard() {
                           <button
                             onClick={() => handleMarkEntry(b.id)}
                             disabled={actionLoading[b.id] === "entry"}
-                            className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-md shadow-emerald-500/25 flex items-center gap-2 cursor-pointer active:scale-95"
+                            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-md shadow-emerald-500/25 flex items-center gap-1.5 cursor-pointer active:scale-95"
                             title="Click when car arrives to let them in and occupy the bay"
                           >
                             <FiLogIn className="w-4 h-4 stroke-[2.5]" />
                             <span>
-                              {actionLoading[b.id] === "entry" ? "Opening Gate..." : "Check In (Let In)"}
+                              {actionLoading[b.id] === "entry" ? "Opening..." : "Let In"}
                             </span>
                           </button>
                         )}
@@ -1321,15 +1266,24 @@ export default function OwnerDashboard() {
                           <button
                             onClick={() => handleMarkExit(b.id)}
                             disabled={actionLoading[b.id] === "exit"}
-                            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 flex items-center gap-2 cursor-pointer active:scale-95"
+                            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
                             title="Click when car leaves to free up the bay for new parkers"
                           >
                             <FiLogOut className="w-4 h-4 stroke-[2.5]" />
                             <span>
-                              {actionLoading[b.id] === "exit" ? "Freeing Bay..." : "Check Out (Free Bay)"}
+                              {actionLoading[b.id] === "exit" ? "Freeing..." : "Let Out"}
                             </span>
                           </button>
                         )}
+
+                        {/* Info details button */}
+                        <button
+                          onClick={() => setInspectBooking(b)}
+                          className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
+                          title="View Complete Pass Details"
+                        >
+                          <FiInfo className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -1342,31 +1296,6 @@ export default function OwnerDashboard() {
         {/* ─── TAB 2: PARKING LOTS (GREEN & BLACK FACILITIES) ─── */}
         {activeTab === "FACILITIES" && (
           <div className="space-y-4">
-            {/* Facilities Explainer Banner */}
-            <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500" />
-              <div className="space-y-1 pl-2">
-                <div className="flex items-center gap-2">
-                  <FiGrid className="w-4 h-4 text-emerald-500" />
-                  <h3 className="font-black text-sm text-zinc-950 dark:text-white">
-                    Your Parking Facilities & Locations
-                  </h3>
-                </div>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium max-w-2xl">
-                  Overview of all registered parking locations. Monitor occupancy, configure hourly/daily pricing, or open the interactive bay layout grid to block or free bays.
-                </p>
-              </div>
-
-              <div className="shrink-0">
-                <button
-                  onClick={() => navigate("/owner/add-parking")}
-                  className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-emerald-500/25 cursor-pointer active:scale-95"
-                >
-                  <FiPlus className="w-4 h-4 stroke-[3]" />
-                  <span>Add New Parking Lot</span>
-                </button>
-              </div>
-            </div>
 
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

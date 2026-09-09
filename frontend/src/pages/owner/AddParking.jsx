@@ -209,36 +209,40 @@ export default function AddParking() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#050608] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-black dark:selection:bg-emerald-400 dark:selection:text-black overflow-x-hidden">
+      {/* Ambient Emerald Glow Header in Dark Mode */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-[radial-gradient(ellipse_80%_40%_at_50%_-20%,rgba(16,185,129,0.18),transparent)] pointer-events-none -z-0" />
+
       <SaaSNavbar />
       <Toast toast={toast} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-mobile-dock md:pb-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10 pb-mobile-dock md:pb-8">
         
         {/* Top Header Bar */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 text-xs font-bold text-zinc-900 dark:text-white hover:border-emerald-500/50 transition-all shadow-xs cursor-pointer active:scale-95"
           >
-            <FiArrowLeft className="w-4 h-4" />
+            <FiArrowLeft className="w-4 h-4 text-emerald-500" />
             <span>Back to Dashboard</span>
           </button>
           
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20">
-            <FiZap className="w-3.5 h-3.5" /> <span>Both Photos Mandatory</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/30">
+            <FiZap className="w-3.5 h-3.5 text-emerald-500" /> <span>Both Photos Mandatory</span>
           </div>
         </div>
 
         {/* UBER HOST ONBOARDING COMMAND BANNER */}
-        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-8 mb-8 border border-zinc-800">
+        <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-black text-zinc-950 dark:text-white shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.8)] p-7 sm:p-8 border border-zinc-200/90 dark:border-emerald-500/20">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-400 opacity-90" />
           <div className="max-w-2xl space-y-2 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black tracking-wide border border-emerald-500/30">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>HOST ONBOARDING</span>
+              <span>FACILITY REGISTRATION</span>
             </div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Host Your Parking Space</h1>
-            <p className="text-sm text-zinc-400 font-medium leading-relaxed">
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 dark:text-white tracking-tight">Host Your Parking Facility</h1>
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
               List your parking spots with entrance & inside photos so drivers can locate and park effortlessly.
             </p>
           </div>

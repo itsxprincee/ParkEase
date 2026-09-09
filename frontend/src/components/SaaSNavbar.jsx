@@ -379,7 +379,7 @@ export default function SaaSNavbar() {
 
         {/* MOBILE MENU DRAWER */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl p-4 space-y-3 animate-fade-in shadow-xl">
+          <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800/90 bg-white/95 dark:bg-black/95 backdrop-blur-2xl p-4 space-y-3 animate-fade-in shadow-xl">
             <nav className="space-y-1">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -391,11 +391,11 @@ export default function SaaSNavbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold ${
                       isActive
-                        ? "bg-emerald-500 text-white font-black shadow-md"
+                        ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 font-black shadow-md"
                         : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 text-emerald-500" />
                     <span>{link.name}</span>
                   </Link>
                 );
@@ -419,7 +419,7 @@ export default function SaaSNavbar() {
 
       {/* FLOATING MOBILE BOTTOM NAVIGATION DOCK */}
       <div className="fixed bottom-3 inset-x-0 z-[990] flex justify-center px-4 md:hidden pointer-events-none">
-        <div className="pointer-events-auto bg-white/90 dark:bg-[#0c0d14]/90 backdrop-blur-2xl border border-zinc-200/80 dark:border-zinc-800/80 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.6)] flex items-center gap-1 sm:gap-2 ring-1 ring-black/5 dark:ring-white/5">
+        <div className="pointer-events-auto bg-white/90 dark:bg-black/90 backdrop-blur-2xl border border-zinc-200/80 dark:border-zinc-800/90 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.18)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.8)] flex items-center gap-1 sm:gap-2 ring-1 ring-black/5 dark:ring-emerald-500/20">
           {mobileDockLinks.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -430,11 +430,11 @@ export default function SaaSNavbar() {
                 to={item.path}
                 className={`flex flex-col items-center justify-center w-14 py-1.5 rounded-2xl transition-all duration-200 ${
                   isActive
-                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black shadow-sm scale-105"
+                    ? "bg-zinc-950 text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 font-black shadow-sm scale-105"
                     : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-emerald-400 dark:text-emerald-600" : ""}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-emerald-400" : ""}`} />
                 <span className="text-[10px] font-bold mt-0.5 tracking-tight">{item.name}</span>
               </Link>
             );

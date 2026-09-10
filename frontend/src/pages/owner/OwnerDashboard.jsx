@@ -112,6 +112,22 @@ function AnimatedNumber({ value }) {
   return <>{display.toLocaleString("en-IN")}</>;
 }
 
+// Format start/end time nicely without messy raw ISO timestamps
+function formatTimeWindow(startTime, endTime) {
+  if (!startTime) return "Time not set";
+  const clean = (t) => {
+    if (!t) return "";
+    if (t.includes(" ")) {
+      const parts = t.split(" ");
+      return parts[1] || t;
+    }
+    return t;
+  };
+  const s = clean(startTime);
+  const e = clean(endTime);
+  return e ? `${s} – ${e}` : s;
+}
+
 /* ─── Authentic Indian License Plate Tag ────────────────────────────────── */
 function IndianLicensePlate({ number, onCopy, copied }) {
   return (

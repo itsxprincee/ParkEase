@@ -502,18 +502,35 @@ export default function OwnerDashboard() {
 
   /* Filtered Live Vehicles */
   const liveBookings = dashboardData?.live_bookings || [];
+
+  const facilityLiveBookings = useMemo(() => {
+    if (selectedFacility === "ALL") return liveBookings;
+    return liveBookings.filter(
+      (b) => String(b.parking_location_id) === String(selectedFacility)
+    );
+  }, [liveBookings, selectedFacility]);
+
+  const vehicleCounts = useMemo(() => {
+    const all = facilityLiveBookings.length;
+    const inside = facilityLiveBookings.filter((b) => b.is_entered).length;
+    const booked = facilityLiveBookings.filter((b) => b.is_booked).length;
+    const exited = facilityLiveBookings.filter(
+      (b) => b.status === "COMPLETED" || b.is_exited
+    ).length;
+    return {
+      all,
+      inside: enteredCount > 0 ? enteredCount : inside,
+      booked: bookedCount > 0 ? bookedCount : booked,
+      exited,
+    };
+  }, [facilityLiveBookings, enteredCount, bookedCount]);
+
   const filteredBookings = useMemo(
     () =>
-      liveBookings.filter((b) => {
-        if (
-          selectedFacility !== "ALL" &&
-          String(b.parking_location_id) !== String(selectedFacility)
-        )
-          return false;
-
+      facilityLiveBookings.filter((b) => {
         if (vehicleFilter === "INSIDE" && !b.is_entered) return false;
         if (vehicleFilter === "BOOKED" && !b.is_booked) return false;
-        if (vehicleFilter === "EXITED" && b.status !== "COMPLETED") return false;
+        if (vehicleFilter === "EXITED" && b.status !== "COMPLETED" && !b.is_exited) return false;
 
         if (search.trim()) {
           const q = search.toLowerCase();
@@ -526,7 +543,7 @@ export default function OwnerDashboard() {
         }
         return true;
       }),
-    [liveBookings, selectedFacility, vehicleFilter, search]
+    [facilityLiveBookings, vehicleFilter, search]
   );
 
   /* Filtered Facilities */

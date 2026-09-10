@@ -269,7 +269,12 @@ export default function AddParking() {
                   <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">Address *</label>
                   <textarea required rows={2} placeholder="e.g. 123 Main St, Mumbai" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 resize-none" />
                 </div>
-                <LocationPickerMap latitude={formData.latitude} longitude={formData.longitude} onLocationChange={(lat, lng) => setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))} />
+                <LocationPickerMap
+                  latitude={formData.latitude}
+                  longitude={formData.longitude}
+                  onLocationChange={(lat, lng) => setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }))}
+                  onAddressSelect={(addr) => setFormData((prev) => ({ ...prev, address: addr }))}
+                />
               </div>
             </div>
 

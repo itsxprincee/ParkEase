@@ -1144,31 +1144,95 @@ export default function OwnerDashboard() {
         {/* ─── TAB 1: LIVE GATE VEHICLES (CLEAN & DIRECT) ─── */}
         {activeTab === "VEHICLES" && (
           <div className="space-y-3.5">
-            {/* Filter Pills with Counts */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {[
-                { id: "ALL", label: "All Vehicles", count: liveBookings.length },
-                { id: "INSIDE", label: "🟢 Parked Inside", count: enteredCount },
-                { id: "BOOKED", label: "🔵 Arriving Soon", count: bookedCount },
-                { id: "EXITED", label: "✓ Checked Out", count: null },
-              ].map((pill) => (
-                <button
-                  key={pill.id}
-                  onClick={() => setVehicleFilter(pill.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                    vehicleFilter === pill.id
-                      ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/50 shadow-md"
-                      : "bg-white dark:bg-black text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-800 hover:border-emerald-500/40"
-                  }`}
-                >
-                  <span>{pill.label}</span>
-                  {pill.count !== null && (
-                    <span className="opacity-75 text-[11px] font-mono">
-                      ({pill.count})
-                    </span>
-                  )}
-                </button>
-              ))}
+            {/* Filter Segmented Capsule Strip */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 rounded-2xl bg-zinc-100/90 dark:bg-black border border-zinc-200/90 dark:border-zinc-800/90 shadow-sm">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {[
+                  {
+                    id: "ALL",
+                    label: "All Vehicles",
+                    count: vehicleCounts.all,
+                    icon: FiLayers,
+                  },
+                  {
+                    id: "INSIDE",
+                    label: "Parked Inside",
+                    count: vehicleCounts.inside,
+                    isBeacon: true,
+                    beaconColor: "bg-emerald-500",
+                    pingColor: "bg-emerald-400",
+                  },
+                  {
+                    id: "BOOKED",
+                    label: "Arriving Soon",
+                    count: vehicleCounts.booked,
+                    isBeacon: true,
+                    beaconColor: "bg-sky-500",
+                    pingColor: "bg-sky-400",
+                  },
+                  {
+                    id: "EXITED",
+                    label: "Checked Out",
+                    count: vehicleCounts.exited,
+                    icon: FiCheckCircle,
+                  },
+                ].map((tab) => {
+                  const isActive = vehicleFilter === tab.id;
+                  const Icon = tab.icon;
+
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setVehicleFilter(tab.id)}
+                      className={`relative px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-2 select-none active:scale-95 ${
+                        isActive
+                          ? "bg-black text-white dark:bg-[#070a0e] dark:text-emerald-400 border border-emerald-500/60 shadow-[0_0_18px_rgba(16,185,129,0.18)]"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-900/60 border border-transparent"
+                      }`}
+                    >
+                      {tab.isBeacon ? (
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span
+                            className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tab.pingColor}`}
+                          />
+                          <span
+                            className={`relative inline-flex rounded-full h-2 w-2 ${tab.beaconColor}`}
+                          />
+                        </span>
+                      ) : Icon ? (
+                        <Icon
+                          className={`w-3.5 h-3.5 shrink-0 ${
+                            isActive ? "text-emerald-400" : "text-zinc-400"
+                          }`}
+                        />
+                      ) : null}
+
+                      <span>{tab.label}</span>
+
+                      <span
+                        className={`font-mono text-[11px] font-black px-2 py-0.5 rounded-full transition-all ${
+                          isActive
+                            ? "bg-emerald-500 text-black shadow-xs"
+                            : "bg-zinc-200 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-300/60 dark:border-zinc-800"
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Real-Time Live Status Pill */}
+              <div className="hidden md:flex items-center gap-2 px-3 py-1 text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-medium text-[11px]">
+                  {vehicleFilter === "ALL" && `${vehicleCounts.all} active gate passes recorded`}
+                  {vehicleFilter === "INSIDE" && `${vehicleCounts.inside} vehicles currently occupying bays`}
+                  {vehicleFilter === "BOOKED" && `${vehicleCounts.booked} reservations awaiting driver arrival`}
+                  {vehicleFilter === "EXITED" && `${vehicleCounts.exited} past check-out sessions`}
+                </span>
+              </div>
             </div>
 
             {/* Content List */}

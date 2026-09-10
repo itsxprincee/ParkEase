@@ -820,14 +820,14 @@ export default function OwnerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10">
         
         {/* ─── 1. 10/10 GREEN & BLACK HERO COMMAND BAR ─── */}
-        <div className="relative overflow-hidden bg-white dark:bg-black rounded-3xl p-6 sm:p-7 border border-zinc-200/90 dark:border-emerald-500/20 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all">
+        <div className="relative overflow-hidden bg-white dark:bg-black rounded-3xl p-6 sm:p-7 border border-zinc-200/90 dark:border-zinc-800 shadow-xl dark:shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all">
           {/* Top Emerald Accent Strip */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-400 opacity-90" />
 
           <div className="space-y-1.5">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 dark:text-white tracking-tight flex items-center gap-2">
-                Hello, <span className="text-emerald-600 dark:text-emerald-400">{userName}</span>
+                Hello, <span className="text-emerald-500 dark:text-emerald-400">{userName}</span>
               </h1>
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs" title="Gate barrier telemetry is live and syncing every 30 seconds">
                 <span className="relative flex h-2 w-2">
@@ -845,16 +845,17 @@ export default function OwnerDashboard() {
           <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
             {/* Facility Selector */}
             {parkingList.length > 1 && (
-              <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-300 dark:border-emerald-500/30 rounded-2xl px-3.5 py-1.5 shadow-xs">
-                <span className="text-[11px] font-bold text-zinc-500 dark:text-emerald-400/80 uppercase tracking-wider">Location:</span>
+              <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-800 hover:border-emerald-500/40 rounded-2xl px-3.5 py-2 shadow-xs transition-colors">
+                <FiMapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Location:</span>
                 <select
                   value={selectedFacility}
                   onChange={(e) => setSelectedFacility(e.target.value)}
-                  className="text-xs font-bold py-1 bg-transparent cursor-pointer text-zinc-950 dark:text-white focus:outline-none"
+                  className="text-xs font-black py-0.5 bg-transparent cursor-pointer text-zinc-950 dark:text-white focus:outline-none"
                 >
-                  <option value="ALL" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">All Facilities ({parkingList.length})</option>
+                  <option value="ALL" className="bg-white dark:bg-black text-zinc-900 dark:text-white">All Facilities ({parkingList.length})</option>
                   {parkingList.map((p) => (
-                    <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
+                    <option key={p.id} value={p.id} className="bg-white dark:bg-black text-zinc-900 dark:text-white">
                       {p.name}
                     </option>
                   ))}
@@ -866,7 +867,7 @@ export default function OwnerDashboard() {
             <button
               onClick={() => loadOwnerData(true)}
               disabled={refreshing}
-              className="p-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-zinc-200 dark:border-emerald-500/20 shadow-xs transition-all cursor-pointer active:scale-95"
+              className="p-3 rounded-2xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 shadow-xs transition-all cursor-pointer active:scale-95"
               title="Refresh all parking data now"
             >
               <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-emerald-500" : ""}`} />
@@ -875,7 +876,7 @@ export default function OwnerDashboard() {
             {/* Uber Black & Green Tactile Scan QR Button */}
             <button
               onClick={() => navigate("/owner/scan-qr")}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-950 dark:hover:bg-zinc-900 dark:text-white text-xs font-black transition-all shadow-md border border-zinc-800 dark:border-emerald-500/40 hover:border-emerald-400 active:scale-95 cursor-pointer group"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white hover:bg-zinc-900 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:text-white text-xs font-black transition-all shadow-md border border-zinc-800 dark:border-zinc-700 hover:border-emerald-400 active:scale-95 cursor-pointer group"
               title="Scan driver's mobile QR code pass at gate"
             >
               <FiCamera className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
@@ -885,7 +886,7 @@ export default function OwnerDashboard() {
             {/* High-Energy Electric Green Add Parking Lot Button */}
             <button
               onClick={() => navigate("/owner/add-parking")}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-lg shadow-emerald-500/25 active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-black text-xs font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 active:scale-95 cursor-pointer"
               title="Register a new parking location"
             >
               <FiPlus className="w-4 h-4 stroke-[3]" />
@@ -921,7 +922,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 relative z-10">
+            <div className="mt-5 relative z-10 space-y-3">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={availableSlots} />
@@ -932,14 +933,14 @@ export default function OwnerDashboard() {
               </div>
 
               {/* Glowing Electric Green Capacity Bar */}
-              <div className="w-full h-2 rounded-full bg-zinc-900 mt-4 overflow-hidden p-0.5 border border-zinc-800">
+              <div className="w-full h-2 rounded-full bg-zinc-900 overflow-hidden p-0.5 border border-zinc-800">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-teal-300 transition-all duration-700 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                   style={{ width: `${Math.max(occupancyPct, 4)}%` }}
                 />
               </div>
 
-              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
+              <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">{occupancyPct}% full</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
                   Manage bays &rarr;
@@ -972,7 +973,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 relative z-10">
+            <div className="mt-5 relative z-10 space-y-3">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
                   <AnimatedNumber value={enteredCount} />
@@ -982,15 +983,15 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
+              <div className="px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
                 <span className="text-zinc-400">Active Gate Sessions</span>
                 <span className="font-mono text-emerald-400 font-bold">{enteredCount} / {totalSlots}</span>
               </div>
 
-              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">View inside queue</span>
+              <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
+                <span className="text-zinc-400">Live inside queue</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
-                  Inspect &rarr;
+                  View bays &rarr;
                 </span>
               </div>
             </div>
@@ -1008,21 +1009,21 @@ export default function OwnerDashboard() {
                 : "border-zinc-800 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.15)]"
             }`}
           >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
 
             <div className="flex items-center justify-between relative z-10">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-zinc-900 text-zinc-300 border border-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-sky-950/80 text-sky-400 border border-sky-500/30">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
                 Arriving Soon
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-zinc-300 border border-zinc-700 flex items-center justify-center font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
+              <div className="w-9 h-9 rounded-2xl bg-zinc-900 text-sky-400 border border-sky-500/30 flex items-center justify-center font-bold group-hover:bg-sky-500 group-hover:text-black transition-all">
                 <FiClock className="w-4 h-4" />
               </div>
             </div>
 
-            <div className="mt-5 relative z-10">
+            <div className="mt-5 relative z-10 space-y-3">
               <div className="flex items-baseline gap-2 whitespace-nowrap">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-emerald-300 transition-colors">
+                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white group-hover:text-sky-300 transition-colors">
                   <AnimatedNumber value={bookedCount} />
                 </span>
                 <span className="text-xs font-semibold text-zinc-400">
@@ -1030,14 +1031,14 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs font-semibold text-zinc-300">
+              <div className="px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-sky-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
                 <span className="text-zinc-400">Awaiting Check-in</span>
-                <span className="font-mono text-emerald-400 font-bold">{bookedCount} pending</span>
+                <span className="font-mono text-sky-400 font-bold">{bookedCount} pending</span>
               </div>
 
-              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
-                <span className="text-zinc-400">Check in drivers</span>
-                <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
+              <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
+                <span className="text-zinc-400">Incoming queue</span>
+                <span className="text-sky-400 group-hover:text-sky-300 flex items-center gap-1 font-bold">
                   Open gate &rarr;
                 </span>
               </div>
@@ -1065,7 +1066,7 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 relative z-10">
+            <div className="mt-5 relative z-10 space-y-3">
               <div className="flex items-baseline gap-1 whitespace-nowrap">
                 <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-emerald-400 group-hover:text-emerald-300 transition-colors">
                   ₹<AnimatedNumber value={todayRevenue} />
@@ -1075,14 +1076,14 @@ export default function OwnerDashboard() {
                 </span>
               </div>
 
-              <div className="mt-4 px-3 py-2 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
+              <div className="px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-emerald-500/20 flex items-center justify-between text-xs font-semibold text-zinc-300">
                 <span className="text-zinc-400">All-Time Revenue</span>
                 <span className="font-mono text-emerald-400 font-bold">
                   ₹{totalRevenue.toLocaleString("en-IN")}
                 </span>
               </div>
 
-              <div className="mt-4 pt-3.5 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
+              <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
                 <span className="text-zinc-400">Financial overview</span>
                 <span className="text-emerald-400 group-hover:text-emerald-300 flex items-center gap-1 font-bold">
                   View reports &rarr;
@@ -1341,12 +1342,12 @@ export default function OwnerDashboard() {
                   return (
                     <div
                       key={b.id}
-                      className={`p-4 sm:p-5 rounded-2xl bg-white dark:bg-black border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md ${
+                      className={`p-4 sm:p-5 rounded-3xl bg-white dark:bg-black border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-lg ${
                         isEntered
                           ? "border-emerald-500/60 dark:border-emerald-500/40 bg-emerald-50/10 dark:bg-emerald-950/10 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
                           : isBooked
                           ? "border-sky-500/40 bg-sky-50/10 dark:bg-zinc-950"
-                          : "border-zinc-200/80 dark:border-zinc-800"
+                          : "border-zinc-200/80 dark:border-zinc-800/90"
                       }`}
                     >
                       {/* Left: Plate & Vehicle Specs */}
@@ -1357,24 +1358,28 @@ export default function OwnerDashboard() {
                           copied={copiedId === b.id}
                         />
 
-                        <div className="space-y-1 min-w-0">
+                        <div className="space-y-1.5 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg font-mono border border-emerald-500/30">
                               Bay #{b.slot_number || "A-01"}
                             </span>
-                            <span className="text-xs font-bold text-zinc-900 dark:text-zinc-200 truncate">
-                              {b.customer_name || "Driver"}
+                            <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 truncate">
+                              {b.customer_name || "City Driver"}
                             </span>
-                            <span className="text-xs text-zinc-400 font-medium">
-                              • {isBike ? "🛵 Bike" : "🚗 Car"}
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800">
+                              {isBike ? "🛵 Bike" : "🚗 Car"}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                            <span className="truncate font-semibold">{b.parking_name}</span>
+                          <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 truncate flex-wrap">
+                            <span className="truncate font-semibold flex items-center gap-1">
+                              <FiMapPin className="w-3 h-3 text-emerald-500 shrink-0" />
+                              <span>{b.parking_name}</span>
+                            </span>
                             <span>•</span>
-                            <span className="font-mono text-[11px]">
-                              {b.start_time} – {b.end_time}
+                            <span className="font-mono text-[11px] font-bold flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
+                              <FiClock className="w-3 h-3 text-zinc-400 shrink-0" />
+                              <span>{formatTimeWindow(b.start_time, b.end_time)}</span>
                             </span>
                           </div>
                         </div>
@@ -1384,13 +1389,13 @@ export default function OwnerDashboard() {
                       <div className="flex items-center gap-2.5 self-end md:self-center shrink-0">
                         {/* Status Chip */}
                         {isEntered && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                             Parked Inside
                           </span>
                         )}
                         {isBooked && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                             <FiClock className="w-3.5 h-3.5 text-sky-500" />
                             Arriving Soon
                           </span>
@@ -1406,12 +1411,12 @@ export default function OwnerDashboard() {
                           <button
                             onClick={() => handleMarkEntry(b.id)}
                             disabled={actionLoading[b.id] === "entry"}
-                            className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-md shadow-emerald-500/25 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition-all shadow-md shadow-emerald-500/25 flex items-center gap-1.5 cursor-pointer active:scale-95"
                             title="Click when car arrives to let them in and occupy the bay"
                           >
                             <FiLogIn className="w-4 h-4 stroke-[2.5]" />
                             <span>
-                              {actionLoading[b.id] === "entry" ? "Opening..." : "Let In"}
+                              {actionLoading[b.id] === "entry" ? "Opening Gate..." : "Let In"}
                             </span>
                           </button>
                         )}
@@ -1420,12 +1425,12 @@ export default function OwnerDashboard() {
                           <button
                             onClick={() => handleMarkExit(b.id)}
                             disabled={actionLoading[b.id] === "exit"}
-                            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
+                            className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 flex items-center gap-1.5 cursor-pointer active:scale-95"
                             title="Click when car leaves to free up the bay for new parkers"
                           >
                             <FiLogOut className="w-4 h-4 stroke-[2.5]" />
                             <span>
-                              {actionLoading[b.id] === "exit" ? "Freeing..." : "Let Out"}
+                              {actionLoading[b.id] === "exit" ? "Freeing Bay..." : "Let Out"}
                             </span>
                           </button>
                         )}
@@ -1433,7 +1438,7 @@ export default function OwnerDashboard() {
                         {/* Info details button */}
                         <button
                           onClick={() => setInspectBooking(b)}
-                          className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
+                          className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-emerald-400 border border-transparent dark:border-zinc-800 transition-colors cursor-pointer"
                           title="View Complete Pass Details"
                         >
                           <FiInfo className="w-4 h-4" />

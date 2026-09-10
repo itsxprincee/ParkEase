@@ -20,23 +20,25 @@ import {
   FiNavigation,
   FiCompass,
   FiAlertCircle,
+  FiArrowRight,
+  FiCheckCircle,
 } from "react-icons/fi";
 
-// Custom pin marker icon
+// Custom pin marker icon with animated emerald beacon
 const customPinIcon = L.divIcon({
   html: `
     <div class="relative flex flex-col items-center select-none cursor-grab active:cursor-grabbing transform transition-transform hover:scale-105">
-      <div class="px-3 py-1.5 rounded-2xl bg-zinc-950 text-white flex items-center gap-1.5 shadow-[0_12px_28px_rgba(0,0,0,0.5)] border-2 border-emerald-400 ring-4 ring-emerald-500/20">
+      <div class="px-3 py-1.5 rounded-2xl bg-black text-white flex items-center gap-1.5 shadow-[0_12px_28px_rgba(0,0,0,0.6)] border-2 border-emerald-400 ring-4 ring-emerald-500/25">
         <span class="text-xs">🅿️</span>
         <span class="text-[11px] font-black whitespace-nowrap tracking-tight text-emerald-400">Gate Entrance</span>
       </div>
-      <div class="w-3 h-3 bg-zinc-950 rotate-45 -mt-1.5 border-r-2 border-b-2 border-emerald-400"></div>
-      <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-white mt-0.5 shadow-md animate-pulse"></div>
+      <div class="w-3 h-3 bg-black rotate-45 -mt-1.5 border-r-2 border-b-2 border-emerald-400"></div>
+      <div class="w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-black mt-0.5 shadow-lg animate-pulse"></div>
     </div>
   `,
   className: "custom-entrance-pin",
-  iconSize: [130, 48],
-  iconAnchor: [65, 48],
+  iconSize: [130, 50],
+  iconAnchor: [65, 50],
 });
 
 // Popular Indian City Quick Jump Presets
@@ -66,7 +68,9 @@ function MapCenterController({ center, zoom }) {
 function MapClickHandler({ onLocationSelect }) {
   useMapEvents({
     click(e) {
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
+      if (e?.latlng) {
+        onLocationSelect(e.latlng.lat, e.latlng.lng);
+      }
     },
   });
   return null;
@@ -82,6 +86,7 @@ function InMapControls({ position }) {
         onClick={() => map.zoomIn()}
         className="w-8 h-8 rounded-xl bg-black/90 hover:bg-black text-white hover:text-emerald-400 border border-zinc-800 hover:border-emerald-500/40 backdrop-blur-md flex items-center justify-center shadow-lg transition-all active:scale-95 cursor-pointer"
         title="Zoom In"
+        aria-label="Zoom In"
       >
         <FiPlus className="w-4 h-4 stroke-[2.5]" />
       </button>
@@ -90,6 +95,7 @@ function InMapControls({ position }) {
         onClick={() => map.zoomOut()}
         className="w-8 h-8 rounded-xl bg-black/90 hover:bg-black text-white hover:text-emerald-400 border border-zinc-800 hover:border-emerald-500/40 backdrop-blur-md flex items-center justify-center shadow-lg transition-all active:scale-95 cursor-pointer"
         title="Zoom Out"
+        aria-label="Zoom Out"
       >
         <FiMinus className="w-4 h-4 stroke-[2.5]" />
       </button>
@@ -98,6 +104,7 @@ function InMapControls({ position }) {
         onClick={() => map.flyTo(position, 16, { animate: true, duration: 0.8 })}
         className="w-8 h-8 rounded-xl bg-black/90 hover:bg-black text-emerald-400 border border-emerald-500/30 backdrop-blur-md flex items-center justify-center shadow-lg transition-all active:scale-95 cursor-pointer"
         title="Recenter on Entrance Pin"
+        aria-label="Recenter on Entrance Pin"
       >
         <FiNavigation className="w-4 h-4" />
       </button>
@@ -115,12 +122,14 @@ export default function LocationPickerMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isSearching, setIsSearching] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [searchError, setSearchError] = useState("");
   const [resolvedAddress, setResolvedAddress] = useState("");
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [copiedCoords, setCopiedCoords] = useState(false);
+  const [appliedAddress, setAppliedAddress] = useState(false);
 
   const markerRef = useRef(null);
   const searchContainerRef = useRef(null);
@@ -141,13 +150,14 @@ export default function LocationPickerMap({
         !searchContainerRef.current.contains(e.target)
       ) {
         setShowSuggestions(false);
+        setSelectedIndex(-1);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Reverse geocode to show resolved place name
+  // Reverse geocode to resolve address details
   const fetchReverseAddress = useCallback(async (lat, lng) => {
     try {
       setIsResolvingAddress(true);
@@ -159,17 +169,14 @@ export default function LocationPickerMap({
         const data = await res.json();
         if (data?.display_name) {
           setResolvedAddress(data.display_name);
-          if (typeof onAddressSelect === "function") {
-            onAddressSelect(data.display_name, data.address);
-          }
         }
       }
     } catch (_) {
-      // Non-critical, ignore silent failures
+      // Non-critical, ignore geocoding service glitches
     } finally {
       setIsResolvingAddress(false);
     }
-  }, [onAddressSelect]);
+  }, []);
 
   // Reverse geocode whenever coordinates change
   useEffect(() => {
@@ -185,6 +192,7 @@ export default function LocationPickerMap({
   const handleQueryChange = (val) => {
     setSearchQuery(val);
     setSearchError("");
+    setSelectedIndex(-1);
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -227,7 +235,43 @@ export default function LocationPickerMap({
       setSearchQuery(item.display_name.split(",")[0]);
       setResolvedAddress(item.display_name);
       setShowSuggestions(false);
+      setSelectedIndex(-1);
       setSearchError("");
+
+      if (typeof onAddressSelect === "function") {
+        onAddressSelect(item.display_name);
+        setAppliedAddress(true);
+        setTimeout(() => setAppliedAddress(false), 3000);
+      }
+    }
+  };
+
+  // Keyboard navigation for suggestions dropdown
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearchSubmit(e);
+      }
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+        handleSelectSuggestion(suggestions[selectedIndex]);
+      } else {
+        handleSearchSubmit(e);
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+      setSelectedIndex(-1);
     }
   };
 
@@ -264,7 +308,15 @@ export default function LocationPickerMap({
         const newLng = parseFloat(item.lon);
         if (!isNaN(newLat) && !isNaN(newLng)) {
           onLocationChange(newLat.toFixed(6), newLng.toFixed(6));
+          setResolvedAddress(item.display_name);
           setShowSuggestions(false);
+          setSelectedIndex(-1);
+
+          if (typeof onAddressSelect === "function") {
+            onAddressSelect(item.display_name);
+            setAppliedAddress(true);
+            setTimeout(() => setAppliedAddress(false), 3000);
+          }
         } else {
           setSearchError("Received invalid coordinates for this location.");
         }
@@ -308,12 +360,21 @@ export default function LocationPickerMap({
     );
   };
 
-  // Copy coordinates
+  // Copy coordinates to clipboard
   const handleCopyCoordinates = () => {
     const coordStr = `${latNum.toFixed(6)}, ${lngNum.toFixed(6)}`;
     navigator.clipboard?.writeText(coordStr);
     setCopiedCoords(true);
     setTimeout(() => setCopiedCoords(false), 2000);
+  };
+
+  // Explicitly apply the pinned reverse-geocoded address to parent form
+  const handleApplyAddress = () => {
+    if (resolvedAddress && typeof onAddressSelect === "function") {
+      onAddressSelect(resolvedAddress);
+      setAppliedAddress(true);
+      setTimeout(() => setAppliedAddress(false), 3000);
+    }
   };
 
   return (
@@ -325,7 +386,7 @@ export default function LocationPickerMap({
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 pointer-events-none z-10">
               <FiSearch className="w-4 h-4 text-emerald-500" />
             </div>
-            
+
             <input
               type="text"
               placeholder="Search landmark, mall, metro station, or street..."
@@ -334,14 +395,7 @@ export default function LocationPickerMap({
               onFocus={() => {
                 if (suggestions.length > 0) setShowSuggestions(true);
               }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSearchSubmit(e);
-                } else if (e.key === "Escape") {
-                  setShowSuggestions(false);
-                }
-              }}
+              onKeyDown={handleKeyDown}
               className="w-full text-xs font-semibold pl-10 pr-24 py-3 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder:text-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-xs transition-all"
             />
 
@@ -353,6 +407,7 @@ export default function LocationPickerMap({
                     setSearchQuery("");
                     setSuggestions([]);
                     setShowSuggestions(false);
+                    setSelectedIndex(-1);
                   }}
                   className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors cursor-pointer"
                   title="Clear search"
@@ -382,27 +437,38 @@ export default function LocationPickerMap({
           {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden animate-slide-up backdrop-blur-xl">
-              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-100 dark:border-zinc-800/80">
-                Suggested Locations
+              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between">
+                <span>Suggested Locations</span>
+                <span className="text-[9px] text-zinc-500 lowercase">Use ↑↓ keys to navigate</span>
               </div>
               <ul className="max-h-56 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/60">
-                {suggestions.map((item, idx) => (
-                  <li
-                    key={item.place_id || idx}
-                    onClick={() => handleSelectSuggestion(item)}
-                    className="p-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900/80 cursor-pointer transition-colors flex items-start gap-2.5 group"
-                  >
-                    <FiMapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">
-                        {item.display_name.split(",")[0]}
-                      </p>
-                      <p className="text-[10px] text-zinc-400 truncate mt-0.5">
-                        {item.display_name.split(",").slice(1).join(",").trim()}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                {suggestions.map((item, idx) => {
+                  const isHighlighted = idx === selectedIndex;
+                  return (
+                    <li
+                      key={item.place_id || idx}
+                      onClick={() => handleSelectSuggestion(item)}
+                      className={`p-3 text-left cursor-pointer transition-colors flex items-start gap-2.5 group ${
+                        isHighlighted
+                          ? "bg-emerald-500/10 text-emerald-400 border-l-2 border-emerald-500"
+                          : "hover:bg-zinc-50 dark:hover:bg-zinc-900/80"
+                      }`}
+                    >
+                      <FiMapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                          {item.display_name.split(",")[0]}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 truncate mt-0.5">
+                          {item.display_name.split(",").slice(1).join(",").trim()}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        Select →
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -437,6 +503,7 @@ export default function LocationPickerMap({
             type="button"
             onClick={() => {
               onLocationChange(c.lat.toFixed(6), c.lng.toFixed(6));
+              setSearchQuery(c.name);
               setSearchError("");
             }}
             className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white dark:bg-black text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 shrink-0 transition-all cursor-pointer shadow-xs active:scale-95"
@@ -520,9 +587,9 @@ export default function LocationPickerMap({
         </div>
       </div>
 
-      {/* Resolved Address Strip */}
-      <div className="px-3.5 py-2 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800/80 shadow-xs flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 min-w-0">
+      {/* Resolved Address Strip with 1-Tap Form Sync */}
+      <div className="px-3.5 py-2.5 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span className="font-bold text-zinc-500 dark:text-zinc-400 shrink-0">Pinned Address:</span>
           <p className="font-semibold text-zinc-900 dark:text-zinc-200 truncate">
@@ -535,9 +602,37 @@ export default function LocationPickerMap({
             )}
           </p>
         </div>
-        <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
-          High Precision
-        </span>
+
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          {typeof onAddressSelect === "function" && resolvedAddress && (
+            <button
+              type="button"
+              onClick={handleApplyAddress}
+              className={`px-3 py-1 rounded-xl font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1.5 shadow-xs active:scale-95 ${
+                appliedAddress
+                  ? "bg-emerald-500 text-black border border-emerald-400 font-black"
+                  : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+              }`}
+              title="Apply this street address to your facility details"
+            >
+              {appliedAddress ? (
+                <>
+                  <FiCheckCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Applied to Address ✓</span>
+                </>
+              ) : (
+                <>
+                  <FiArrowRight className="w-3 h-3" />
+                  <span>Use as Facility Address</span>
+                </>
+              )}
+            </button>
+          )}
+
+          <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 shrink-0">
+            High Precision
+          </span>
+        </div>
       </div>
     </div>
   );

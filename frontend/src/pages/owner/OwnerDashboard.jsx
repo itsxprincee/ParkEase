@@ -336,6 +336,18 @@ export default function OwnerDashboard() {
 
   const searchInputRef = useRef(null);
 
+  // Global Ctrl+K / Cmd+K Search Shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
@@ -1064,80 +1076,125 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* ─── 3. 10/10 CLEAN SEGMENTED NAVIGATION & SEARCH ─── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200/90 dark:border-zinc-800/80 pb-4">
+        {/* ─── 3. TOP-TIER NAVIGATION & UNIVERSAL LIVE SEARCH ─── */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 border-b border-zinc-200/90 dark:border-zinc-800/80 pb-4">
           
-          {/* Main Tabs (Green & Black Themed) */}
-          <div className="flex items-center gap-1.5 bg-zinc-200/80 dark:bg-black p-1.5 rounded-2xl border border-transparent dark:border-zinc-800/90 shadow-inner">
+          {/* Main Segmented Tabs (Uber / Obsidian Black & Emerald) */}
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-zinc-100/90 dark:bg-black border border-zinc-200/90 dark:border-zinc-800/90 shadow-sm overflow-x-auto no-scrollbar">
+            {/* Tab 1: Live Gate Activity */}
             <button
               onClick={() => {
                 setActiveTab("VEHICLES");
                 setVehicleFilter("ALL");
               }}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              className={`relative px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2.5 shrink-0 select-none active:scale-95 ${
                 activeTab === "VEHICLES"
-                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-[#070a0e] dark:text-emerald-400 border border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-900/60 border border-transparent"
               }`}
             >
-              <FiTruck className="w-4 h-4 text-emerald-500" />
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <FiTruck className={`w-4 h-4 shrink-0 ${activeTab === "VEHICLES" ? "text-emerald-400" : "text-zinc-400"}`} />
               <span>Live Gate Activity</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                activeTab === "VEHICLES" ? "bg-emerald-500 text-black dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-zinc-300 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
-              }`}>
-                {liveBookings.length}
+              <span
+                className={`font-mono text-[11px] font-black px-2 py-0.5 rounded-full transition-all ${
+                  activeTab === "VEHICLES"
+                    ? "bg-emerald-500 text-black shadow-xs"
+                    : "bg-zinc-200 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-300/60 dark:border-zinc-800"
+                }`}
+              >
+                {facilityLiveBookings.length}
               </span>
             </button>
 
+            {/* Tab 2: Parking Lots */}
             <button
               onClick={() => setActiveTab("FACILITIES")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              className={`relative px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2.5 shrink-0 select-none active:scale-95 ${
                 activeTab === "FACILITIES"
-                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-[#070a0e] dark:text-emerald-400 border border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-900/60 border border-transparent"
               }`}
             >
-              <FiGrid className="w-4 h-4 text-emerald-500" />
+              <FiGrid className={`w-4 h-4 shrink-0 ${activeTab === "FACILITIES" ? "text-emerald-400" : "text-zinc-400"}`} />
               <span>Parking Lots</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
-                activeTab === "FACILITIES" ? "bg-emerald-500 text-black dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-zinc-300 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-400"
-              }`}>
+              <span
+                className={`font-mono text-[11px] font-black px-2 py-0.5 rounded-full transition-all ${
+                  activeTab === "FACILITIES"
+                    ? "bg-emerald-500 text-black shadow-xs"
+                    : "bg-zinc-200 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-300/60 dark:border-zinc-800"
+                }`}
+              >
                 {parkingList.length}
               </span>
             </button>
 
+            {/* Tab 3: Earnings & Reports */}
             <button
               onClick={() => setActiveTab("REVENUE")}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+              className={`relative px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2.5 shrink-0 select-none active:scale-95 ${
                 activeTab === "REVENUE"
-                  ? "bg-black text-white dark:bg-zinc-900 dark:text-emerald-400 dark:border dark:border-emerald-500/40 shadow-sm"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
+                  ? "bg-black text-white dark:bg-[#070a0e] dark:text-emerald-400 border border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-900/60 border border-transparent"
               }`}
             >
-              <FiBarChart2 className="w-4 h-4 text-emerald-500" />
+              <FiBarChart2 className={`w-4 h-4 shrink-0 ${activeTab === "REVENUE" ? "text-emerald-400" : "text-zinc-400"}`} />
               <span>Earnings & Reports</span>
+              <span
+                className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full transition-all flex items-center gap-0.5 ${
+                  activeTab === "REVENUE"
+                    ? "bg-emerald-500 text-black shadow-xs"
+                    : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                }`}
+              >
+                <FiTrendingUp className="w-2.5 h-2.5" />
+                <span>Insights</span>
+              </span>
             </button>
           </div>
 
-          {/* Search Input with Emerald Focus Halo */}
-          <div className="relative w-full md:w-80">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          {/* Universal Search Bar with Live Result Feedback */}
+          <div className="relative w-full lg:w-96 group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center text-zinc-400 group-focus-within:text-emerald-500 transition-colors pointer-events-none">
+              <FiSearch className="w-4 h-4" />
+            </div>
+
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search plate (e.g. MH 02), driver, bay..."
+              placeholder={
+                activeTab === "FACILITIES"
+                  ? "Search lot by name, city, address..."
+                  : "Search plate (e.g. MH 02), driver, bay..."
+              }
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-xs font-semibold bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-10 pr-9 py-3 w-full focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder:text-zinc-500 shadow-xs"
+              className="text-xs font-semibold bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-10 pr-24 py-3 w-full focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder:text-zinc-500 shadow-xs transition-all"
             />
-            {search && (
-              <button
-                onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-emerald-400 p-1"
-              >
-                <FiX className="w-3.5 h-3.5" />
-              </button>
-            )}
+
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {search ? (
+                <>
+                  <span className="hidden sm:inline-block font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    {activeTab === "FACILITIES" ? `${filteredFacilities.length} found` : `${filteredBookings.length} found`}
+                  </span>
+                  <button
+                    onClick={() => setSearch("")}
+                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-emerald-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+                    title="Clear search"
+                  >
+                    <FiX className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[10px] font-mono text-zinc-400 select-none">
+                  Ctrl K
+                </kbd>
+              )}
+            </div>
           </div>
         </div>
 

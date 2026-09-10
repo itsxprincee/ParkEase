@@ -186,7 +186,11 @@ export default function EditParking() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#050608] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+      {/* Ambient glowing background orbs */}
+      <div className="pe-glow-orb top-20 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/15" />
+      <div className="pe-glow-orb top-96 right-10 w-[400px] h-[400px] bg-emerald-400/5 dark:bg-emerald-400/10" />
+
       <SaaSNavbar />
 
       {toast && (
@@ -204,211 +208,173 @@ export default function EditParking() {
         </div>
       )}
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 pb-16 relative z-10">
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate("/owner")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 border border-zinc-200/90 dark:border-zinc-800/90 text-xs font-bold text-zinc-900 dark:text-white hover:border-zinc-400 transition-all shadow-xs cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500/40 text-xs font-bold text-zinc-900 dark:text-white transition-all shadow-xs cursor-pointer active:scale-95"
           >
             <FiArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Dashboard</span>
           </button>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Editing Facility #{id}</span>
+          </div>
         </div>
 
         {loading ? (
           <CardSkeleton />
         ) : (
-          <div className="bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 p-6 sm:p-8 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-6">
-            <div className="border-b border-zinc-100 dark:border-zinc-800 pb-4">
-              <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
-                Edit Parking Location
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Header Title Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 dark:text-white tracking-tight flex items-center gap-2">
+                <span>Edit Parking Facility</span>
+                <span className="text-xs font-mono font-normal px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                  Live Lot
+                </span>
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-                Update name, address, pricing, spots, and photos.
+              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                Update name, GPS gate location, rates, bay capacity, and visual security photos.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+            {/* Step 1. Location Details & Map */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
+                  1
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Location Details & Pin</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Name, street address, and exact entrance GPS coordinates</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
                     Parking Name *
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. City Mall Parking Hub"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all font-bold"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
                     Street Address *
                   </label>
                   <textarea
                     required
                     rows={2}
+                    placeholder="e.g. 123 Main St, Near Gateway, Mumbai"
                     value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    className="pe-input text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full resize-none"
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 resize-none transition-all font-medium"
                   />
                 </div>
-              </div>
 
-              {/* CAPACITY & COORDINATES */}
-              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                    Spots & Map Location
-                  </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Click anywhere on the map or drag the pin to set your parking location.
-                  </p>
-                </div>
-
-                {/* Interactive Map */}
+                {/* Map Picker with Auto Sync */}
                 <LocationPickerMap
                   latitude={formData.latitude}
                   longitude={formData.longitude}
-                  onLocationChange={(lat, lng) => {
+                  onLocationChange={(lat, lng) =>
                     setFormData((prev) => ({
                       ...prev,
                       latitude: lat,
                       longitude: lng,
-                    }));
-                  }}
+                    }))
+                  }
+                  onAddressSelect={(addr) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      address: addr,
+                    }))
+                  }
                 />
+              </div>
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Total Spots
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      required
-                      value={formData.total_slots}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          total_slots: e.target.value,
-                        })
-                      }
-                      className="pe-input text-xs font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                    />
-                  </div>
+            {/* Step 2. Spots & Pricing */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-5">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
+                  2
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Spots & Pricing Model</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Capacity and driver payment tiers</p>
+                </div>
+              </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Latitude
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.latitude}
-                      onChange={(e) =>
-                        setFormData({ ...formData, latitude: e.target.value })
-                      }
-                      className="pe-input text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Longitude
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.longitude}
-                      onChange={(e) =>
-                        setFormData({ ...formData, longitude: e.target.value })
-                      }
-                      className="pe-input text-xs font-mono bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
-                    />
+              {/* Spots Count */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  Total Spots *
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    required
+                    value={formData.total_slots}
+                    onChange={(e) => setFormData({ ...formData, total_slots: e.target.value })}
+                    className="text-base font-black w-32 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-2xl text-center focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20"
+                  />
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {["10", "20", "50", "100", "250"].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, total_slots: num })}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                          formData.total_slots === num
+                            ? "bg-black text-emerald-400 border-emerald-500/50 shadow-sm"
+                            : "bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                        }`}
+                      >
+                        {num} spots
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Supported Vehicle Types (Car / Bike / Both) */}
-              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                    Allowed Vehicle Types
-                  </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Define whether your lot supports Cars, Bikes, or Both.
-                  </p>
-                </div>
-
+              {/* Pricing Mode Selector */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Pricing Structure
+                </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {[
-                    { id: "BOTH", title: "🚗 + 🛵 Both Cars & Bikes", desc: "Open to all drivers & riders" },
-                    { id: "CAR", title: "🚗 Cars Only", desc: "For Sedans, SUVs & Hatchbacks" },
-                    { id: "BIKE", title: "🛵 Bikes / Scooters Only", desc: "Two-wheeler bays only" },
-                  ].map((v) => (
-                    <div
-                      key={v.id}
-                      onClick={() => setFormData({ ...formData, supported_vehicles: v.id })}
-                      className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
-                        (formData.supported_vehicles || "BOTH") === v.id
-                          ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-sm font-bold scale-[1.01]"
-                          : "bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
-                      }`}
-                    >
-                      <p className="text-xs font-black">{v.title}</p>
-                      <p className={`text-[10px] mt-0.5 ${(formData.supported_vehicles || "BOTH") === v.id ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"}`}>
-                        {v.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* PRICING MODEL & DAILY PASS */}
-              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                    Pricing & Rates
-                  </h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    Select hourly rates, flat daily passes, or both.
-                  </p>
-                </div>
-
-                {/* Model Selector */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: "HOURLY", title: "⏱️ Hourly Only", desc: "Pay per hour" },
-                    { id: "DAILY_PASS", title: "🎟️ Flat Day Pass", desc: "One price for full day" },
-                    { id: "BOTH", title: "⚡ Both Options", desc: "Driver chooses pass" },
+                    { id: "HOURLY", title: "⏱️ Hourly Only", desc: "Pay strictly per hour parked" },
+                    { id: "DAILY_PASS", title: "🎟️ Flat Day Pass", desc: "Single flat rate per whole day" },
+                    { id: "BOTH", title: "⚡ Both Options", desc: "Driver chooses hourly or day pass" },
                   ].map((mode) => (
                     <div
                       key={mode.id}
                       onClick={() => setFormData({ ...formData, pricing_type: mode.id })}
                       className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
                         formData.pricing_type === mode.id
-                          ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs font-bold"
-                          : "bg-white dark:bg-zinc-800/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
+                          ? "bg-black text-white border-emerald-500 shadow-sm scale-[1.01]"
+                          : "bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
                       }`}
                     >
-                      <p className="text-xs font-black">{mode.title}</p>
-                      <p className={`text-[10px] mt-0.5 ${formData.pricing_type === mode.id ? "text-zinc-400 dark:text-zinc-600" : "text-zinc-500 dark:text-zinc-400"}`}>
-                        {mode.desc}
-                      </p>
+                      <p className="text-xs font-black text-emerald-400">{mode.title}</p>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">{mode.desc}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   {(formData.pricing_type === "HOURLY" || formData.pricing_type === "BOTH") && (
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
@@ -423,13 +389,8 @@ export default function EditParking() {
                           step="5"
                           required
                           value={formData.hourly_rate}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              hourly_rate: e.target.value,
-                            })
-                          }
-                          className="pe-input pl-8 text-xs font-bold bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full"
+                          onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+                          className="w-full pl-8 pr-4 py-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400"
                         />
                       </div>
                     </div>
@@ -437,8 +398,8 @@ export default function EditParking() {
 
                   {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                        Flat Day Pass Rate (₹ / Whole Day)
+                      <label className="text-xs font-bold text-emerald-500 dark:text-emerald-400">
+                        Flat Day Pass Rate (₹ / Full Day)
                       </label>
                       <div className="relative">
                         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-emerald-500 text-sm">₹</span>
@@ -449,13 +410,8 @@ export default function EditParking() {
                           step="1"
                           required
                           value={formData.daily_rate}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              daily_rate: e.target.value,
-                            })
-                          }
-                          className="pe-input pl-8 text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-2xl w-full"
+                          onChange={(e) => setFormData({ ...formData, daily_rate: e.target.value })}
+                          className="w-full pl-8 pr-4 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-sm font-bold text-emerald-700 dark:text-emerald-300 focus:outline-none focus:border-emerald-400"
                         />
                       </div>
                     </div>
@@ -464,32 +420,29 @@ export default function EditParking() {
 
                 {(formData.pricing_type === "DAILY_PASS" || formData.pricing_type === "BOTH") && (
                   <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 space-y-3">
-                    <div>
-                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                        Day Pass & Closing Time
-                      </p>
-                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400">
-                        Drivers can exit and re-enter multiple times before closing.
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                          Day Pass Re-Entry & Closing Time
+                        </p>
+                        <p className="text-[11px] text-zinc-400">
+                          Drivers can enter and leave multiple times using their QR pass.
+                        </p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div
-                        onClick={() =>
-                          setFormData({
-                            ...formData,
-                            allow_multi_entry: !formData.allow_multi_entry,
-                          })
-                        }
-                        className="p-3.5 rounded-2xl bg-white dark:bg-zinc-800 border border-emerald-500/30 flex items-center justify-between cursor-pointer"
+                        onClick={() => setFormData({ ...formData, allow_multi_entry: !formData.allow_multi_entry })}
+                        className="p-3.5 rounded-2xl bg-black border border-emerald-500/30 flex items-center justify-between cursor-pointer"
                       >
                         <div>
-                          <p className="text-xs font-bold text-zinc-900 dark:text-white">Unlimited In & Out</p>
+                          <p className="text-xs font-bold text-white">Unlimited In & Out</p>
                           <p className="text-[10px] text-zinc-400">QR pass remains active</p>
                         </div>
                         <div
                           className={`w-6 h-6 rounded-xl flex items-center justify-center font-bold text-xs ${
-                            formData.allow_multi_entry ? "bg-emerald-500 text-black" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-500"
+                            formData.allow_multi_entry ? "bg-emerald-500 text-black" : "bg-zinc-800 text-zinc-500"
                           }`}
                         >
                           {formData.allow_multi_entry ? <FiCheck className="w-3.5 h-3.5 stroke-[3]" /> : "✕"}
@@ -498,7 +451,7 @@ export default function EditParking() {
 
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-zinc-900 dark:text-white block">
-                          Closing Time
+                          Gate Closing Time
                         </label>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {["10:00 PM", "10:30 PM", "11:00 PM", "11:30 PM", "12:00 AM"].map((t) => (
@@ -506,10 +459,10 @@ export default function EditParking() {
                               key={t}
                               type="button"
                               onClick={() => setFormData({ ...formData, last_exit_time: t })}
-                              className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition cursor-pointer ${
+                              className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
                                 formData.last_exit_time === t
-                                  ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs"
-                                  : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
+                                  ? "bg-emerald-500 text-black border-emerald-400 font-black"
+                                  : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-700"
                               }`}
                             >
                               {t}
@@ -521,232 +474,245 @@ export default function EditParking() {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* AMENITIES & FEATURES (Uber Level) */}
-              <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                    Amenities & Safety Features
-                  </h3>
-                  <span className="text-[11px] font-bold text-zinc-400">
-                    Select features
-                  </span>
+            {/* Step 3. Supported Vehicle Types */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
+                  3
                 </div>
+                <div>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Supported Vehicle Types</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Select which vehicle types are accommodated</p>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {[
-                    {
-                      key: "has_cctv",
-                      icon: FiVideo,
-                      title: "24/7 CCTV Surveillance",
-                      desc: "Live cameras & security monitoring",
-                    },
-                    {
-                      key: "has_security_guard",
-                      icon: FiShield,
-                      title: "Security Guard on Duty",
-                      desc: "Stationed security personnel",
-                    },
-                    {
-                      key: "has_covered_roof",
-                      icon: FiLayers,
-                      title: "Covered / Indoor Roof",
-                      desc: "Protected from heat, rain & dust",
-                    },
-                    {
-                      key: "is_24_7",
-                      icon: FiClock,
-                      title: "24/7 Unrestricted Access",
-                      desc: "Open round-the-clock all days",
-                    },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    const active = Boolean(formData[item.key]);
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { id: "BOTH", title: "🚗 + 🛵 Both Cars & Bikes", desc: "Open to all drivers & riders" },
+                  { id: "CAR", title: "🚗 Cars Only", desc: "For Sedans, SUVs & Hatchbacks" },
+                  { id: "BIKE", title: "🛵 Bikes / Scooters Only", desc: "Two-wheeler bays only" },
+                ].map((v) => (
+                  <div
+                    key={v.id}
+                    onClick={() => setFormData({ ...formData, supported_vehicles: v.id })}
+                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                      (formData.supported_vehicles || "BOTH") === v.id
+                        ? "bg-black text-white border-emerald-500 shadow-md font-bold scale-[1.01]"
+                        : "bg-zinc-50 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400"
+                    }`}
+                  >
+                    <p className="text-xs font-black text-emerald-400">{v.title}</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">{v.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                    return (
-                      <div
-                        key={item.key}
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            [item.key]: !prev[item.key],
-                          }))
-                        }
-                        className={`group p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer flex flex-col justify-between gap-3 ${
-                          active
-                            ? "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-md scale-[1.01]"
-                            : "bg-zinc-50/70 dark:bg-zinc-850/60 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-750 hover:border-zinc-450 hover:bg-white dark:hover:bg-zinc-800"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                              active
-                                ? "bg-zinc-800 text-white dark:bg-zinc-200 dark:text-black"
-                                : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700 shadow-xs"
-                            }`}
-                          >
-                            <Icon className="w-5 h-5" />
-                          </div>
+            {/* Step 4. Amenities & Safety Features */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
+                  4
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Amenities & Security</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Highlight driver security trust badges</p>
+                </div>
+              </div>
 
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black transition-all ${
-                              active
-                                ? "bg-emerald-500 text-black shadow-xs"
-                                : "bg-zinc-200/80 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-300"
-                            }`}
-                          >
-                            {active ? "✓ Added" : "+ Add"}
-                          </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { key: "has_cctv", icon: FiVideo, title: "24/7 CCTV", desc: "Surveillance monitoring" },
+                  { key: "has_security_guard", icon: FiShield, title: "Guard on Duty", desc: "Security on-site" },
+                  { key: "has_covered_roof", icon: FiLayers, title: "Covered Roof", desc: "Rain & sun protection" },
+                  { key: "is_24_7", icon: FiClock, title: "24/7 Access", desc: "Open round-the-clock" },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const active = Boolean(formData[item.key]);
+
+                  return (
+                    <div
+                      key={item.key}
+                      onClick={() => setFormData((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
+                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                        active
+                          ? "bg-black text-white border-emerald-500 shadow-md scale-[1.01]"
+                          : "bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800 hover:border-zinc-600"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${active ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40" : "bg-zinc-800 text-zinc-400"}`}>
+                          <Icon className="w-4 h-4" />
                         </div>
-
-                        <div className="space-y-0.5">
-                          <h3
-                            className={`text-xs font-black tracking-tight ${
-                              active ? "text-white dark:text-black" : "text-zinc-900 dark:text-white"
-                            }`}
-                          >
-                            {item.title}
-                          </h3>
-                          <p
-                            className={`text-[11px] leading-snug font-medium ${
-                              active ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"
-                            }`}
-                          >
-                            {item.desc}
-                          </p>
-                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black ${active ? "bg-emerald-500 text-black" : "bg-zinc-800 text-zinc-400"}`}>
+                          {active ? "✓ Added" : "+ Add"}
+                        </span>
                       </div>
-                    );
-                  })}
+                      <div>
+                        <h3 className="text-xs font-black text-white">{item.title}</h3>
+                        <p className="text-[10px] text-zinc-400 mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 5. Facility Gate & Interior Photos */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-black border border-zinc-200/90 dark:border-zinc-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xs">
+                  5
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-zinc-950 dark:text-white">Facility Gate & Interior Photos</h2>
+                  <p className="text-xs text-zinc-400 font-medium">Both entrance and indoor parking photos are required for driver trust</p>
                 </div>
               </div>
 
-              {/* 1. PARKING ENTRANCE PHOTO (COMPULSORY) */}
-              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
-                    <span>🚪 Parking Entrance Photo</span>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      Compulsory *
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 1. Entrance Photo */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                      <span>🚪 Entrance Gate Photo</span>
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Compulsory
+                      </span>
                     </span>
-                  </h3>
-                  <p className="text-[11px] text-zinc-400">Front gate / road entrance view</p>
+                    <span className="text-[10px] text-zinc-400">Street / Gate View</span>
+                  </div>
+
+                  <div
+                    onClick={() => entranceInputRef.current?.click()}
+                    className="border-2 border-dashed border-zinc-300 dark:border-zinc-800 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition-all bg-zinc-50 dark:bg-zinc-950/60 min-h-[160px] flex items-center justify-center"
+                  >
+                    <input
+                      ref={entranceInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (entrancePreview && entrancePreview.startsWith("blob:")) {
+                          URL.revokeObjectURL(entrancePreview);
+                        }
+                        setEntranceFile(file);
+                        setEntrancePreview(URL.createObjectURL(file));
+                      }}
+                      className="hidden"
+                    />
+
+                    {entrancePreview ? (
+                      <div className="space-y-1.5 w-full">
+                        <img
+                          src={entrancePreview}
+                          alt="Entrance Preview"
+                          className="h-36 w-full rounded-xl object-cover border border-emerald-500/40"
+                        />
+                        <p className="text-[11px] text-emerald-400 font-bold">
+                          Click to replace entrance photo
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <FiUploadCloud className="w-7 h-7 text-emerald-500 mx-auto" />
+                        <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                          Upload Entrance Photo
+                        </p>
+                        <p className="text-[10px] text-zinc-500">Tap to browse</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div
-                  onClick={() => entranceInputRef.current?.click()}
-                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
-                >
-                  <input
-                    ref={entranceInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (entrancePreview && entrancePreview.startsWith("blob:")) {
-                        URL.revokeObjectURL(entrancePreview);
-                      }
-                      setEntranceFile(file);
-                      setEntrancePreview(URL.createObjectURL(file));
-                    }}
-                    className="hidden"
-                  />
-
-                  {entrancePreview ? (
-                    <div className="space-y-2">
-                      <img
-                        src={entrancePreview}
-                        alt="Entrance Preview"
-                        className="max-h-40 rounded-2xl mx-auto object-cover shadow-sm border border-emerald-500/40"
-                      />
-                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                        Click to change entrance photo
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <FiUploadCloud className="w-8 h-8 text-emerald-500 mx-auto" />
-                      <p className="text-xs font-black text-zinc-900 dark:text-white">
-                        Upload Parking Entrance Gate Photo
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 2. PARKING INSIDE PHOTO (COMPULSORY) */}
-              <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-zinc-900 dark:text-white flex items-center gap-2">
-                    <span>🏢 Parking Inside / Bay Photo</span>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
-                      Compulsory *
+                {/* 2. Inside Photo */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                      <span>🏢 Parking Inside / Bays Photo</span>
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Compulsory
+                      </span>
                     </span>
-                  </h3>
-                  <p className="text-[11px] text-zinc-400">Indoor bays, markings, and floor layout</p>
-                </div>
+                    <span className="text-[10px] text-zinc-400">Indoor Bays Layout</span>
+                  </div>
 
-                <div
-                  onClick={() => insideInputRef.current?.click()}
-                  className="border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-cyan-500 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-zinc-50 dark:bg-zinc-800/40"
-                >
-                  <input
-                    ref={insideInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      if (insidePreview && insidePreview.startsWith("blob:")) {
-                        URL.revokeObjectURL(insidePreview);
-                      }
-                      setInsideFile(file);
-                      setInsidePreview(URL.createObjectURL(file));
-                    }}
-                    className="hidden"
-                  />
+                  <div
+                    onClick={() => insideInputRef.current?.click()}
+                    className="border-2 border-dashed border-zinc-300 dark:border-zinc-800 hover:border-emerald-500 rounded-2xl p-4 text-center cursor-pointer transition-all bg-zinc-50 dark:bg-zinc-950/60 min-h-[160px] flex items-center justify-center"
+                  >
+                    <input
+                      ref={insideInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (insidePreview && insidePreview.startsWith("blob:")) {
+                          URL.revokeObjectURL(insidePreview);
+                        }
+                        setInsideFile(file);
+                        setInsidePreview(URL.createObjectURL(file));
+                      }}
+                      className="hidden"
+                    />
 
-                  {insidePreview ? (
-                    <div className="space-y-2">
-                      <img
-                        src={insidePreview}
-                        alt="Inside Preview"
-                        className="max-h-40 rounded-2xl mx-auto object-cover shadow-sm border border-cyan-500/40"
-                      />
-                      <p className="text-xs text-cyan-600 dark:text-cyan-400 font-bold">
-                        Click to change inside photo
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <FiLayers className="w-8 h-8 text-cyan-500 mx-auto" />
-                      <p className="text-xs font-black text-zinc-900 dark:text-white">
-                        Upload Parking Inside / Bay Layout Photo
-                      </p>
-                    </div>
-                  )}
+                    {insidePreview ? (
+                      <div className="space-y-1.5 w-full">
+                        <img
+                          src={insidePreview}
+                          alt="Inside Preview"
+                          className="h-36 w-full rounded-xl object-cover border border-emerald-500/40"
+                        />
+                        <p className="text-[11px] text-emerald-400 font-bold">
+                          Click to replace inside photo
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <FiLayers className="w-7 h-7 text-emerald-500 mx-auto" />
+                        <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                          Upload Inside Photo
+                        </p>
+                        <p className="text-[10px] text-zinc-500">Tap to browse</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/owner")}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  loading={saving}
-                >
-                  Save Changes
-                </Button>
-              </div>
-            </form>
-          </div>
+            {/* Bottom Form Actions */}
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/owner")}
+                className="px-6 py-3.5 rounded-2xl bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:text-white transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-black text-sm shadow-[0_4px_24px_rgba(16,185,129,0.35)] hover:shadow-[0_4px_30px_rgba(16,185,129,0.5)] transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                    <span>Saving Changes...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiSave className="w-4 h-4 stroke-[2.5]" />
+                    <span>Save Facility Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         )}
       </main>
     </div>

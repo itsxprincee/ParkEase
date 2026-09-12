@@ -378,8 +378,12 @@ def get_owner_live_dashboard(
 
         loc_avail = len([s for s in loc_slots if str(s.status).upper() == "AVAILABLE"])
         loc_maint = len([s for s in loc_slots if str(s.status).upper() == "MAINTENANCE"])
-        loc_booked = len([b for b in loc_bookings if str(b.status).upper() in ["BOOKED", "CONFIRMED"]])
-        loc_entered = len([b for b in loc_bookings if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"]])
+        loc_entered = len([
+            b for b in loc_bookings
+            if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"] and (
+                getattr(b, "is_inside", False) or (getattr(b, "pass_type", "HOURLY") or "HOURLY").upper() != "DAILY_PASS"
+            )
+        ])
 
         tot = loc.total_slots or len(loc_slots) or 1
         occ_rate = round(((loc_entered + loc_booked) / tot) * 100) if tot > 0 else 0
@@ -429,15 +433,19 @@ def get_owner_live_dashboard(
         is_entered = is_inside
         is_booked = st_upper in ["BOOKED", "CONFIRMED"]
 
+        v_num = getattr(b, "vehicle_number", None) or (veh.vehicle_number if veh else "MH-01-AB-1234")
+        v_name = (veh.vehicle_name if veh else None) or "Vehicle"
+        v_type = getattr(b, "vehicle_type", None) or (veh.vehicle_type if veh else "4-Wheeler")
+
         live_bookings_data.append({
             "id": b.id,
             "booking_id": b.id,
             "user_id": b.user_id,
             "customer_name": cust.name if cust else "Driver",
             "customer_email": cust.email if cust else "N/A",
-            "vehicle_number": veh.vehicle_number if veh else "MH-01-AB-1234",
-            "vehicle_name": veh.vehicle_name if veh else "Vehicle",
-            "vehicle_type": veh.vehicle_type if veh else "4-Wheeler",
+            "vehicle_number": v_num,
+            "vehicle_name": v_name,
+            "vehicle_type": v_type,
             "parking_location_id": b.parking_location_id,
             "parking_name": p_obj.name if p_obj else "Parking Facility",
             "slot_id": b.slot_id,
@@ -572,6 +580,7 @@ def update_owner_parking(
             )
 
         for slot in slots_to_remove:
+            db.query(Booking).filter(Booking.slot_id == slot.id).update({Booking.slot_id: None})
             db.delete(slot)
 
     # -----------------------------------------------------
@@ -732,7 +741,9 @@ def get_owner_slots(
         {
             "id": slot.id,
             "slot_number": slot.slot_number,
-            "status": slot.status
+            "status": slot.status,
+            "is_ev": getattr(slot, "is_ev", False),
+            "vehicle_type": getattr(slot, "vehicle_type", "Car")
         }
         for slot in slots
     ]

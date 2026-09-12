@@ -9,6 +9,7 @@ from database import get_db
 from app.models.booking import Booking
 from app.models.parking import ParkingLocation, ParkingSlot
 from app.models.vehicle import Vehicle
+from app.models.user import User
 from app.utils.auth import get_current_user
 
 
@@ -37,6 +38,9 @@ class BookingCreate(BaseModel):
     )
     amount: float = 0
     pass_type: str | None = "HOURLY"
+    vehicle_id: int | None = None
+    vehicle_number: str | None = None
+    vehicle_type: str | None = "Car"
 
 
 class BookingExtend(BaseModel):
@@ -152,6 +156,9 @@ def create_booking(
         user_id=user.id,
         parking_location_id=data.parking_location_id,
         slot_id=data.slot_id,
+        vehicle_id=data.vehicle_id,
+        vehicle_number=data.vehicle_number,
+        vehicle_type=data.vehicle_type or "Car",
         booking_date=datetime.utcnow(),
         start_time=data.start_time.strip(),
         end_time=data.end_time.strip(),
@@ -239,6 +246,7 @@ def get_my_bookings(
 
         result.append({
             "id": booking.id,
+            "user_id": booking.user_id,
 
             # Frontend compatibility
             "parking_id": (
@@ -268,6 +276,10 @@ def get_my_bookings(
                 if slot
                 else None
             ),
+
+            "vehicle_id": getattr(booking, "vehicle_id", None),
+            "vehicle_number": getattr(booking, "vehicle_number", None),
+            "vehicle_type": getattr(booking, "vehicle_type", "Car") or "Car",
 
             "booking_date": (
                 booking.booking_date
@@ -521,20 +533,49 @@ def verify_booking_by_id(
         .first()
     )
 
+    customer = db.query(User).filter(User.id == booking.user_id).first()
+    is_owner = parking and parking.owner_id == user.id
+    is_customer = booking.user_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+    if not (is_owner or is_customer or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to view this booking pass"
+        )
+
+    v_num = getattr(booking, "vehicle_number", None) or (customer_vehicle.vehicle_number if customer_vehicle else "MH-01-AB-1234")
+    v_type = getattr(booking, "vehicle_type", None) or (customer_vehicle.vehicle_type if customer_vehicle else "Car")
+    v_name = customer_vehicle.vehicle_name if customer_vehicle else "Vehicle"
+
     return {
         "id": booking.id,
         "booking_id": booking.id,
+        "user_id": booking.user_id,
+        "customer_name": customer.name if customer else "Customer",
+        "customer_email": customer.email if customer else None,
+        "customer_phone": getattr(customer, "phone", None),
+        "emergency_contact_name": getattr(customer, "emergency_contact_name", None),
+        "emergency_contact_phone": getattr(customer, "emergency_contact_phone", None),
+        "emergency_contact_note": getattr(customer, "emergency_contact_note", None),
         "parking_id": booking.parking_location_id,
         "parking_name": parking.name if parking else "ParkEase Hub",
         "parking_address": parking.address if parking else "City Hub",
+        "slot_id": booking.slot_id,
         "slot_number": slot.slot_number if slot else "A-1",
-        "vehicle_number": customer_vehicle.vehicle_number if customer_vehicle else "MH-01-AB-1234",
-        "vehicle_type": customer_vehicle.vehicle_type if customer_vehicle else "Car",
+        "vehicle_id": getattr(booking, "vehicle_id", None),
+        "vehicle_number": v_num,
+        "vehicle_name": v_name,
+        "vehicle_type": v_type,
         "status": booking.status or "ACTIVE",
+        "pass_type": getattr(booking, "pass_type", "HOURLY") or "HOURLY",
+        "entry_count": getattr(booking, "entry_count", 0) or 0,
+        "is_inside": getattr(booking, "is_inside", False),
+        "last_exit_rule": getattr(booking, "last_exit_rule", None),
         "booking_date": str(booking.booking_date),
         "start_time": str(booking.start_time) if booking.start_time else "10:00 AM",
         "end_time": str(booking.end_time) if booking.end_time else "12:00 PM",
-        "total_amount": booking.amount or 105,
+        "amount": booking.amount or 0,
+        "total_amount": booking.amount or 0,
     }
 
 

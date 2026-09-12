@@ -46,7 +46,7 @@ class Booking(Base):
     )
 
     # =====================================================
-    # PARKING SLOT
+    # PARKING SLOT & VEHICLE
     # =====================================================
 
     slot_id = Column(
@@ -54,6 +54,24 @@ class Booking(Base):
         ForeignKey("parking_slots.id"),
         nullable=True,
         index=True
+    )
+
+    vehicle_id = Column(
+        Integer,
+        ForeignKey("vehicles.id"),
+        nullable=True,
+        index=True
+    )
+
+    vehicle_number = Column(
+        String(50),
+        nullable=True
+    )
+
+    vehicle_type = Column(
+        String(50),
+        nullable=True,
+        default="Car"
     )
 
     # =====================================================

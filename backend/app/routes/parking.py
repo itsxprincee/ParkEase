@@ -11,6 +11,26 @@ from app.models.booking import Booking
 from app.models.review import Review
 from app.models.user import User
 from app.utils.auth import get_current_user, owner_required
+import uuid
+from pathlib import Path
+
+UPLOADS_DIR = Path(__file__).resolve().parents[2] / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+async def save_upload_file(file_field) -> str | None:
+    if not file_field:
+        return None
+    if hasattr(file_field, "filename") and file_field.filename:
+        ext = Path(file_field.filename).suffix or ".jpg"
+        unique_name = f"{uuid.uuid4().hex}{ext}"
+        target_path = UPLOADS_DIR / unique_name
+        contents = await file_field.read()
+        with open(target_path, "wb") as f:
+            f.write(contents)
+        return f"/uploads/{unique_name}"
+    elif isinstance(file_field, str) and file_field.strip():
+        return file_field.strip()
+    return None
 
 
 router = APIRouter(
@@ -192,24 +212,10 @@ async def create_parking(
         
         # Entrance and Inside Images
         img_field = form.get("image") or form.get("entrance_image")
-        image_str = None
-        if img_field and hasattr(img_field, "filename") and img_field.filename:
-            contents = await img_field.read()
-            import base64
-            b64 = base64.b64encode(contents).decode("utf-8")
-            image_str = f"data:{img_field.content_type or 'image/jpeg'};base64,{b64}"
-        elif isinstance(img_field, str) and img_field.strip():
-            image_str = img_field.strip()
+        image_str = await save_upload_file(img_field)
 
         inside_field = form.get("inside_image") or form.get("interior_image")
-        inside_image_str = None
-        if inside_field and hasattr(inside_field, "filename") and inside_field.filename:
-            contents = await inside_field.read()
-            import base64
-            b64 = base64.b64encode(contents).decode("utf-8")
-            inside_image_str = f"data:{inside_field.content_type or 'image/jpeg'};base64,{b64}"
-        elif isinstance(inside_field, str) and inside_field.strip():
-            inside_image_str = inside_field.strip()
+        inside_image_str = await save_upload_file(inside_field)
     else:
         try:
             body = await request.json()
@@ -891,22 +897,14 @@ async def update_parking(
 
         # Update entrance & inside images
         img_field = form.get("image") or form.get("entrance_image")
-        if img_field and hasattr(img_field, "filename") and img_field.filename:
-            contents = await img_field.read()
-            import base64
-            b64 = base64.b64encode(contents).decode("utf-8")
-            parking.image = f"data:{img_field.content_type or 'image/jpeg'};base64,{b64}"
-        elif isinstance(img_field, str) and img_field.strip():
-            parking.image = img_field.strip()
+        saved_img = await save_upload_file(img_field)
+        if saved_img:
+            parking.image = saved_img
 
         inside_field = form.get("inside_image") or form.get("interior_image")
-        if inside_field and hasattr(inside_field, "filename") and inside_field.filename:
-            contents = await inside_field.read()
-            import base64
-            b64 = base64.b64encode(contents).decode("utf-8")
-            parking.inside_image = f"data:{inside_field.content_type or 'image/jpeg'};base64,{b64}"
-        elif isinstance(inside_field, str) and inside_field.strip():
-            parking.inside_image = inside_field.strip()
+        saved_inside = await save_upload_file(inside_field)
+        if saved_inside:
+            parking.inside_image = saved_inside
     else:
         try:
             body = await request.json()
@@ -1444,6 +1442,8 @@ def delete_parking_slot(
             )
         )
 
+    # Detach past completed/cancelled bookings from this slot to avoid FK constraint errors
+    db.query(Booking).filter(Booking.slot_id == slot.id).update({"slot_id": None})
     db.delete(slot)
     db.commit()
 

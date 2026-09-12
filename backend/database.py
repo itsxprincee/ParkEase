@@ -175,6 +175,9 @@ try:
                             "entry_count": "INTEGER DEFAULT 0",
                             "is_inside": "BOOLEAN DEFAULT 0",
                             "last_exit_rule": "TEXT DEFAULT NULL",
+                            "vehicle_id": "INTEGER DEFAULT NULL",
+                            "vehicle_number": "TEXT DEFAULT NULL",
+                            "vehicle_type": "TEXT DEFAULT 'Car'",
                         }
                         for col, col_type in sqlite_booking_cols.items():
                             if col not in b_cols:
@@ -334,6 +337,9 @@ try:
                             "entry_count": "INT NOT NULL DEFAULT 0",
                             "is_inside": "BOOLEAN NOT NULL DEFAULT 0",
                             "last_exit_rule": "VARCHAR(50) NULL DEFAULT NULL",
+                            "vehicle_id": "INT NULL DEFAULT NULL",
+                            "vehicle_number": "VARCHAR(50) NULL DEFAULT NULL",
+                            "vehicle_type": "VARCHAR(50) NULL DEFAULT 'Car'",
                         }
                         for col_name, col_def in booking_expected.items():
                             if col_name not in booking_col_names:

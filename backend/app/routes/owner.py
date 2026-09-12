@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from database import get_db
 from app.models.parking import ParkingLocation, ParkingSlot
 from app.models.booking import Booking
+from app.models.review import Review
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.utils.auth import owner_required
@@ -245,7 +246,12 @@ def get_owner_live_dashboard(
     )
 
     booked_count = len([b for b in all_bookings if str(b.status).upper() in ["BOOKED", "CONFIRMED"]])
-    entered_count = len([b for b in all_bookings if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"]])
+    entered_count = len([
+        b for b in all_bookings
+        if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"] and (
+            getattr(b, "is_inside", False) or (getattr(b, "pass_type", "HOURLY") or "HOURLY").upper() != "DAILY_PASS"
+        )
+    ])
     completed_count = len([b for b in all_bookings if str(b.status).upper() == "COMPLETED"])
 
     valid_bookings = [b for b in all_bookings if str(b.status).upper() not in ["CANCELLED"]]
@@ -415,7 +421,11 @@ def get_owner_live_dashboard(
         p_obj = next((l for l in locations if l.id == b.parking_location_id), None)
 
         st_upper = str(b.status or "BOOKED").upper().strip()
-        is_inside = getattr(b, "is_inside", False) or (st_upper in ["ACTIVE", "PARKED", "CHECKED_IN"])
+        is_daily = (getattr(b, "pass_type", "HOURLY") or "HOURLY").upper() == "DAILY_PASS"
+        if is_daily:
+            is_inside = bool(getattr(b, "is_inside", False))
+        else:
+            is_inside = bool(getattr(b, "is_inside", False)) or (st_upper in ["ACTIVE", "PARKED", "CHECKED_IN"])
         is_entered = is_inside
         is_booked = st_upper in ["BOOKED", "CONFIRMED"]
 
@@ -664,19 +674,15 @@ def delete_owner_parking(
             )
         )
 
-    # -----------------------------------------------------
-    # DELETE SLOTS
-    # -----------------------------------------------------
-
-    for slot in slots:
-        db.delete(slot)
-
-    # -----------------------------------------------------
-    # DELETE PARKING
-    # -----------------------------------------------------
+    # Clean up dependent child records before deletion
+    booking_ids = [b.id for b in db.query(Booking.id).filter(Booking.parking_location_id == location.id).all()]
+    if booking_ids:
+        db.query(Review).filter(Review.booking_id.in_(booking_ids)).delete(synchronize_session=False)
+    db.query(Review).filter(Review.parking_id == location.id).delete(synchronize_session=False)
+    db.query(Booking).filter(Booking.parking_location_id == location.id).delete(synchronize_session=False)
+    db.query(ParkingSlot).filter(ParkingSlot.parking_id == location.id).delete(synchronize_session=False)
 
     db.delete(location)
-
     db.commit()
 
     return {

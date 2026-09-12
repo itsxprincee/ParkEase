@@ -1148,11 +1148,13 @@ def forgot_password(
     # -----------------------------------------------------
 
     try:
-
         send_reset_email(
             db_user.email,
             reset_link
         )
+    except Exception as error:
+        print(f"\n[PASSWORD RESET EMAIL NOTE]: {error}")
+
     print(f"\n[PASSWORD RESET LINK FOR {db_user.email}]: {reset_link}\n")
 
     return {

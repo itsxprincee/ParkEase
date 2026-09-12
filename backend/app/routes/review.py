@@ -196,6 +196,89 @@ def add_review(
 
 
 # =========================================================
+# CHECK WHETHER CURRENT USER CAN REVIEW A BOOKING
+#
+# Useful for the frontend to decide whether to show the
+# "Write a Review" button.
+# MUST BE DEFINED BEFORE /{parking_id}
+# =========================================================
+
+@router.get("/can-review/{booking_id}")
+def can_review_booking(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+
+    # -----------------------------------------------------
+    # GET USER'S BOOKING
+    # -----------------------------------------------------
+
+    booking = (
+        db.query(Booking)
+        .filter(
+            Booking.id == booking_id,
+            Booking.user_id == user.id
+        )
+        .first()
+    )
+
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking not found"
+        )
+
+    # -----------------------------------------------------
+    # CHECK BOOKING STATUS
+    # -----------------------------------------------------
+
+    booking_status = str(
+        booking.status or ""
+    ).upper()
+
+    if booking_status != "COMPLETED":
+
+        return {
+            "can_review": False,
+            "reason": (
+                "You can review this parking only after "
+                "exiting and completing your booking"
+            )
+        }
+
+    # -----------------------------------------------------
+    # CHECK EXISTING REVIEW
+    # -----------------------------------------------------
+
+    existing_review = (
+        db.query(Review)
+        .filter(
+            Review.booking_id == booking.id
+        )
+        .first()
+    )
+
+    if existing_review:
+
+        return {
+            "can_review": False,
+            "reason": "You have already reviewed this booking",
+            "review_id": existing_review.id
+        }
+
+    # -----------------------------------------------------
+    # USER CAN REVIEW
+    # -----------------------------------------------------
+
+    return {
+        "can_review": True,
+        "booking_id": booking.id,
+        "parking_id": booking.parking_location_id
+    }
+
+
+# =========================================================
 # GET ALL REVIEWS FOR A PARKING LOCATION
 # =========================================================
 
@@ -287,86 +370,4 @@ def get_parking_reviews(
             else 0
         ),
         "reviews": review_list
-    }
-
-
-# =========================================================
-# CHECK WHETHER CURRENT USER CAN REVIEW A BOOKING
-#
-# Useful for the frontend to decide whether to show the
-# "Write a Review" button.
-# =========================================================
-
-@router.get("/can-review/{booking_id}")
-def can_review_booking(
-    booking_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
-
-    # -----------------------------------------------------
-    # GET USER'S BOOKING
-    # -----------------------------------------------------
-
-    booking = (
-        db.query(Booking)
-        .filter(
-            Booking.id == booking_id,
-            Booking.user_id == user.id
-        )
-        .first()
-    )
-
-    if not booking:
-        raise HTTPException(
-            status_code=404,
-            detail="Booking not found"
-        )
-
-    # -----------------------------------------------------
-    # CHECK BOOKING STATUS
-    # -----------------------------------------------------
-
-    booking_status = str(
-        booking.status or ""
-    ).upper()
-
-    if booking_status != "COMPLETED":
-
-        return {
-            "can_review": False,
-            "reason": (
-                "You can review this parking only after "
-                "exiting and completing your booking"
-            )
-        }
-
-    # -----------------------------------------------------
-    # CHECK EXISTING REVIEW
-    # -----------------------------------------------------
-
-    existing_review = (
-        db.query(Review)
-        .filter(
-            Review.booking_id == booking.id
-        )
-        .first()
-    )
-
-    if existing_review:
-
-        return {
-            "can_review": False,
-            "reason": "You have already reviewed this booking",
-            "review_id": existing_review.id
-        }
-
-    # -----------------------------------------------------
-    # USER CAN REVIEW
-    # -----------------------------------------------------
-
-    return {
-        "can_review": True,
-        "booking_id": booking.id,
-        "parking_id": booking.parking_location_id
     }

@@ -327,11 +327,17 @@ def verify_qr(
         )
 
     booking_status = str(booking.status or "").upper().strip()
+    is_daily_pass = (getattr(booking, "pass_type", "HOURLY") or "HOURLY").upper() == "DAILY_PASS"
+    is_inside = bool(getattr(booking, "is_inside", False))
 
-    can_enter = booking_status in ["BOOKED", "CONFIRMED"]
-    can_exit = booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"]
+    can_enter = booking_status in ["BOOKED", "CONFIRMED"] or (is_daily_pass and not is_inside and booking_status == "ACTIVE")
+    can_exit = (is_inside and booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"]) or (not is_daily_pass and booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"])
     is_completed = booking_status == "COMPLETED"
     is_cancelled = booking_status == "CANCELLED"
+
+    v_num = getattr(booking, "vehicle_number", None) or (customer_vehicle.vehicle_number if customer_vehicle else "N/A")
+    v_type = getattr(booking, "vehicle_type", None) or (customer_vehicle.vehicle_type if customer_vehicle else "4-Wheeler")
+    v_name = customer_vehicle.vehicle_name if customer_vehicle else "Standard Vehicle"
 
     return {
         "success": True,
@@ -350,9 +356,9 @@ def verify_qr(
             "emergency_contact_name": getattr(customer, "emergency_contact_name", None) if customer else None,
             "emergency_contact_phone": getattr(customer, "emergency_contact_phone", None) if customer else None,
             "emergency_contact_note": getattr(customer, "emergency_contact_note", None) if customer else None,
-            "vehicle_name": customer_vehicle.vehicle_name if customer_vehicle else "Standard Vehicle",
-            "vehicle_number": customer_vehicle.vehicle_number if customer_vehicle else "N/A",
-            "vehicle_type": customer_vehicle.vehicle_type if customer_vehicle else "4-Wheeler",
+            "vehicle_name": v_name,
+            "vehicle_number": v_num,
+            "vehicle_type": v_type,
             "parking_location_id": booking.parking_location_id,
             "parking_id": booking.parking_location_id,
             "parking_name": parking.name,
@@ -363,7 +369,7 @@ def verify_qr(
             "pass_type": getattr(booking, "pass_type", "HOURLY") or "HOURLY",
             "last_exit_rule": booking.last_exit_rule,
             "entry_count": booking.entry_count or 0,
-            "is_inside": getattr(booking, "is_inside", False),
+            "is_inside": is_inside,
             "booking_date": str(booking.booking_date),
             "start_time": str(booking.start_time) if booking.start_time else None,
             "end_time": str(booking.end_time) if booking.end_time else None,

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FiUser, FiLock, FiSave, FiShield, FiCheckCircle, FiAlertCircle, FiSliders, FiGlobe, FiCheck } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -46,7 +45,7 @@ function FormSection({ title, icon: Icon, children }) {
   );
 }
 
-function InputField({ label, type = "text", value, onChange, required = false }) {
+function ProfileField({ label, value, onChange, type = "text", required = false }) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">{label}</label>
@@ -59,10 +58,17 @@ export default function OwnerProfile() {
   const { theme, setTheme, THEMES } = useTheme();
   const { language, setLanguage, LANGUAGES, currentLanguage, t } = useLanguage();
 
-  const [user, setUser] = useState(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [name, setName] = useState(() => user?.name || user?.full_name || user?.username || "");
+  const [email, setEmail] = useState(() => user?.email || "");
+  const [phone, setPhone] = useState(() => user?.phone || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -75,32 +81,26 @@ export default function OwnerProfile() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const loadUserData = async () => {
-    try {
-      const stored = localStorage.getItem("user");
-      let currentUser = stored ? JSON.parse(stored) : null;
-      if (currentUser) {
-        setUser(currentUser);
-        setName(currentUser.name || currentUser.full_name || currentUser.username || "");
-        setEmail(currentUser.email || "");
-        setPhone(currentUser.phone || "");
-      }
-      try {
-        const res = await API.get("/auth/me");
-        if (res.data) {
-          currentUser = { ...currentUser, ...res.data };
-          setUser(currentUser);
-          setName(currentUser.name || currentUser.full_name || currentUser.username || "");
-          setEmail(currentUser.email || "");
-          setPhone(currentUser.phone || "");
-          localStorage.setItem("user", JSON.stringify(currentUser));
-        }
-      } catch (_) {}
-    } catch (_) {}
-  };
-
   useEffect(() => {
-    loadUserData();
+    let isMounted = true;
+    API.get("/auth/me")
+      .then((res) => {
+        if (res.data && isMounted) {
+          const fresh = res.data;
+          setUser((prev) => {
+            const updated = { ...prev, ...fresh };
+            localStorage.setItem("user", JSON.stringify(updated));
+            return updated;
+          });
+          setName((prev) => prev || fresh.name || fresh.full_name || fresh.username || "");
+          setEmail((prev) => prev || fresh.email || "");
+          setPhone((prev) => prev || fresh.phone || "");
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleUpdateProfile = async (e) => {

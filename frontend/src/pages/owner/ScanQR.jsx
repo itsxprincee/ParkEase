@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import {
@@ -12,20 +12,12 @@ import {
   FiVolumeX,
   FiLogIn,
   FiLogOut,
-  FiRefreshCw,
-  FiClock,
-  FiLayers,
-  FiUser,
   FiRadio,
-  FiPhone,
   FiPhoneCall,
   FiAlertTriangle,
-  FiBell,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
-import Badge from "../../components/Badge";
-import Button from "../../components/Button";
 
 function Toast({ toast }) {
   if (!toast) return null;
@@ -268,9 +260,7 @@ export default function ScanQR() {
   };
 
   const isDaily = verifiedBooking?.pass_type === "DAILY_PASS";
-  const isInside =
-    verifiedBooking?.is_inside ||
-    (verifiedBooking?.status === "ACTIVE" && verifiedBooking?.entry_count > 0);
+  const isInside = Boolean(verifiedBooking?.is_inside);
   const statusUpper = String(verifiedBooking?.status || "BOOKED").toUpperCase();
 
   return (
@@ -584,7 +574,13 @@ export default function ScanQR() {
                     className="py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-95 cursor-pointer"
                   >
                     <FiLogIn className="w-4 h-4 stroke-[2.5]" />
-                    <span>{actionLoading ? "Opening..." : "Let In (Check In)"}</span>
+                    <span>
+                      {actionLoading
+                        ? "Opening..."
+                        : isDaily && verifiedBooking?.entry_count > 0
+                        ? "Re-enter (Check In)"
+                        : "Let In (Check In)"}
+                    </span>
                   </button>
                   <button
                     disabled={actionLoading}

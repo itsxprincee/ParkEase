@@ -45,7 +45,7 @@ function FormSection({ title, icon: Icon, children }) {
   );
 }
 
-function ProfileField({ label, value, onChange, type = "text", required = false }) {
+function InputField({ label, value, onChange, type = "text", required = false }) {
   return (
     <div className="space-y-1.5">
       <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">{label}</label>

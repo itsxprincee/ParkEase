@@ -576,11 +576,12 @@ def send_signup_otp(
         print(f"\n[SIGNUP OTP FOR {email}]: {otp} (Email error: {error})\n")
         email_sent = False
 
+    print(f"\n[SIGNUP OTP FOR {email}]: {otp} (email_sent={email_sent})\n")
+
     return {
         "success": True,
         "message": "Verification code generated and sent.",
         "email": email,
-        "otp": otp,
         "email_delivered": email_sent,
         "expires_in": 600
     }
@@ -735,8 +736,6 @@ def register(
         if otp_data and otp_data["otp"] == otp_str:
             verified_signup[email] = {"name": name, "role": role}
             signup_otps.pop(email, None)
-        elif otp_str in ["123456", "000000", "999999"]:
-            verified_signup[email] = {"name": name, "role": role}
         elif not verified_signup.get(email):
             if otp_data and otp_data["otp"] != otp_str:
                 raise HTTPException(status_code=400, detail="Incorrect verification code.")
@@ -893,34 +892,22 @@ def login(
     )
 
     if not db_user:
-        # Determine role based on email or default to customer
-        inferred_role = "admin" if "admin" in email or "ayush" in email else "owner" if "owner" in email else "customer"
-        user_name = email.split("@")[0].replace(".", " ").title()
-
-        db_user = User(
-            name=user_name,
-            email=email,
-            hashed_password=pwd_context.hash(user.password or "password123"),
-            role=inferred_role,
-            is_verified=True
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"}
         )
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-        print(f"[AUTH LOGIN] Auto-created new user account for: {email} with role: {inferred_role}")
 
     # -----------------------------------------------------
     # VERIFY PASSWORD
     # -----------------------------------------------------
 
-    is_valid = pwd_context.verify(user.password, db_user.hashed_password)
-    
-    # In development: if password mismatch, update to new entered password to avoid lockouts
-    if not is_valid:
-        print(f"[AUTH LOGIN] Updating password hash for: {email}")
-        db_user.hashed_password = pwd_context.hash(user.password)
-        db.commit()
-        is_valid = True
+    if not pwd_context.verify(user.password, db_user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
 
     # -----------------------------------------------------
     # CREATE JWT
@@ -1166,13 +1153,11 @@ def forgot_password(
             db_user.email,
             reset_link
         )
-    except Exception as error:
-        print(f"\n[PASSWORD RESET LINK FOR {db_user.email}]: {reset_link} (Email error: {error})\n")
+    print(f"\n[PASSWORD RESET LINK FOR {db_user.email}]: {reset_link}\n")
 
     return {
         "success": True,
-        "message": "If an account exists with this email, a password reset link has been sent.",
-        "reset_link": reset_link
+        "message": "If an account exists with this email, a password reset link has been sent."
     }
 
 

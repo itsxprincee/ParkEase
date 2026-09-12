@@ -133,6 +133,17 @@ def add_review(
     parking_id = booking.parking_location_id
 
     # -----------------------------------------------------
+    # VERIFY BOOKING IS COMPLETED
+    # -----------------------------------------------------
+
+    booking_status = str(booking.status or "").upper().strip()
+    if booking_status != "COMPLETED":
+        raise HTTPException(
+            status_code=400,
+            detail="You can review this parking facility only after your visit is completed."
+        )
+
+    # -----------------------------------------------------
     # CHECK IF REVIEW ALREADY EXISTS FOR THIS BOOKING
     # -----------------------------------------------------
 

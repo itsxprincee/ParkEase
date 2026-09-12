@@ -301,9 +301,10 @@ export default function CustomerDashboard() {
     return user.name || user.full_name || user.username || "Driver";
   };
 
-  const latestActive = bookings.find(
-    (b) => b.status === "ACTIVE" || b.status === "CONFIRMED" || b.status === "BOOKED"
-  );
+  const latestActive = bookings.find((b) => {
+    const st = String(b?.status || "").toUpperCase();
+    return st === "ACTIVE" || st === "CONFIRMED" || st === "BOOKED";
+  });
 
   const filteredParking = parkingLocations
     .filter((p) => {

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from app.models.vehicle import Vehicle
+from app.models.booking import Booking
 from app.utils.auth import get_current_user
 
 
@@ -228,6 +229,9 @@ def delete_vehicle(
             status_code=404,
             detail="Vehicle not found"
         )
+
+    # Disassociate vehicle from historical bookings to avoid foreign key violations
+    db.query(Booking).filter(Booking.vehicle_id == vehicle.id).update({Booking.vehicle_id: None})
 
     db.delete(vehicle)
     db.commit()

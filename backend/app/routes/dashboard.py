@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 
 from app.models.parking import ParkingLocation, ParkingSlot
@@ -51,14 +52,14 @@ def dashboard(
     active_bookings = db.query(
         Booking
     ).filter(
-        Booking.status == "BOOKED"
+        func.upper(Booking.status).in_(["BOOKED", "ACTIVE", "CONFIRMED", "PARKED"])
     ).count()
 
 
     cancelled_bookings = db.query(
         Booking
     ).filter(
-        Booking.status == "CANCELLED"
+        func.upper(Booking.status) == "CANCELLED"
     ).count()
 
 

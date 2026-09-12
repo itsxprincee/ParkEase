@@ -451,14 +451,28 @@ def cancel_booking(
         booking.status or ""
     ).upper().strip()
 
-    # Only BOOKED bookings can be cancelled
-    if booking_status != "BOOKED":
+    if booking_status == "CANCELLED":
         raise HTTPException(
             status_code=400,
-            detail=(
-                "Only booked parking reservations "
-                "can be cancelled."
-            )
+            detail="This booking has already been cancelled."
+        )
+
+    if booking_status == "COMPLETED":
+        raise HTTPException(
+            status_code=400,
+            detail="Completed parking sessions cannot be cancelled."
+        )
+
+    if bool(getattr(booking, "is_inside", False)) or (getattr(booking, "entry_count", 0) or 0) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot cancel a parking pass that is currently inside the facility or has already checked in."
+        )
+
+    if booking_status not in ["BOOKED", "ACTIVE", "CONFIRMED", "UPCOMING"]:
+        raise HTTPException(
+            status_code=400,
+            detail="This reservation cannot be cancelled in its current state."
         )
 
     # Release slot

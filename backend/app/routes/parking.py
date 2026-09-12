@@ -1305,6 +1305,21 @@ def update_parking_slot(
     if data.status:
         st = data.status.upper().strip()
         if st in ["AVAILABLE", "OCCUPIED", "MAINTENANCE"]:
+            if st == "AVAILABLE" and str(slot.status).upper() == "OCCUPIED":
+                active_parked = (
+                    db.query(Booking)
+                    .filter(
+                        Booking.slot_id == slot.id,
+                        Booking.is_inside == True
+                    )
+                    .first()
+                )
+                if active_parked:
+                    veh_info = active_parked.vehicle_number or "A vehicle"
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Cannot mark slot {slot.slot_number} as AVAILABLE because {veh_info} is currently parked inside."
+                    )
             slot.status = st
 
     if data.is_ev is not None:

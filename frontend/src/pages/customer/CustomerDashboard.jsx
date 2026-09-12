@@ -21,6 +21,7 @@ import {
   FiGrid,
   FiMap,
   FiActivity,
+  FiTruck,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";

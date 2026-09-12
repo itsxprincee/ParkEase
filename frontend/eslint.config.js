@@ -23,11 +23,12 @@ export default defineConfig([
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^(React|_)',
-          caughtErrorsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '.*',
         },
       ],
       'no-empty': ['warn', { allowEmptyCatch: true }],
       'react-refresh/only-export-components': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

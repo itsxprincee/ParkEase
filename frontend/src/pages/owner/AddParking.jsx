@@ -78,10 +78,12 @@ export default function AddParking() {
     daily_rate: "10",
     allow_multi_entry: true,
     last_exit_time: "11:00 PM",
+    has_ev: false,
     has_cctv: true,
     has_security_guard: true,
     has_covered_roof: true,
     is_24_7: true,
+    has_valet: false,
   });
 
   const [entranceFile, setEntranceFile] = useState(null);
@@ -177,10 +179,12 @@ export default function AddParking() {
       submitData.append("daily_rate", formData.daily_rate || "10");
       submitData.append("allow_multi_entry", formData.allow_multi_entry);
       submitData.append("last_exit_time", formData.last_exit_time || "11:00 PM");
+      submitData.append("has_ev", formData.has_ev);
       submitData.append("has_cctv", formData.has_cctv);
       submitData.append("has_security_guard", formData.has_security_guard);
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
+      submitData.append("has_valet", formData.has_valet);
       
       if (entranceFile) {
         submitData.append("image", entranceFile);
@@ -473,6 +477,12 @@ export default function AddParking() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
                   {
+                    key: "has_ev",
+                    icon: FiZap,
+                    title: "EV Rapid Charging",
+                    desc: "Dedicated electric vehicle charging bays",
+                  },
+                  {
                     key: "has_cctv",
                     icon: FiVideo,
                     title: "24/7 CCTV Surveillance",
@@ -495,6 +505,12 @@ export default function AddParking() {
                     icon: FiClock,
                     title: "24/7 Unrestricted Access",
                     desc: "Open round-the-clock all days",
+                  },
+                  {
+                    key: "has_valet",
+                    icon: FiKey,
+                    title: "Valet Parking Assistance",
+                    desc: "Staff assistance for easy check-in",
                   },
                 ].map((item) => {
                   const Icon = item.icon;

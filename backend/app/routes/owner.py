@@ -86,6 +86,25 @@ def get_my_parking(
             "available_slots": available_slots,
             "booked_slots": booked_slots,
 
+            "hourly_rate": getattr(location, "hourly_rate", 0.0),
+            "pricing_type": getattr(location, "pricing_type", "HOURLY"),
+            "daily_rate": getattr(location, "daily_rate", 10.0),
+            "supported_vehicles": getattr(location, "supported_vehicles", "BOTH"),
+            "allow_multi_entry": getattr(location, "allow_multi_entry", True),
+            "last_exit_time": getattr(location, "last_exit_time", "11:00 PM"),
+
+            "has_ev": getattr(location, "has_ev", False),
+            "has_cctv": getattr(location, "has_cctv", False),
+            "has_security_guard": getattr(location, "has_security_guard", False),
+            "has_covered_roof": getattr(location, "has_covered_roof", False),
+            "is_24_7": getattr(location, "is_24_7", False),
+            "has_valet": getattr(location, "has_valet", False),
+
+            "image": location.image,
+            "image_url": location.image,
+            "inside_image": getattr(location, "inside_image", None),
+            "inside_image_url": getattr(location, "inside_image", None),
+
             "verification_status": getattr(
                 location,
                 "verification_status",
@@ -383,6 +402,11 @@ def get_owner_live_dashboard(
             if str(b.status).upper() in ["ACTIVE", "PARKED", "CHECKED_IN"] and (
                 getattr(b, "is_inside", False) or (getattr(b, "pass_type", "HOURLY") or "HOURLY").upper() != "DAILY_PASS"
             )
+        ])
+
+        loc_booked = len([
+            b for b in loc_bookings
+            if str(b.status).upper() in ["BOOKED", "CONFIRMED"]
         ])
 
         tot = loc.total_slots or len(loc_slots) or 1

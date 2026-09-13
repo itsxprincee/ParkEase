@@ -43,10 +43,12 @@ export default function EditParking() {
     daily_rate: "10",
     allow_multi_entry: true,
     last_exit_time: "11:00 PM",
+    has_ev: false,
     has_cctv: true,
     has_security_guard: true,
     has_covered_roof: false,
     is_24_7: true,
+    has_valet: false,
   });
 
   const entranceInputRef = useRef(null);
@@ -84,10 +86,12 @@ export default function EditParking() {
           daily_rate: String(data.daily_rate ?? 10),
           allow_multi_entry: data.allow_multi_entry !== false,
           last_exit_time: data.last_exit_time || "11:00 PM",
+          has_ev: Boolean(data.has_ev),
           has_cctv: Boolean(data.has_cctv),
           has_security_guard: Boolean(data.has_security_guard),
           has_covered_roof: Boolean(data.has_covered_roof),
           is_24_7: Boolean(data.is_24_7),
+          has_valet: Boolean(data.has_valet),
         });
         if (data.image_url || data.image) {
           setEntrancePreview(data.image_url || data.image);
@@ -154,10 +158,12 @@ export default function EditParking() {
       submitData.append("daily_rate", formData.daily_rate || "10");
       submitData.append("allow_multi_entry", formData.allow_multi_entry);
       submitData.append("last_exit_time", formData.last_exit_time || "11:00 PM");
+      submitData.append("has_ev", formData.has_ev);
       submitData.append("has_cctv", formData.has_cctv);
       submitData.append("has_security_guard", formData.has_security_guard);
       submitData.append("has_covered_roof", formData.has_covered_roof);
       submitData.append("is_24_7", formData.is_24_7);
+      submitData.append("has_valet", formData.has_valet);
 
       if (entranceFile) {
         submitData.append("image", entranceFile);
@@ -522,12 +528,14 @@ export default function EditParking() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
+                  { key: "has_ev", icon: FiZap, title: "EV Rapid Charging", desc: "Dedicated EV charging bays" },
                   { key: "has_cctv", icon: FiVideo, title: "24/7 CCTV", desc: "Surveillance monitoring" },
                   { key: "has_security_guard", icon: FiShield, title: "Guard on Duty", desc: "Security on-site" },
                   { key: "has_covered_roof", icon: FiLayers, title: "Covered Roof", desc: "Rain & sun protection" },
                   { key: "is_24_7", icon: FiClock, title: "24/7 Access", desc: "Open round-the-clock" },
+                  { key: "has_valet", icon: FiKey, title: "Valet Assistance", desc: "Valet check-in service" },
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = Boolean(formData[item.key]);

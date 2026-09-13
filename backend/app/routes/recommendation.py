@@ -32,6 +32,7 @@ def calculate_distance(lat1, lon1, lat2, lon2):
         * math.sin(dlon / 2) ** 2
     )
 
+    a = max(0.0, min(1.0, a))
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
     return R * c
@@ -44,6 +45,12 @@ def recommend_parking(
     lng: float,
     db: Session = Depends(get_db)
 ):
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
+        return {
+            "success": False,
+            "total_recommendations": 0,
+            "recommendations": []
+        }
     locations = (
         db.query(ParkingLocation)
         .filter(

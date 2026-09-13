@@ -663,6 +663,12 @@ def check_in_booking(
     is_daily_pass = (getattr(booking, "pass_type", "HOURLY") or "HOURLY").upper() == "DAILY_PASS"
     allow_multi = getattr(parking, "allow_multi_entry", True)
 
+    if is_daily_pass and not allow_multi and (booking.entry_count or 0) >= 1:
+        raise HTTPException(
+            status_code=400,
+            detail="This facility does not permit re-entry on daily passes."
+        )
+
     if booking_status in ["ACTIVE", "PARKED", "CHECKED_IN"] and getattr(booking, "is_inside", False):
         slot_obj = db.query(ParkingSlot).filter(ParkingSlot.id == booking.slot_id).first() if booking.slot_id else None
         return {
@@ -844,12 +850,17 @@ def get_booking(
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-
-    booking = get_user_booking(
-        booking_id,
-        user.id,
-        db
+    booking = (
+        db.query(Booking)
+        .filter(Booking.id == booking_id)
+        .first()
     )
+
+    if not booking:
+        raise HTTPException(
+            status_code=404,
+            detail="Booking not found"
+        )
 
     parking = (
         db.query(ParkingLocation)
@@ -860,8 +871,16 @@ def get_booking(
         .first()
     )
 
-    slot = None
+    is_owner = parking and parking.owner_id == user.id
+    is_customer = booking.user_id == user.id
+    is_admin = getattr(user, "role", "").lower() == "admin"
+    if not (is_owner or is_customer or is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to view this booking"
+        )
 
+    slot = None
     if booking.slot_id:
         slot = (
             db.query(ParkingSlot)
@@ -905,6 +924,10 @@ def get_booking(
             else None
         ),
 
+        "vehicle_id": getattr(booking, "vehicle_id", None),
+        "vehicle_number": getattr(booking, "vehicle_number", None),
+        "vehicle_type": getattr(booking, "vehicle_type", "Car") or "Car",
+
         "booking_date": (
             booking.booking_date
         ),
@@ -923,7 +946,12 @@ def get_booking(
 
         "status": (
             booking.status
-        )
+        ),
+
+        "pass_type": getattr(booking, "pass_type", "HOURLY") or "HOURLY",
+        "entry_count": getattr(booking, "entry_count", 0) or 0,
+        "is_inside": getattr(booking, "is_inside", False),
+        "last_exit_rule": getattr(booking, "last_exit_rule", None)
     }
 
 

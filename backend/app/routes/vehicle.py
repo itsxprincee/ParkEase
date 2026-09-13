@@ -230,6 +230,21 @@ def delete_vehicle(
             detail="Vehicle not found"
         )
 
+    # Check if vehicle is currently inside a facility
+    active_stay = (
+        db.query(Booking)
+        .filter(
+            Booking.vehicle_id == vehicle.id,
+            Booking.is_inside == True
+        )
+        .first()
+    )
+    if active_stay:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete a vehicle that is currently parked inside a parking facility. Please check out first."
+        )
+
     # Disassociate vehicle from historical bookings to avoid foreign key violations
     db.query(Booking).filter(Booking.vehicle_id == vehicle.id).update({Booking.vehicle_id: None})
 

@@ -256,8 +256,15 @@ async def create_parking(
         raise HTTPException(status_code=400, detail="Parking name is required")
     if not address:
         raise HTTPException(status_code=400, detail="Parking address is required")
+    if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
+        raise HTTPException(
+            status_code=400,
+            detail="Latitude must be between -90 and 90, and longitude between -180 and 180."
+        )
     if total_slots <= 0:
         raise HTTPException(status_code=400, detail="Total slots must be greater than 0")
+    if total_slots > 1000:
+        raise HTTPException(status_code=400, detail="Total slots cannot exceed 1000 per facility.")
 
     if hourly_rate < 0:
         raise HTTPException(status_code=400, detail="Hourly rate cannot be negative")
@@ -958,8 +965,15 @@ async def update_parking(
         raise HTTPException(status_code=400, detail="Parking name is required")
     if not address:
         raise HTTPException(status_code=400, detail="Parking address is required")
+    if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
+        raise HTTPException(
+            status_code=400,
+            detail="Latitude must be between -90 and 90, and longitude between -180 and 180."
+        )
     if total_slots <= 0:
         raise HTTPException(status_code=400, detail="Total slots must be greater than 0")
+    if total_slots > 1000:
+        raise HTTPException(status_code=400, detail="Total slots cannot exceed 1000 per facility.")
 
     created_slots = (
         db.query(ParkingSlot)

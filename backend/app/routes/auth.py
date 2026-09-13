@@ -7,7 +7,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta
 
 from database import get_db
-from app.models import User, Vehicle, ParkingLocation, Booking, Review
+from app.models import User
 
 from pydantic import BaseModel, EmailStr
 from dotenv import load_dotenv

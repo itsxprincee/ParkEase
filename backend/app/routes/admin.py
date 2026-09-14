@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from database import get_db
 from app.models.parking import ParkingLocation
 from app.models.user import User
+from app.models.vehicle import Vehicle
+from app.models.booking import Booking
 from app.utils.auth import admin_required
 
 

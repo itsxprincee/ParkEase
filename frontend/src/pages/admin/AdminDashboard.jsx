@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   FiShield,
   FiClock,
@@ -7,6 +7,7 @@ import {
   FiRefreshCw,
   FiMapPin,
   FiUser,
+  FiUsers,
   FiSearch,
   FiEye,
   FiAlertCircle,
@@ -16,6 +17,10 @@ import {
   FiRadio,
   FiZap,
   FiDollarSign,
+  FiTruck,
+  FiMail,
+  FiPhone,
+  FiAward,
 } from "react-icons/fi";
 import API from "../../api/axios";
 import SaaSNavbar from "../../components/SaaSNavbar";
@@ -55,17 +60,19 @@ function Toast({ toast }) {
 function AnimatedNumber({ value }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
-    if (!value) {
+    let start = 0;
+    const target = Number(value) || 0;
+    if (target === 0) {
       setDisplay(0);
       return;
     }
     const steps = 20;
-    const increment = value / steps;
-    let current = 0;
+    const increment = target / steps;
+    let current = start;
     const timer = setInterval(() => {
       current += increment;
-      if (current >= value) {
-        setDisplay(value);
+      if (current >= target) {
+        setDisplay(target);
         clearInterval(timer);
       } else {
         setDisplay(Math.floor(current));
@@ -78,8 +85,20 @@ function AnimatedNumber({ value }) {
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
+  const [mainView, setMainView] = useState("verifications"); // "verifications" | "users"
+
+  // Verification state
   const [parkingList, setParkingList] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    total_users: 0,
+    total_customers: 0,
+    total_owners: 0,
+    total_admins: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
@@ -87,6 +106,13 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [inspectModal, setInspectModal] = useState({ open: false, item: null });
   const [rejectModal, setRejectModal] = useState({ open: false, item: null, reason: "" });
+
+  // Users state
+  const [usersList, setUsersList] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("all");
+  const [inspectUserModal, setInspectUserModal] = useState({ open: false, user: null });
+
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
@@ -98,15 +124,31 @@ export default function AdminDashboard() {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
-      const [parkingRes, statsRes] = await Promise.allSettled([
+      const [parkingRes, statsRes, usersRes] = await Promise.allSettled([
         API.get("/admin/parking"),
         API.get("/admin/verification-stats"),
+        API.get("/admin/users"),
       ]);
       if (parkingRes.status === "fulfilled") setParkingList(parkingRes.value.data || []);
       if (statsRes.status === "fulfilled")
-        setStats(statsRes.value.data || { total: 0, pending: 0, approved: 0, rejected: 0 });
+        setStats(
+          statsRes.value.data || {
+            total: 0,
+            pending: 0,
+            approved: 0,
+            rejected: 0,
+            total_users: 0,
+            total_customers: 0,
+            total_owners: 0,
+            total_admins: 0,
+          }
+        );
+      if (usersRes.status === "fulfilled") {
+        const uData = usersRes.value.data;
+        setUsersList(Array.isArray(uData) ? uData : uData?.users || []);
+      }
     } catch (_) {
-      showToast("Unable to load verification queue.", "error");
+      showToast("Unable to load administration telemetry.", "error");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -121,11 +163,11 @@ export default function AdminDashboard() {
     try {
       setActionLoading(id);
       await API.put(`/admin/parking/${id}/approve`);
-      showToast("Facility approved and published live!", "success");
+      showToast("Facility approved and published live across the network!", "success");
       setInspectModal({ open: false, item: null });
       loadData(true);
     } catch (error) {
-      showToast(error?.response?.data?.detail || "Failed to approve.", "error");
+      showToast(error?.response?.data?.detail || "Failed to approve listing.", "error");
     } finally {
       setActionLoading(null);
     }
@@ -138,73 +180,119 @@ export default function AdminDashboard() {
       await API.put(`/admin/parking/${rejectModal.item.id}/reject`, {
         reason: rejectModal.reason || "Documentation or address verification incomplete.",
       });
-      showToast("Facility rejected.", "success");
+      showToast("Facility listing rejected and feedback logged.", "success");
       setRejectModal({ open: false, item: null, reason: "" });
       setInspectModal({ open: false, item: null });
       loadData(true);
     } catch (error) {
-      showToast(error?.response?.data?.detail || "Failed to reject.", "error");
+      showToast(error?.response?.data?.detail || "Failed to reject listing.", "error");
     } finally {
       setActionLoading(null);
     }
   };
 
-  const filteredList = parkingList.filter((item) => {
-    const q = search.toLowerCase();
-    const matchesSearch =
-      item.name?.toLowerCase().includes(q) ||
-      item.address?.toLowerCase().includes(q) ||
-      item.owner_name?.toLowerCase().includes(q) ||
-      item.owner_email?.toLowerCase().includes(q);
-    if (!matchesSearch) return false;
-    const status = (item.verification_status || item.status || "pending").toLowerCase();
-    if (activeTab === "pending") return status === "pending";
-    if (activeTab === "approved") return status === "approved";
-    if (activeTab === "rejected") return status === "rejected";
-    return true;
-  });
+  const filteredParkingList = useMemo(() => {
+    return parkingList.filter((item) => {
+      const q = search.toLowerCase();
+      const matchesSearch =
+        item.name?.toLowerCase().includes(q) ||
+        item.address?.toLowerCase().includes(q) ||
+        item.owner_name?.toLowerCase().includes(q) ||
+        item.owner_email?.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+      const status = (item.verification_status || item.status || "pending").toLowerCase();
+      if (activeTab === "pending") return status === "pending";
+      if (activeTab === "approved") return status === "approved";
+      if (activeTab === "rejected") return status === "rejected";
+      return true;
+    });
+  }, [parkingList, search, activeTab]);
+
+  const filteredUsersList = useMemo(() => {
+    return usersList.filter((user) => {
+      const q = userSearch.toLowerCase();
+      const matchesSearch =
+        user.name?.toLowerCase().includes(q) ||
+        user.email?.toLowerCase().includes(q) ||
+        user.phone?.toLowerCase().includes(q);
+      if (!matchesSearch) return false;
+      if (userRoleFilter === "all") return true;
+      return (user.role || "customer").toLowerCase() === userRoleFilter.toLowerCase();
+    });
+  }, [usersList, userSearch, userRoleFilter]);
 
   const AMENITY_TAGS = [
     { key: "has_cctv", label: "📹 CCTV" },
     { key: "has_security_guard", label: "🛡️ Security" },
     { key: "has_covered_roof", label: "🏢 Covered" },
     { key: "is_24_7", label: "⏰ 24/7" },
+    { key: "has_ev", label: "⚡ EV Ready" },
+    { key: "has_valet", label: "🚗 Valet" },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0a0a0f] flex flex-col font-sans transition-colors relative selection:bg-[#7c3aed] selection:text-white overflow-x-hidden">
       <SaaSNavbar />
       <Toast toast={toast} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* Uber Enterprise Command Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-black dark:bg-zinc-900 text-white shadow-2xl p-6 sm:p-9 border border-zinc-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+        {/* Luxury Enterprise Command Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#0f172a] to-black text-white shadow-2xl p-6 sm:p-9 border border-[#7c3aed]/30">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#7c3aed]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
             <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-black tracking-wide border border-zinc-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>ADMIN APPROVALS</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#7c3aed]/20 text-[#a78bfa] text-xs font-black tracking-wide border border-[#7c3aed]/40">
+                <span className="w-2 h-2 rounded-full bg-[#a78bfa] animate-pulse" />
+                <span>EXECUTIVE CONTROL CENTER</span>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                Parking Spot Approvals
+                ParkEase Administration
               </h1>
-              <p className="text-xs sm:text-sm text-zinc-400 font-medium">
-                Review new parking spots submitted by owners and approve or reject them.
+              <p className="text-xs sm:text-sm text-zinc-300 font-medium">
+                Verify facility listings, inspect partner compliance, and manage platform users.
               </p>
             </div>
 
+            <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+              <button
+                onClick={() => loadData(true)}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer"
+              >
+                <FiRefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-purple-200" : ""}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+          </div>
+
+          {/* PRIMARY SECTION SELECTOR */}
+          <div className="mt-6 pt-5 border-t border-white/10 flex items-center gap-2">
             <button
-              onClick={() => loadData(true)}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-all active:scale-95 shadow-md self-start sm:self-auto cursor-pointer"
+              onClick={() => setMainView("verifications")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                mainView === "verifications"
+                  ? "bg-[#7c3aed] text-white shadow-lg shadow-[#7c3aed]/30"
+                  : "bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white"
+              }`}
             >
-              <FiRefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-purple-200" : ""}`} />
-              <span>Refresh</span>
+              <FiShield className="w-3.5 h-3.5" />
+              <span>Parking Approvals ({stats.pending} Pending)</span>
+            </button>
+            <button
+              onClick={() => setMainView("users")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                mainView === "users"
+                  ? "bg-[#7c3aed] text-white shadow-lg shadow-[#7c3aed]/30"
+                  : "bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white"
+              }`}
+            >
+              <FiUsers className="w-3.5 h-3.5" />
+              <span>User Directory ({usersList.length || stats.total_users || 0})</span>
             </button>
           </div>
         </div>
 
-        {/* STATS TILES (UBER BLACK LEVEL) */}
+        {/* STATS TILES */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {[
             {
@@ -212,44 +300,59 @@ export default function AdminDashboard() {
               label: "Pending Review",
               value: stats.pending,
               icon: FiClock,
+              color: "text-amber-400",
+              border: "border-amber-500/30",
             },
             {
               id: "approved",
-              label: "Approved & Live",
+              label: "Live Facilities",
               value: stats.approved,
               icon: FiCheckCircle,
+              color: "text-emerald-400",
+              border: "border-emerald-500/30",
             },
             {
-              id: "rejected",
-              label: "Rejected",
-              value: stats.rejected,
-              icon: FiXCircle,
+              id: "users",
+              label: "Total Accounts",
+              value: stats.total_users || usersList.length,
+              icon: FiUsers,
+              color: "text-[#a78bfa]",
+              border: "border-[#7c3aed]/30",
             },
             {
               id: "all",
-              label: "Total Locations",
+              label: "Total Listings",
               value: stats.total,
               icon: FiShield,
+              color: "text-blue-400",
+              border: "border-blue-500/30",
             },
           ].map((card) => {
             const Icon = card.icon;
-            const isSelected = activeTab === card.id;
+            const isSelected = mainView === "verifications" && activeTab === card.id;
             return (
               <div
                 key={card.id}
-                onClick={() => setActiveTab(card.id)}
-                className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between group ${
+                onClick={() => {
+                  if (card.id === "users") {
+                    setMainView("users");
+                  } else {
+                    setMainView("verifications");
+                    setActiveTab(card.id);
+                  }
+                }}
+                className={`relative overflow-hidden p-5 sm:p-6 rounded-3xl bg-zinc-950 dark:bg-black text-white border transition-all duration-300 cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-0.5 flex flex-col justify-between group ${
                   isSelected
-                    ? "border-white ring-2 ring-white shadow-white/10"
-                    : "border-zinc-800 hover:border-zinc-600"
+                    ? "border-[#7c3aed] ring-2 ring-[#7c3aed]/40 shadow-[#7c3aed]/20"
+                    : `${card.border} hover:border-zinc-500`
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/10">
                     <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     {card.label}
                   </span>
-                  <div className="w-8 h-8 rounded-xl bg-white/10 text-white border border-white/15 flex items-center justify-center font-bold group-hover:bg-white group-hover:text-black transition-all">
+                  <div className={`w-8 h-8 rounded-xl bg-white/10 ${card.color} border border-white/10 flex items-center justify-center font-bold group-hover:scale-105 transition-all`}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
@@ -261,126 +364,342 @@ export default function AdminDashboard() {
           })}
         </div>
 
-        {/* TABS + SEARCH */}
-        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-          <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
-            {[
-              { id: "pending", label: "⏳ Pending Review" },
-              { id: "approved", label: "✅ Approved" },
-              { id: "rejected", label: "❌ Rejected" },
-              { id: "all", label: "📁 All Locations" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  activeTab === tab.id
-                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-md font-black"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        {/* ========================================================= */}
+        {/* VIEW 1: PARKING VERIFICATIONS */}
+        {/* ========================================================= */}
+        {mainView === "verifications" && (
+          <div className="space-y-6">
+            {/* TABS + SEARCH */}
+            <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
+                {[
+                  { id: "pending", label: "⏳ Pending Review" },
+                  { id: "approved", label: "✅ Approved" },
+                  { id: "rejected", label: "❌ Rejected" },
+                  { id: "all", label: "📁 All Locations" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      activeTab === tab.id
+                        ? "bg-[#1e1b4b] dark:bg-[#7c3aed] text-white shadow-md font-black"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
-          <div className="relative sm:w-72">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search by name, owner, area..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
-            />
-          </div>
-        </div>
+              <div className="relative sm:w-72">
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search by name, owner, area..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
+                />
+              </div>
+            </div>
 
-        {/* APPLICATIONS LIST */}
-        {loading ? (
-          <div className="space-y-3">
-            <CardSkeleton />
-            <CardSkeleton />
-          </div>
-        ) : filteredList.length === 0 ? (
-          <EmptyState
-            icon={FiShield}
-            title="No locations pending review"
-            description="All submissions have been reviewed."
-          />
-        ) : (
-          <div className="space-y-3">
-            {filteredList.map((item) => {
-              const statusRaw = (item.verification_status || item.status || "pending").toUpperCase();
-              const badgeVariant =
-                statusRaw === "APPROVED" ? "success" : statusRaw === "REJECTED" ? "danger" : "warning";
+            {/* APPLICATIONS LIST */}
+            {loading ? (
+              <div className="space-y-3">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+            ) : filteredParkingList.length === 0 ? (
+              <EmptyState
+                icon={FiShield}
+                title="No locations in this category"
+                description="Everything in this filter has been thoroughly processed."
+              />
+            ) : (
+              <div className="space-y-3">
+                {filteredParkingList.map((item) => {
+                  const statusRaw = (item.verification_status || item.status || "pending").toUpperCase();
+                  const badgeVariant =
+                    statusRaw === "APPROVED" ? "success" : statusRaw === "REJECTED" ? "danger" : "warning";
 
-              return (
-                <div
-                  key={item.id}
-                  className="p-5 bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 shadow-xs text-xl">
-                      🅿️
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={badgeVariant} size="sm" dot>
-                          {statusRaw}
-                        </Badge>
-                        <span className="text-[11px] font-black text-zinc-400 font-mono">
-                          App #{item.id}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-black text-zinc-900 dark:text-white">
-                        {item.name}
-                      </h3>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                        <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
-                        <span>{item.address || item.location || "City Location"}</span>
-                      </p>
-                      <p className="text-[11px] text-zinc-400 font-medium">
-                        Owner: {item.owner_name || item.owner_email || "Partner"} • {item.total_slots || 12} Total Bays • ₹{item.hourly_rate ?? 50}/hr
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-end md:self-center shrink-0 flex-wrap">
-                    <button
-                      onClick={() => setInspectModal({ open: true, item })}
-                      className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-900 dark:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-5 bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
-                      <FiEye className="w-3.5 h-3.5" />
-                      <span>Inspect Details</span>
-                    </button>
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 shadow-xs text-xl">
+                          🅿️
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant={badgeVariant} size="sm" dot>
+                              {statusRaw}
+                            </Badge>
+                            <span className="text-[11px] font-black text-zinc-400 font-mono">
+                              App #{item.id}
+                            </span>
+                          </div>
+                          <h3 className="text-base font-black text-zinc-900 dark:text-white">
+                            {item.name}
+                          </h3>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                            <FiMapPin className="w-3.5 h-3.5 shrink-0 text-zinc-400" />
+                            <span>{item.address || item.location || "City Location"}</span>
+                          </p>
+                          <p className="text-[11px] text-zinc-400 font-medium">
+                            Owner: {item.owner_name || item.owner_email || "Partner"} • {item.total_slots || 12} Total Bays • ₹{item.hourly_rate ?? 50}/hr
+                          </p>
+                          {item.rejection_reason && (
+                            <p className="text-[11px] text-red-500 font-semibold bg-red-500/10 px-2 py-0.5 rounded-lg inline-block">
+                              Reason: {item.rejection_reason}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
-                    {statusRaw !== "REJECTED" && (
-                      <button
-                        onClick={() => setRejectModal({ open: true, item, reason: "" })}
-                        className="px-4 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
-                      >
-                        Reject
-                      </button>
-                    )}
+                      <div className="flex items-center gap-2 self-end md:self-center shrink-0 flex-wrap">
+                        <button
+                          onClick={() => setInspectModal({ open: true, item })}
+                          className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-900 dark:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                          <FiEye className="w-3.5 h-3.5" />
+                          <span>Inspect Details</span>
+                        </button>
 
-                    {statusRaw !== "APPROVED" && (
+                        {statusRaw !== "REJECTED" && (
+                          <button
+                            onClick={() => setRejectModal({ open: true, item, reason: "" })}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        )}
+
+                        {statusRaw !== "APPROVED" && (
+                          <button
+                            disabled={actionLoading === item.id}
+                            onClick={() => handleApprove(item.id)}
+                            className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                          >
+                            <FiCheck className="w-4 h-4 stroke-[3]" />
+                            <span>{actionLoading === item.id ? "Approving..." : "Approve & Publish"}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW 2: USER DIRECTORY & MANAGEMENT */}
+        {/* ========================================================= */}
+        {mainView === "users" && (
+          <div className="space-y-6">
+            <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl p-3 rounded-3xl border border-zinc-200/90 dark:border-zinc-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800/70 p-1.5 rounded-2xl overflow-x-auto">
+                {[
+                  { id: "all", label: "👥 All Users" },
+                  { id: "customer", label: "🚗 Drivers" },
+                  { id: "owner", label: "🏢 Facility Owners" },
+                  { id: "admin", label: "🛡️ Administrators" },
+                ].map((roleTab) => (
+                  <button
+                    key={roleTab.id}
+                    onClick={() => setUserRoleFilter(roleTab.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      userRoleFilter === roleTab.id
+                        ? "bg-[#1e1b4b] dark:bg-[#7c3aed] text-white shadow-md font-black"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {roleTab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative sm:w-72">
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search user by name, email, phone..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="pe-input pe-input-icon-left text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200/90 dark:border-zinc-700/90 rounded-2xl w-full shadow-xs"
+                />
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="space-y-3">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+            ) : filteredUsersList.length === 0 ? (
+              <EmptyState
+                icon={FiUsers}
+                title="No users found"
+                description="Try adjusting your role filter or search keyword."
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredUsersList.map((user) => {
+                  const roleUpper = (user.role || "customer").toUpperCase();
+                  const roleBadge =
+                    roleUpper === "ADMIN"
+                      ? "luxury"
+                      : roleUpper === "OWNER"
+                      ? "info"
+                      : "default";
+
+                  return (
+                    <div
+                      key={user.id}
+                      className="p-5 rounded-3xl bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200/90 dark:border-zinc-800/90 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between gap-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#1e1b4b] to-[#7c3aed] text-white flex items-center justify-center font-black text-sm shadow-sm">
+                              {user.name?.slice(0, 2).toUpperCase() || "PE"}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-sm font-black text-zinc-900 dark:text-white truncate">
+                                {user.name}
+                              </h4>
+                              <p className="text-[11px] text-zinc-400 font-mono">ID #{user.id}</p>
+                            </div>
+                          </div>
+                          <Badge variant={roleBadge} size="xs" dot>
+                            {roleUpper}
+                          </Badge>
+                        </div>
+
+                        <div className="space-y-1 text-xs text-zinc-600 dark:text-zinc-300">
+                          <p className="flex items-center gap-2 truncate">
+                            <FiMail className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                            <span className="truncate">{user.email}</span>
+                          </p>
+                          {user.phone && (
+                            <p className="flex items-center gap-2">
+                              <FiPhone className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                              <span>{user.phone}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-2 gap-2 text-[11px] font-bold">
+                          {roleUpper === "CUSTOMER" && (
+                            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800 text-center">
+                              <p className="text-zinc-400 text-[10px]">Vehicles</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white font-mono">
+                                {user.vehicles_count || 0}
+                              </p>
+                            </div>
+                          )}
+                          {roleUpper === "OWNER" && (
+                            <div className="bg-zinc-50 dark:bg-zinc-800/60 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800 text-center">
+                              <p className="text-zinc-400 text-[10px]">Facilities</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white font-mono">
+                                {user.parking_count || 0}
+                              </p>
+                            </div>
+                          )}
+                          <div className="bg-zinc-50 dark:bg-zinc-800/60 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800 text-center">
+                            <p className="text-zinc-400 text-[10px]">Reservations</p>
+                            <p className="text-sm font-black text-zinc-900 dark:text-white font-mono">
+                              {user.bookings_count || 0}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
                       <button
-                        disabled={actionLoading === item.id}
-                        onClick={() => handleApprove(item.id)}
-                        className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-black shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                        onClick={() => setInspectUserModal({ open: true, user })}
+                        className="w-full py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-900 dark:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        <FiCheck className="w-4 h-4 stroke-[3]" />
-                        <span>{actionLoading === item.id ? "Approving..." : "Approve & Publish"}</span>
+                        <FiEye className="w-3.5 h-3.5" />
+                        <span>Inspect User Account</span>
                       </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </main>
+
+      {/* ─── INSPECT USER ACCOUNT MODAL ─── */}
+      {inspectUserModal.open && inspectUserModal.user && (
+        <Modal
+          isOpen={inspectUserModal.open}
+          onClose={() => setInspectUserModal({ open: false, user: null })}
+          title={`User #${inspectUserModal.user.id} — ${inspectUserModal.user.name}`}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4 p-2">
+            <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 space-y-2 text-xs">
+              <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                <span className="text-zinc-400 font-bold uppercase text-[10px]">Role Type</span>
+                <Badge variant={inspectUserModal.user.role === "admin" ? "luxury" : "info"} size="xs">
+                  {(inspectUserModal.user.role || "customer").toUpperCase()}
+                </Badge>
+              </div>
+              <p className="text-sm font-black text-zinc-900 dark:text-white">
+                {inspectUserModal.user.name}
+              </p>
+              <p className="text-zinc-500 dark:text-zinc-400">
+                Email: <span className="font-semibold text-zinc-800 dark:text-zinc-200">{inspectUserModal.user.email}</span>
+              </p>
+              <p className="text-zinc-500 dark:text-zinc-400">
+                Phone: <span className="font-semibold text-zinc-800 dark:text-zinc-200">{inspectUserModal.user.phone || "Not provided"}</span>
+              </p>
+            </div>
+
+            {inspectUserModal.user.emergency_contact_name && (
+              <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-xs space-y-1">
+                <p className="font-bold text-zinc-400 uppercase text-[10px]">Emergency Contact</p>
+                <p className="font-bold text-zinc-900 dark:text-white">
+                  {inspectUserModal.user.emergency_contact_name} ({inspectUserModal.user.emergency_contact_phone || "N/A"})
+                </p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 text-center text-xs">
+              <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                <p className="text-zinc-400 text-[10px] uppercase font-bold">Total Bookings</p>
+                <p className="text-lg font-black text-zinc-900 dark:text-white font-mono">
+                  {inspectUserModal.user.bookings_count || 0}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700">
+                <p className="text-zinc-400 text-[10px] uppercase font-bold">
+                  {inspectUserModal.user.role === "owner" ? "Facilities" : "Vehicles"}
+                </p>
+                <p className="text-lg font-black text-zinc-900 dark:text-white font-mono">
+                  {inspectUserModal.user.role === "owner"
+                    ? inspectUserModal.user.parking_count || 0
+                    : inspectUserModal.user.vehicles_count || 0}
+                </p>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setInspectUserModal({ open: false, user: null })}
+            >
+              Close
+            </Button>
+          </div>
+        </Modal>
+      )}
 
       {/* ─── INSPECT FACILITY MODAL ─── */}
       {inspectModal.open && inspectModal.item && (

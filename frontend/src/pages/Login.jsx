@@ -163,9 +163,14 @@ export default function Login() {
     }
     try {
       setLoading(true);
-      await API.post("/auth/send-otp", { email: signUpEmail });
+      const res = await API.post("/auth/send-otp", { email: signUpEmail });
       setStep(2);
-      showToast("Verification OTP sent to your email!", "success");
+      if (res.data?.debug_otp) {
+        setOtp(res.data.debug_otp);
+        showToast(`Verification OTP: ${res.data.debug_otp} (Dev fallback)`, "info");
+      } else {
+        showToast("Verification OTP sent to your email!", "success");
+      }
     } catch (error) {
       showToast(error?.response?.data?.detail || "Failed to send verification code.", "error");
     } finally {

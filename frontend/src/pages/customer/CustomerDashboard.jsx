@@ -216,12 +216,23 @@ export default function CustomerDashboard() {
   const [loading, setLoading] = useState(true);
   const [userCoords, setUserCoords] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
   const [findCarModalBooking, setFindCarModalBooking] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadRecommendations = async (lat, lng) => {
+    if (!lat || !lng) return;
+    try {
+      const recRes = await API.get(`/recommend?lat=${lat}&lng=${lng}`);
+      if (recRes.data?.recommendations && Array.isArray(recRes.data.recommendations)) {
+        setRecommendations(recRes.data.recommendations);
+      }
+    } catch (_) {}
   };
 
   const loadData = async () => {
@@ -249,6 +260,13 @@ export default function CustomerDashboard() {
               ? raw.data
               : [];
         setParkingLocations(list);
+
+        if (list.length > 0) {
+          const firstValid = list.find((p) => p.latitude && p.longitude);
+          if (firstValid) {
+            loadRecommendations(firstValid.latitude, firstValid.longitude);
+          }
+        }
       }
 
       if (bookingRes.status === "fulfilled") {
@@ -280,6 +298,7 @@ export default function CustomerDashboard() {
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserCoords(coords);
+        loadRecommendations(coords.lat, coords.lng);
         setSelectedFilter("NEARBY");
         setIsLocating(false);
         showToast("📍 Exact location detected! Sorted by nearest distance.", "success");
@@ -289,6 +308,7 @@ export default function CustomerDashboard() {
         const fallbackLat = parkingLocations[0]?.latitude || 19.0864;
         const fallbackLng = parkingLocations[0]?.longitude || 72.8890;
         setUserCoords({ lat: fallbackLat, lng: fallbackLng });
+        loadRecommendations(fallbackLat, fallbackLng);
         setSelectedFilter("NEARBY");
         showToast("📍 Centered on closest verified parking hub.", "info");
       },
@@ -541,6 +561,61 @@ export default function CustomerDashboard() {
             })}
           </div>
         </div>
+
+        {/* ══════════════════════════════════════════════════════════════════
+            2.5 SMART AI RECOMMENDATIONS (HAISERVINE DISTANCE + SLOTS)
+        ══════════════════════════════════════════════════════════════════ */}
+        {recommendations.length > 0 && !search && (
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-[#1e1b4b]/80 via-zinc-900/90 to-zinc-900/90 border border-[#7c3aed]/30 shadow-lg backdrop-blur-xl space-y-3">
+            <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2.5 w-2.5 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#a78bfa] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#7c3aed]"></span>
+                </span>
+                <span className="text-xs font-black uppercase tracking-wider text-[#c4b5fd]">
+                  Smart Recommendations For You
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-zinc-400">
+                Top {Math.min(recommendations.length, 3)} Best Match Picks
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {recommendations.slice(0, 3).map((rec) => (
+                <div
+                  key={rec.id}
+                  onClick={() => navigate(`/customer/parking/${rec.id}/book`)}
+                  className="p-3.5 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 hover:border-[#7c3aed]/50 transition-all cursor-pointer group flex flex-col justify-between gap-2.5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-black text-white group-hover:text-[#a78bfa] transition-colors truncate">
+                        {rec.name}
+                      </h4>
+                      <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                        {rec.address}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#7c3aed]/20 text-[#a78bfa] border border-[#7c3aed]/30 shrink-0">
+                      {rec.distance_km} km
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/5">
+                    <span className="text-emerald-400 font-bold">
+                      ● {rec.available_slots} slots available
+                    </span>
+                    <span className="text-xs font-black text-white group-hover:translate-x-1 transition-transform flex items-center gap-1 text-[#a78bfa]">
+                      Book &rarr;
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ══════════════════════════════════════════════════════════════════
             3. MAIN CONTENT: SPLIT OR GRID

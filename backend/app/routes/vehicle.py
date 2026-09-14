@@ -246,7 +246,7 @@ def delete_vehicle(
         )
 
     # Disassociate vehicle from historical bookings to avoid foreign key violations
-    db.query(Booking).filter(Booking.vehicle_id == vehicle.id).update({Booking.vehicle_id: None})
+    db.query(Booking).filter(Booking.vehicle_id == vehicle.id).update({Booking.vehicle_id: None}, synchronize_session=False)
 
     db.delete(vehicle)
     db.commit()

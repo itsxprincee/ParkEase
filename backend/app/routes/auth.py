@@ -578,13 +578,17 @@ def send_signup_otp(
 
     print(f"\n[SIGNUP OTP FOR {email}]: {otp} (email_sent={email_sent})\n")
 
-    return {
+    ret = {
         "success": True,
-        "message": "Verification code generated and sent.",
+        "message": "Verification code generated and sent to your email." if email_sent else f"Verification code generated (Email offline in dev; code: {otp}).",
         "email": email,
         "email_delivered": email_sent,
         "expires_in": 600
     }
+    if not email_sent:
+        ret["debug_otp"] = otp
+
+    return ret
 
 
 # =========================================================

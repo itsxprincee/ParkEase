@@ -325,9 +325,71 @@ def verification_stats(
         .count()
     )
 
+    total_users = db.query(User).count()
+    total_customers = db.query(User).filter(func.lower(User.role) == "customer").count()
+    total_owners = db.query(User).filter(func.lower(User.role) == "owner").count()
+    total_admins = db.query(User).filter(func.lower(User.role) == "admin").count()
+
     return {
         "total": total,
         "pending": pending,
         "approved": approved,
-        "rejected": rejected
+        "rejected": rejected,
+        "total_users": total_users,
+        "total_customers": total_customers,
+        "total_owners": total_owners,
+        "total_admins": total_admins,
+    }
+
+
+# =========================================================
+# USER DIRECTORY & MANAGEMENT
+# =========================================================
+
+@router.get("/users")
+def get_all_users(
+    role: str | None = None,
+    q: str | None = None,
+    db: Session = Depends(get_db),
+    admin=Depends(admin_required)
+):
+    query = db.query(User)
+
+    if role and role.lower() != "all":
+        query = query.filter(func.lower(User.role) == role.lower().strip())
+
+    if q and q.strip():
+        search_term = f"%{q.strip().lower()}%"
+        query = query.filter(
+            func.lower(User.name).like(search_term) |
+            func.lower(User.email).like(search_term) |
+            func.lower(User.phone).like(search_term)
+        )
+
+    users = query.order_by(User.id.desc()).all()
+
+    user_list = []
+    for u in users:
+        u_role = (u.role or "customer").lower()
+        vehicles_count = db.query(Vehicle).filter(Vehicle.user_id == u.id).count() if u_role == "customer" else 0
+        parking_count = db.query(ParkingLocation).filter(ParkingLocation.owner_id == u.id).count() if u_role == "owner" else 0
+        bookings_count = db.query(Booking).filter(Booking.user_id == u.id).count()
+
+        user_list.append({
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "role": u.role,
+            "phone": u.phone,
+            "is_verified": bool(getattr(u, "is_verified", True)),
+            "emergency_contact_name": u.emergency_contact_name,
+            "emergency_contact_phone": u.emergency_contact_phone,
+            "vehicles_count": vehicles_count,
+            "parking_count": parking_count,
+            "bookings_count": bookings_count,
+        })
+
+    return {
+        "total": len(user_list),
+        "users": user_list
     }

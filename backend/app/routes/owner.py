@@ -444,7 +444,9 @@ def get_owner_live_dashboard(
     live_bookings_data = []
     for b in all_bookings[:50]:
         cust = db.query(User).filter(User.id == b.user_id).first()
-        veh = db.query(Vehicle).filter(Vehicle.user_id == b.user_id).first()
+        veh = db.query(Vehicle).filter(Vehicle.id == b.vehicle_id).first() if getattr(b, "vehicle_id", None) else None
+        if not veh:
+            veh = db.query(Vehicle).filter(Vehicle.user_id == b.user_id).first()
         s_obj = db.query(ParkingSlot).filter(ParkingSlot.id == b.slot_id).first() if b.slot_id else None
         p_obj = next((l for l in locations if l.id == b.parking_location_id), None)
 

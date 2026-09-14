@@ -148,7 +148,7 @@ export default function SaaSNavbar() {
       ]
     : [
         { name: "Admin", path: "/admin", icon: FiShield },
-        { name: "Profile", path: "/customer/profile", icon: FiUser },
+        { name: "Profile", path: "/profile", icon: FiUser },
       ];
 
   return (
@@ -304,7 +304,7 @@ export default function SaaSNavbar() {
                       <button
                         onClick={() => {
                           setProfileOpen(false);
-                          navigate(isOwner ? "/owner/profile" : "/customer/profile");
+                          navigate(isOwner ? "/owner/profile" : "/profile");
                         }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                       >

@@ -82,7 +82,24 @@ function ProtectedRoute({
   // =====================================================
 
   if (!ownerOnly && !adminOnly) {
-    if (location.pathname.startsWith("/customer")) {
+    if (location.pathname === "/customer/profile") {
+      if (role === "owner") {
+        return (
+          <Navigate
+            to="/owner/profile"
+            replace
+          />
+        );
+      }
+      if (role === "admin") {
+        return (
+          <Navigate
+            to="/profile"
+            replace
+          />
+        );
+      }
+    } else if (location.pathname.startsWith("/customer")) {
       if (role === "owner") {
         return (
           <Navigate

@@ -7,6 +7,7 @@ const variants = {
   danger: "bg-rose-500/10 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-500/20",
   info: "bg-sky-500/10 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 border border-sky-500/20",
   purple: "bg-purple-500/10 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-500/20",
+  luxury: "bg-[#1e1b4b]/10 dark:bg-[#1e1b4b]/70 text-[#7c3aed] dark:text-[#a78bfa] border border-[#7c3aed]/30",
   primary: "bg-blue-500/10 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-500/20",
   black: "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-xs",
 };
@@ -18,6 +19,7 @@ const dotColors = {
   danger: "bg-rose-500",
   info: "bg-sky-500",
   purple: "bg-purple-500",
+  luxury: "bg-[#7c3aed]",
   primary: "bg-blue-500",
   black: "bg-white dark:bg-zinc-950",
 };

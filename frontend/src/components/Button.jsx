@@ -24,6 +24,10 @@ const variantMap = {
     "bg-white text-zinc-950 border border-zinc-200 hover:shadow-md focus:ring-2 focus:ring-black/10 shadow-sm",
   accent:
     "bg-[#276ef1] text-white hover:bg-[#1d5cd4] focus:ring-2 focus:ring-blue-400/30 shadow-sm",
+  luxury:
+    "bg-[#1e1b4b] hover:bg-[#2e2a72] text-white border border-[#7c3aed]/40 hover:border-[#a78bfa]/60 focus:ring-2 focus:ring-[#7c3aed]/50 shadow-md shadow-[#1e1b4b]/30",
+  purple:
+    "bg-[#7c3aed] hover:bg-[#6d28d9] text-white focus:ring-2 focus:ring-[#a78bfa]/40 shadow-md shadow-[#7c3aed]/25",
 };
 
 export default function Button({
